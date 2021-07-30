@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension format="1.0">
+  <extension_code>authent-token</extension_code>
+  <version>1.0.0</version>
+  <label><![CDATA[User authentication by token]]></label>
+  <description><![CDATA[Allow User authentication using token]]></description>
+  <mandatory>false</mandatory>
+  <more_info_url></more_info_url>
+</extension>

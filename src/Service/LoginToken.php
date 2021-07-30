@@ -28,20 +28,16 @@ class LoginToken extends AbstractLoginFSMExtension
 	{
 		if (!isset($_SESSION['login_mode']) && !$this->bErrorOccurred)
 		{
-			$sAuthToken = utils::ReadParam('auth_token', null, false, 'raw_data');
+			if (isset($_SERVER['HTTP_AUTH_TOKEN'])) {
+				$sAuthToken = $_SERVER['HTTP_AUTH_TOKEN'];
+			} else {
+				$sAuthToken = utils::ReadParam('auth_token', null, false, 'raw_data');
+			}
 			if (!empty($sAuthToken))
 			{
 				$_SESSION['login_mode'] = 'token';
+				$_SESSION['login_temp_auth_token'] = $sAuthToken;
 			}
-		}
-		return LoginWebPage::LOGIN_FSM_CONTINUE;
-	}
-
-	protected function OnReadCredentials(&$iErrorCode)
-	{
-		if ($_SESSION['login_mode'] == 'token')
-		{
-			$_SESSION['login_temp_auth_token'] =  utils::ReadParam('auth_token', '', false, 'raw_data');
 		}
 		return LoginWebPage::LOGIN_FSM_CONTINUE;
 	}
@@ -50,7 +46,7 @@ class LoginToken extends AbstractLoginFSMExtension
 	{
 		if ($_SESSION['login_mode'] == 'token')
 		{
-			$sAuthToken = utils::ReadParam('auth_token', null, false, 'raw_data');
+			$sAuthToken = $_SESSION['login_temp_auth_token'];
 			if (!_UserToken::CheckToken($sAuthToken))
 			{
 				$iErrorCode = LoginWebPage::EXIT_CODE_WRONGCREDENTIALS;
@@ -64,7 +60,7 @@ class LoginToken extends AbstractLoginFSMExtension
 	{
 		if ($_SESSION['login_mode'] == 'token')
 		{
-			$sAuthToken = utils::ReadParam('auth_token', null, false, 'raw_data');
+			$sAuthToken = $_SESSION['login_temp_auth_token'];
 			$oUser = _UserToken::GetUser($sAuthToken);
 			LoginWebPage::OnLoginSuccess($oUser->Get('login'), 'internal', $_SESSION['login_mode']);
 		}

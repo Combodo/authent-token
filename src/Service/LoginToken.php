@@ -1,5 +1,7 @@
 <?php
 
+use Combodo\iTop\Application\Helper\Session;
+
 /**
  * Class LoginToken
  *
@@ -26,7 +28,7 @@ class LoginToken extends AbstractLoginFSMExtension
 
 	protected function OnModeDetection(&$iErrorCode)
 	{
-		if (!isset($_SESSION['login_mode']) && !$this->bErrorOccurred)
+		if (!Session::IsSet('login_mode') && !$this->bErrorOccurred)
 		{
 			if (isset($_SERVER['HTTP_AUTH_TOKEN'])) {
 				$sAuthToken = $_SERVER['HTTP_AUTH_TOKEN'];
@@ -35,8 +37,8 @@ class LoginToken extends AbstractLoginFSMExtension
 			}
 			if (!empty($sAuthToken))
 			{
-				$_SESSION['login_mode'] = 'token';
-				$_SESSION['login_temp_auth_token'] = $sAuthToken;
+				Session::Set('login_mode', 'token');
+				Session::Set('login_temp_auth_token', $sAuthToken);
 			}
 		}
 		return LoginWebPage::LOGIN_FSM_CONTINUE;
@@ -44,9 +46,9 @@ class LoginToken extends AbstractLoginFSMExtension
 
 	protected function OnCheckCredentials(&$iErrorCode)
 	{
-		if ($_SESSION['login_mode'] == 'token')
+		if (Session::Get('login_mode') == 'token')
 		{
-			$sAuthToken = $_SESSION['login_temp_auth_token'];
+			$sAuthToken = Session::Get('login_temp_auth_token');
 			if (!_UserToken::CheckToken($sAuthToken))
 			{
 				$iErrorCode = LoginWebPage::EXIT_CODE_WRONGCREDENTIALS;
@@ -58,18 +60,18 @@ class LoginToken extends AbstractLoginFSMExtension
 
 	protected function OnCredentialsOK(&$iErrorCode)
 	{
-		if ($_SESSION['login_mode'] == 'token')
+		if (Session::Get('login_mode') == 'token')
 		{
-			$sAuthToken = $_SESSION['login_temp_auth_token'];
+			$sAuthToken = Session::Get('login_temp_auth_token');
 			$oUser = _UserToken::GetUser($sAuthToken);
-			LoginWebPage::OnLoginSuccess($oUser->Get('login'), 'internal', $_SESSION['login_mode']);
+			LoginWebPage::OnLoginSuccess($oUser->Get('login'), 'internal', Session::Get('login_mode'));
 		}
 		return LoginWebPage::LOGIN_FSM_CONTINUE;
 	}
 
 	protected function OnError(&$iErrorCode)
 	{
-		if ($_SESSION['login_mode'] == 'token')
+		if (Session::Get('login_mode') == 'token')
 		{
 			$this->bErrorOccurred = true;
 		}
@@ -78,9 +80,9 @@ class LoginToken extends AbstractLoginFSMExtension
 
 	protected function OnConnected(&$iErrorCode)
 	{
-		if ($_SESSION['login_mode'] == 'token')
+		if (Session::Get('login_mode') == 'token')
 		{
-			$_SESSION['can_logoff'] = true;
+			Session::Set('can_logoff', true);
 			return LoginWebPage::CheckLoggedUser($iErrorCode);
 		}
 		return LoginWebPage::LOGIN_FSM_CONTINUE;

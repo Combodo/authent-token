@@ -37,8 +37,10 @@ class LoginToken extends AbstractLoginFSMExtension
 			}
 			if (!empty($sAuthToken))
 			{
+				Session::Start();
 				Session::Set('login_mode', 'token');
 				Session::Set('login_temp_auth_token', $sAuthToken);
+				Session::WriteClose();
 			}
 		}
 		return LoginWebPage::LOGIN_FSM_CONTINUE;

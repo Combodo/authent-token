@@ -11,5 +11,7 @@ Dict::Add('EN US', 'English', 'English', array(
 	'AuthentToken:RebuildToken' => 'Rebuild token',
 	'AuthentToken:RebuildToken+' => 'The authentification token will be recreated, BEWARE the previous one will be lost',
 
-	'Class:UserToken/Attribute:login' => 'Description',
+	'Class:UserToken' => 'Token based user',
+	'Class:UserToken/Attribute:login' => 'Remote application',
+	'Class:UserToken/Attribute:login+' => 'Remote application identification string',
 ));

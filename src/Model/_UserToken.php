@@ -13,7 +13,7 @@ class _UserToken extends UserInternal
 {
 	private $sToken;
 	/**
-	 * @var UserToken
+	 * @var array[_UserToken]
 	 */
 	private static $aCurrentUser = [];
 
@@ -55,7 +55,7 @@ class _UserToken extends UserInternal
 		return false;
 	}
 
-	public function DisplayBareHeader(WebPage $oPage, $bEditMode = false, $sMode = self::ENUM_OBJECT_MODE_VIEW)
+	public function DisplayBareHeader(WebPage $oPage, $bEditMode = false)
 	{
 		$bRebuildToken = utils::ReadParam('rebuild_Token', 0);
 		if ($bRebuildToken) {
@@ -65,12 +65,12 @@ class _UserToken extends UserInternal
 			$this::SetSessionMessage(get_class($this), $this->GetKey(), 1, $sMessage, WebPage::ENUM_SESSION_MESSAGE_SEVERITY_INFO, 1);
 		}
 
-		return parent::DisplayBareHeader($oPage, $bEditMode, $sMode);
+		return parent::DisplayBareHeader($oPage, $bEditMode);
 	}
 
-	public function DisplayDetails(WebPage $oPage, $bEditMode = false, $sMode = self::ENUM_OBJECT_MODE_VIEW)
+	public function DisplayDetails(WebPage $oPage, $bEditMode = false)
 	{
-		parent::DisplayDetails($oPage, $bEditMode, $sMode);
+		parent::DisplayDetails($oPage, $bEditMode);
 		$oPage->SetCurrentTab('UI:PropertiesTab');
 		$oForm = FormUIBlockFactory::MakeStandard();
 		$oButton = ButtonUIBlockFactory::MakeForDestructiveAction(Dict::S('AuthentToken:RebuildToken'), 'rebuild_Token', 1, true);

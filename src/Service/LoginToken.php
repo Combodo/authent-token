@@ -11,6 +11,8 @@ use Combodo\iTop\Application\Helper\Session;
 
 class LoginToken extends AbstractLoginFSMExtension
 {
+	const LOGIN_TYPE = 'rest-token';
+
 	/**
 	 * @var bool
 	 */
@@ -23,7 +25,7 @@ class LoginToken extends AbstractLoginFSMExtension
 	 */
 	public function ListSupportedLoginModes()
 	{
-		return array('token');
+		return array(self::LOGIN_TYPE);
 	}
 
 	protected function OnModeDetection(&$iErrorCode)
@@ -38,7 +40,7 @@ class LoginToken extends AbstractLoginFSMExtension
 			if (!empty($sAuthToken))
 			{
 				Session::Start();
-				Session::Set('login_mode', 'token');
+				Session::Set('login_mode', self::LOGIN_TYPE);
 				Session::Set('login_temp_auth_token', $sAuthToken);
 				Session::WriteClose();
 			}
@@ -48,7 +50,7 @@ class LoginToken extends AbstractLoginFSMExtension
 
 	protected function OnCheckCredentials(&$iErrorCode)
 	{
-		if (Session::Get('login_mode') == 'token')
+		if (Session::Get('login_mode') == self::LOGIN_TYPE)
 		{
 			$sAuthToken = Session::Get('login_temp_auth_token');
 			if (!_UserToken::CheckToken($sAuthToken))
@@ -62,7 +64,7 @@ class LoginToken extends AbstractLoginFSMExtension
 
 	protected function OnCredentialsOK(&$iErrorCode)
 	{
-		if (Session::Get('login_mode') == 'token')
+		if (Session::Get('login_mode') == self::LOGIN_TYPE)
 		{
 			$sAuthToken = Session::Get('login_temp_auth_token');
 			$oUser = _UserToken::GetUser($sAuthToken);
@@ -73,7 +75,7 @@ class LoginToken extends AbstractLoginFSMExtension
 
 	protected function OnError(&$iErrorCode)
 	{
-		if (Session::Get('login_mode') == 'token')
+		if (Session::Get('login_mode') == self::LOGIN_TYPE)
 		{
 			$this->bErrorOccurred = true;
 		}
@@ -82,7 +84,7 @@ class LoginToken extends AbstractLoginFSMExtension
 
 	protected function OnConnected(&$iErrorCode)
 	{
-		if (Session::Get('login_mode') == 'token')
+		if (Session::Get('login_mode') == self::LOGIN_TYPE)
 		{
 			Session::Set('can_logoff', true);
 			return LoginWebPage::CheckLoggedUser($iErrorCode);

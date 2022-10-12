@@ -62,7 +62,7 @@ class _UserToken extends UserInternal
 			$this->CreateNewToken();
 			$this->DBUpdate();
 			$sMessage = Dict::Format('AuthentToken:CopyToken', $this->sToken);
-			$this::SetSessionMessage(get_class($this), $this->GetKey(), 1, $sMessage, WebPage::ENUM_SESSION_MESSAGE_SEVERITY_INFO, 1);
+			$this::SetSessionMessage(get_class($this), $this->GetKey(), 1, $sMessage, 'INFO', 1);
 		}
 
 		return parent::DisplayBareHeader($oPage, $bEditMode);
@@ -72,11 +72,22 @@ class _UserToken extends UserInternal
 	{
 		parent::DisplayDetails($oPage, $bEditMode);
 		$oPage->SetCurrentTab('UI:PropertiesTab');
-		$oForm = FormUIBlockFactory::MakeStandard();
-		$oButton = ButtonUIBlockFactory::MakeForDestructiveAction(Dict::S('AuthentToken:RebuildToken'), 'rebuild_Token', 1, true);
-		$oButton->SetTooltip(Dict::S('AuthentToken:RebuildToken+'));
-		$oForm->AddSubBlock($oButton);
-		$oPage->AddSubBlock($oForm);
+
+		if (version_compare(ITOP_DESIGN_LATEST_VERSION, '2.7', '<=')) {
+			$sButtonLabel = Dict::S('AuthentToken:RebuildToken');
+			$sHtml = <<<HTML
+<form method="post">
+	<button type="submit" name="rebuild_Token" value="1">{$sButtonLabel}</button>
+</form>
+HTML;
+			$oPage->add($sHtml);
+		} else {
+			$oForm = FormUIBlockFactory::MakeStandard();
+			$oButton = ButtonUIBlockFactory::MakeForDestructiveAction(Dict::S('AuthentToken:RebuildToken'), 'rebuild_Token', 1, true);
+			$oButton->SetTooltip(Dict::S('AuthentToken:RebuildToken+'));
+			$oForm->AddSubBlock($oButton);
+			$oPage->AddSubBlock($oForm);
+		}
 	}
 
 
@@ -91,7 +102,7 @@ class _UserToken extends UserInternal
 	public function AfterInsert()
 	{
 		$sMessage = Dict::Format('AuthentToken:CopyToken', $this->sToken);
-		$this::SetSessionMessage(get_class($this), $this->GetKey(), 1, $sMessage, WebPage::ENUM_SESSION_MESSAGE_SEVERITY_INFO, 1);
+		$this::SetSessionMessage(get_class($this), $this->GetKey(), 1, $sMessage, 'INFO', 1);
 		parent::AfterInsert();
 	}
 

@@ -7,6 +7,8 @@
 
 namespace Combodo\iTop\Application\Helper;
 
+use utils;
+
 /*
  * This is just a duplicate of the same class on iTop 3.0+ to make the module compatible with iTop 2.7
  */
@@ -20,12 +22,21 @@ if (false === class_exists('Combodo\\iTop\\Application\\Helper\\Session')) {
 	 */
 	class Session
 	{
+		/** @var int|null */
 		public static $iSessionId = null;
+		/** @var bool */
 		protected static $bIsInitialized = false;
+		/** @var bool */
 		protected static $bSessionStarted = false;
+		/** @var bool */
+		public static $bAllowCLI = false;
 
 		public static function Start()
 		{
+			if (self::IsModeCLI()) {
+				return;
+			}
+
 			if (!self::$bIsInitialized) {
 				session_name('itop-'.md5(APPROOT));
 			}
@@ -33,7 +44,7 @@ if (false === class_exists('Combodo\\iTop\\Application\\Helper\\Session')) {
 			if (!self::$bSessionStarted) {
 				if (!is_null(self::$iSessionId)) {
 					if (session_id(self::$iSessionId) === false) {
-						session_regenerate_id();
+						session_regenerate_id(true);
 					}
 				}
 				self::$bSessionStarted = session_start();
@@ -41,30 +52,59 @@ if (false === class_exists('Combodo\\iTop\\Application\\Helper\\Session')) {
 			}
 		}
 
+		public static function RegenerateId($bDeleteOldSession = false)
+		{
+			if (self::IsModeCLI()) {
+				return;
+			}
+
+			session_regenerate_id($bDeleteOldSession);
+			if (self::$bSessionStarted) {
+				self::WriteClose();
+			}
+			self::$bSessionStarted = session_start();
+			self::$iSessionId = session_id();
+		}
+
 		public static function WriteClose()
 		{
+			if (self::IsModeCLI()) {
+				return;
+			}
+
+			if (self::$bSessionStarted) {
+				session_write_close();
+				self::$bSessionStarted = false;
+			}
 		}
 
 		/**
 		 * @param string|array $key key to access to the session variable. To access to $_SESSION['a']['b'] $key must be ['a', 'b']
-		 * @param $value
+		 * @param              $value
 		 */
 		public static function Set($key, $value)
 		{
-			$sSessionVar = &$_SESSION;
+			if (!isset($_SESSION) || self::Get($key) == $value) {
+				return;
+			}
+			$aSession = $_SESSION;
+			$sSessionVar = &$aSession;
 			if (is_array($key)) {
 				foreach ($key as $sKey) {
 					$sSessionVar = &$sSessionVar[$sKey];
 				}
-			} else {
+			}
+			else {
 				$sSessionVar = &$sSessionVar[$key];
 			}
+			$sSessionVar = $value;
 			if (!self::$bSessionStarted) {
 				self::Start();
-				$sSessionVar = $value;
+				$_SESSION = $aSession;
 				self::WriteClose();
-			} else {
-				$sSessionVar = $value;
+			}
+			else {
+				$_SESSION = $aSession;
 			}
 		}
 
@@ -92,7 +132,8 @@ if (false === class_exists('Combodo\\iTop\\Application\\Helper\\Session')) {
 					unset($sSessionVar[$sKey]);
 					$_SESSION = $aSession;
 					self::WriteClose();
-				} else {
+				}
+				else {
 					unset($sSessionVar[$sKey]);
 					$_SESSION = $aSession;
 				}
@@ -101,23 +142,27 @@ if (false === class_exists('Combodo\\iTop\\Application\\Helper\\Session')) {
 
 		/**
 		 * @param string|array $key key to access to the session variable. To access to $_SESSION['a']['b'] $key must be ['a', 'b']
-		 * @param $default
+		 * @param              $default
 		 *
 		 * @return mixed
 		 */
 		public static function Get($key, $default = null)
 		{
-			$sSessionVar = &$_SESSION;
-			if (is_array($key)) {
-				foreach ($key as $SKey) {
-					$sSessionVar = &$sSessionVar[$SKey];
+			if (isset($_SESSION)) {
+				$aSession = $_SESSION;
+				$sSessionVar = &$aSession;
+				if (is_array($key)) {
+					foreach ($key as $SKey) {
+						$sSessionVar = &$sSessionVar[$SKey];
+					}
 				}
-			} else {
-				$sSessionVar = &$sSessionVar[$key];
-			}
+				else {
+					$sSessionVar = &$sSessionVar[$key];
+				}
 
-			if (isset($sSessionVar)) {
-				return $sSessionVar;
+				if (isset($sSessionVar)) {
+					return $sSessionVar;
+				}
 			}
 
 			return $default;
@@ -130,12 +175,18 @@ if (false === class_exists('Combodo\\iTop\\Application\\Helper\\Session')) {
 		 */
 		public static function IsSet($key): bool
 		{
-			$sSessionVar = &$_SESSION;
+			if (!isset($_SESSION)) {
+				return false;
+			}
+
+			$aSession = $_SESSION;
+			$sSessionVar = &$aSession;
 			if (is_array($key)) {
 				foreach ($key as $SKey) {
 					$sSessionVar = &$sSessionVar[$SKey];
 				}
-			} else {
+			}
+			else {
 				$sSessionVar = &$sSessionVar[$key];
 			}
 
@@ -160,7 +211,18 @@ if (false === class_exists('Combodo\\iTop\\Application\\Helper\\Session')) {
 		 */
 		public static function GetLog()
 		{
-			return print_r($_SESSION, true);
+			return print_r($_SESSION,
+				true);
+		}
+
+		private static function IsModeCLI(): bool
+		{
+			if (self::$bAllowCLI) {
+
+				return false;
+			}
+
+			return utils::IsModeCLI();
 		}
 	}
 }

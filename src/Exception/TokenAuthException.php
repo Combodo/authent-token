@@ -1,8 +1,8 @@
 <?php
 namespace Combodo\iTop\Extension\Exception;
 
-use Combodo\iTop\Extension\AuthentToken\Helper\TokenAuthHelper;
-use Combodo\iTop\Extension\AuthentToken\Helper\TokenAuthLog;
+use Combodo\iTop\Extension\Helper\TokenAuthHelper;
+use Combodo\iTop\Extension\Helper\TokenAuthLog;
 use Exception;
 
 class TokenAuthException extends Exception

@@ -3,8 +3,8 @@
 namespace Combodo\iTop\Extension\Service;
 use Combodo\iTop\Application\Helper\Session;
 use AbstractLoginFSMExtension;
-use Combodo\iTop\Extension\AuthentToken\Exception\TokenAuthException;
-use Combodo\iTop\Extension\AuthentToken\Model\_PersonalToken;
+use Combodo\iTop\Extension\Exception\TokenAuthException;
+use Combodo\iTop\Extension\Model\_PersonalToken;
 use LoginWebPage;
 use utils;
 use User;

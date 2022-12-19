@@ -1,12 +1,12 @@
 <?php
-namespace Combodo\iTop\Extension\AuthentToken\Test;
+namespace Combodo\iTop\Extension\Test;
 
 require_once __DIR__.'/AbstractRestTest.php';
 use Combodo\iTop\Test\UnitTest\ItopDataTestCase;
 use Exception;
 use MetaModel;
 use AttributeDateTime;
-use Combodo\iTop\Extension\AuthentToken\Service\TokenLoginExtension;
+use Combodo\iTop\Extension\Service\TokenLoginExtension;
 
 
 /**

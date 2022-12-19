@@ -7,6 +7,11 @@
 			"Combodo\\iTop\\Extension\\" : "src"
 		}
 	},
+	"autoload-dev": {
+		"psr-4": {
+			"Combodo\\iTop\\Extension\\Test\\": "test/"
+		}
+	},
 	"name" : "combodo/authent-token",
 	"type" : "itop-extension",
 	"description" : "User authentication by token",

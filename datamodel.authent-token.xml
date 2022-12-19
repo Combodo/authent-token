@@ -3,6 +3,134 @@
   <constants>
   </constants>
   <classes>
+    <class id="PersonalToken" _delta="define">
+      <parent>cmdbAbstractObject</parent>
+      <php_parent>
+        <name>Combodo\iTop\Extension\AuthentToken\Model\_PersonalToken</name>
+      </php_parent>
+      <properties>
+        <category>addon/authentication,grant_by_profile</category>
+        <abstract>false</abstract>
+        <key_type>autoincrement</key_type>
+        <db_table>priv_user_multi_token</db_table>
+        <db_key_field>id</db_key_field>
+        <db_final_class_field/>
+        <icon/>
+        <naming>
+          <attributes>
+            <attribute id="application"/>
+          </attributes>
+        </naming>
+      </properties>
+      <fields>
+        <field id="user_id" xsi:type="AttributeExternalKey" _delta="define">
+          <sql>user_id</sql>
+          <filter/>
+          <dependencies/>
+          <is_null_allowed>true</is_null_allowed>
+          <target_class>User</target_class>
+          <on_target_delete>DEL_AUTO</on_target_delete>
+        </field>
+        <field id="auth_token" xsi:type="AttributeOneWayPassword" _delta="define">
+          <sql>auth_token</sql>
+          <default_value/>
+          <is_null_allowed>false</is_null_allowed>
+        </field>
+        <field id="application" xsi:type="AttributeString" _delta="define">
+          <sql>application</sql>
+          <default_value/>
+          <is_null_allowed>false</is_null_allowed>
+        </field>
+        <field id="scope" xsi:type="AttributeEnumSet">
+          <values>
+            <value id="WEBSERVICE">
+              <code>WEBSERVICE</code>
+            </value>
+            <value id="OTHERS">
+              <code>OTHERS</code>
+            </value>
+          </values>
+          <sql>scope</sql>
+          <default_value>OTHERS</default_value>
+          <is_null_allowed>true</is_null_allowed>
+        </field>
+        <field id="expiration_date" xsi:type="AttributeDateTime" _delta="define">
+          <sql>expiration_date</sql>
+          <default_value/>
+          <is_null_allowed>true</is_null_allowed>
+        </field>
+        <field id="use_count" xsi:type="AttributeInteger" _delta="define">
+          <sql>use_count</sql>
+          <default_value>0</default_value>
+          <is_null_allowed>true</is_null_allowed>
+        </field>
+        <field id="last_use_date" xsi:type="AttributeDateTime" _delta="define">
+          <sql>last_use_date</sql>
+          <default_value/>
+          <is_null_allowed>true</is_null_allowed>
+        </field>
+      </fields>
+      <methods/>
+      <presentation>
+        <details _delta="redefine">
+          <items>
+            <item id="user_id">
+              <rank>10</rank>
+            </item>
+            <item id="application">
+              <rank>20</rank>
+            </item>
+            <item id="scope">
+              <rank>30</rank>
+            </item>
+            <item id="expiration_date">
+              <rank>40</rank>
+            </item>
+            <item id="auth_token">
+              <rank>50</rank>
+            </item>
+            <item id="use_count">
+              <rank>60</rank>
+            </item>
+            <item id="last_use_date">
+              <rank>70</rank>
+            </item>
+          </items>
+        </details>
+        <list _delta="redefine">
+          <items>
+            <item id="user_id">
+              <rank>10</rank>
+            </item>
+            <item id="application">
+              <rank>20</rank>
+            </item>
+            <item id="scope">
+              <rank>30</rank>
+            </item>
+            <item id="expiration_date">
+              <rank>40</rank>
+            </item>
+          </items>
+        </list>
+        <search _delta="redefine">
+          <items>
+            <item id="user_id">
+              <rank>10</rank>
+            </item>
+            <item id="application">
+              <rank>20</rank>
+            </item>
+            <item id="scope">
+              <rank>30</rank>
+            </item>
+            <item id="expiration_date">
+              <rank>40</rank>
+            </item>
+          </items>
+        </search>
+      </presentation>
+    </class>
     <class id="UserToken" _delta="define">
       <parent>cmdbAbstractObject</parent>
       <php_parent>
@@ -75,12 +203,50 @@
       </presentation>
     </class>
   </classes>
+  <dictionaries>
+    <dictionary id="EN US" _delta="must_exist">
+      <entries>
+        <entry id="Class:User/Attribute:tokens_list" _delta="define"><![CDATA[Tokens]]></entry>
+        <entry id="Menu:SearchMultiTokens" _delta="define"><![CDATA[Tokens]]></entry>
+        <entry id="Menu:SearchMultiTokens+" _delta="define"><![CDATA[Tokens]]></entry>
+      </entries>
+    </dictionary>
+  </dictionaries>
   <menus>
+    <menu xsi:type="OQLMenuNode" id="SearchMultiTokens" _delta="define">
+      <parent>UserManagement</parent>
+      <rank>30</rank>
+      <oql>SELECT PersonalToken</oql>
+      <enable_admin_only>1</enable_admin_only>
+      <do_search>1</do_search>
+    </menu>
   </menus>
   <user_rights>
     <groups>
+      <group id="PersonalToken" _delta="define">
+        <classes>
+          <class id="PersonalToken"></class>
+        </classes>
+      </group>
     </groups>
     <profiles>
+      <profile id="1024" _delta="if_exists">
+        <name>REST Services User</name>
+        <description>Only users having this profile are allowed to use the REST Web Services (unless 'secure_rest_services' is set to false
+          in the configuration file).
+        </description>
+        <groups>
+          <group id="PersonalToken" _delta="define">
+            <actions>
+              <action id="action:write">allow</action>
+              <action id="action:delete">allow</action>
+              <action id="action:read">allow</action>
+              <action id="action:bulk read">allow</action>
+              <action id="action:bulk write">allow</action>
+            </actions>
+          </group>
+        </groups>
+      </profile>
     </profiles>
   </user_rights>
 </itop_design>

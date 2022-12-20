@@ -127,7 +127,9 @@ HTML;
 		$aToken = [
 			self::APPLICATION_NAME     => $this->Get('application'),
 			self::TOKEN_USER     => $this->Get('user_id'),
+			//'salt' => random_bytes(8),
 		];
+
 		$sPPrivateKey = self::GetPrivateKey();
 		$oCrypt = new SimpleCrypt();
 		$this->sToken = bin2hex($oCrypt->Encrypt($sPPrivateKey, json_encode($aToken)));
@@ -149,21 +151,8 @@ HTML;
 		if (is_null($sPrivateKey)) {
 			$sPrivateKey = bin2hex(random_bytes(32));
 			DBProperty::SetProperty(self::PRIVATE_KEY, $sPrivateKey);
-
-			// Invalidate all the existing refresh tokens
-			/*$oSet = new DBObjectSet(new DBObjectSearch('PersonalToken'));
-			while ($oPersonalToken = $oSet->Fetch()) {
-				self::EraseTokens($oPersonalToken);
-			}*/
 		}
 
 		return $sPrivateKey;
 	}
-
-	/*public static function EraseTokens($oPersonalToken)
-	{
-		$oPersonalToken->Set('expiration_date', time() - 1);
-		$oPersonalToken->AllowWrite();
-		$oPersonalToken->DBUpdate();
-	}*/
 }

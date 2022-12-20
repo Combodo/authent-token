@@ -16,6 +16,7 @@ abstract class AbstractRestTest extends ItopDataTestCase
 
 	protected $sTmpFile = "";
 	/** @var int $iJsonDataMode */
+	protected $iJsonDataMode;
 	protected $sJsonDataMode;
 	protected $sUrl;
 	protected $sLogin;
@@ -45,15 +46,14 @@ abstract class AbstractRestTest extends ItopDataTestCase
 		$this->sUrl = MetaModel::GetConfig()->Get('app_root_url');
 		@chmod($sConfigFile, 0444); // Read-only
 
-		$oRestProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'REST Services User'), true);
-		$oAdminProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'Administrator'), true);
+	    $oRestProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'REST Services User'),
+		    true);
+	    $oAdminProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'Administrator'), true);
 
-	    if (is_object($oAdminProfile))
-	    {
+	    if (is_object($oAdminProfile)) {
 		    $this->oUser = $this->CreateContactlessUser($this->sLogin, $oAdminProfile->GetKey(), $this->sPassword);
 
-		    if (is_object($oRestProfile))
-		    {
+		    if (is_object($oRestProfile)) {
 			    $this->AddProfileToUser($this->oUser, $oRestProfile->GetKey());
 		    } else {
 			    $this->sConfigTmpBackupFile = tempnam(sys_get_temp_dir(), "config_");
@@ -79,7 +79,34 @@ abstract class AbstractRestTest extends ItopDataTestCase
 		}
 	}
 
-	abstract protected function CallRestApi($sJsonDataContent);
+	abstract protected function GetPostParameters();
+
+	protected function CallRestApi($sJsonDataContent){
+		$ch = curl_init();
+		$aPostFields = $this->GetPostParameters();
+		var_dump($aPostFields);
+
+		if ($this->iJsonDataMode === self::MODE['JSONDATA_AS_STRING']){
+			$this->sTmpFile = tempnam(sys_get_temp_dir(), 'jsondata_');
+			file_put_contents($this->sTmpFile, $sJsonDataContent);
+
+			$oCurlFile = curl_file_create($this->sTmpFile);
+			$aPostFields['json_data'] = $oCurlFile;
+		}else if ($this->iJsonDataMode === self::MODE['JSONDATA_AS_FILE']){
+			$aPostFields['json_data'] = $sJsonDataContent;
+		}
+
+		//curl_setopt($ch, CURLOPT_COOKIE, "XDEBUG_SESSION=phpstorm");
+
+		curl_setopt($ch, CURLOPT_URL, "$this->sUrl/webservices/rest.php");
+		curl_setopt($ch, CURLOPT_POST, 1);// set post data to true
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $aPostFields);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		$sJson = curl_exec($ch);
+		curl_close ($ch);
+
+		return $sJson;
+	}
 
 	/**
 	 * @dataProvider BasicProvider

@@ -18,8 +18,10 @@ use Combodo\iTop\AuthentToken\Hook\TokenLoginExtension;
  * @preserveGlobalState disabled
  * @backupGlobals disabled
  */
-class MultiTokenRestTest extends AbstractRestTest
+class PersonalTokenRestTest extends AbstractRestTest
 {
+	const USE_TRANSACTION = false;
+
 	protected $oPersonalToken;
 
 	/**
@@ -30,7 +32,7 @@ class MultiTokenRestTest extends AbstractRestTest
 	    parent::setUp();
 	    @require_once(APPROOT . 'env-production/authent-token/vendor/autoload.php');
 
-	    $this->CreateUserToken("RESTTEST");
+	    $this->CreatePersonalToken("RESTTEST");
 
 	    $aAllowedLoginTypes = MetaModel::GetConfig()->GetAllowedLoginTypes();
 	    if (! in_array(TokenLoginExtension::LOGIN_TYPE, $aAllowedLoginTypes)){
@@ -40,7 +42,7 @@ class MultiTokenRestTest extends AbstractRestTest
 	    }
 	}
 
-	public function CreateUserToken(string $sApplication, $sScope=null){
+	public function CreatePersonalToken(string $sApplication, $sScope=null){
     	if (is_null($sScope)) {
 		    $this->oPersonalToken = $this->createObject('PersonalToken', [
 			    'user_id' => $this->oUser->GetKey(),
@@ -52,7 +54,6 @@ class MultiTokenRestTest extends AbstractRestTest
 
 	public function BasicProvider(){
 		return [
-			'call rest call' => [ 'sJsonDataMode' => self::MODE['JSONDATA_AS_STRING']],
 			'pass json_data as file' => [ 'sJsonDataMode' => self::MODE['JSONDATA_AS_FILE']],
 		];
 	}
@@ -75,40 +76,16 @@ class MultiTokenRestTest extends AbstractRestTest
 		$oReflectionClass = new \ReflectionClass("PersonalToken");
 		$oProperty = $oReflectionClass->getProperty('sToken');
 		$oProperty->setAccessible(true);
+
+		var_dump(['sToken' => $oProperty->getValue($this->oPersonalToken)]);
 		return $oProperty->getValue($this->oPersonalToken);
 	}
 
-	protected function CallRestApi($sJsonDataContent){
-    	$aJson = json_decode($sJsonDataContent, true);
-    	if (! is_null($aJson) && array_key_exists('operation', $aJson)){
-		    echo "call api " . $aJson['operation'] . ' \n';
-	    } else {
-		    echo "call api \n";
-	    }
-		$ch = curl_init();
-		$aPostFields = [
+	protected function GetPostParameters(){
+		return [
 			'version' => '1.3',
 			'auth_token' => $this->GetAuthToken(),
 		];
-		curl_setopt($ch, CURLOPT_COOKIE, "XDEBUG_SESSION=phpstorm");
-
-		if ($this->iJsonDataMode === self::MODE['JSONDATA_AS_STRING']){
-			$this->sTmpFile = tempnam(sys_get_temp_dir(), 'jsondata_');
-			file_put_contents($this->sTmpFile, $sJsonDataContent);
-
-			$oCurlFile = curl_file_create($this->sTmpFile);
-			$aPostFields['json_data'] = $oCurlFile;
-		}else if ($this->iJsonDataMode === self::MODE['JSONDATA_AS_FILE']){
-			$aPostFields['json_data'] = $sJsonDataContent;
-		}
-
-		curl_setopt($ch, CURLOPT_URL, "$this->sUrl/webservices/rest.php");
-		curl_setopt($ch, CURLOPT_POST, 1);// set post data to true
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $aPostFields);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		$sJson = curl_exec($ch);
-		curl_close ($ch);
-		return $sJson;
 	}
 
 	/**

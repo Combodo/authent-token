@@ -1,6 +1,6 @@
 <?php
 
-namespace Combodo\iTop\Extension\Model;
+namespace Combodo\iTop\AuthentToken\Model;
 
 use Combodo\iTop\Application\UI\Base\Component\Button\ButtonUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\Component\Form\FormUIBlockFactory;
@@ -24,7 +24,7 @@ class _PersonalToken extends cmdbAbstractObject
 {
 	const APPLICATION_NAME     = 'a';
 	const TOKEN_USER     = 'u';
-	const PRIVATE_KEY    = 'authent-multi-token-priv-key';
+	const PRIVATE_KEY    = 'authent-token-priv-key';
 
 	protected $sToken;
 

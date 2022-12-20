@@ -9,18 +9,32 @@ class ComposerStaticInit3bffe940f87be1abac8a88b0b96ab76f
     public static $prefixLengthsPsr4 = array (
         'C' => 
         array (
-            'Combodo\\iTop\\Extension\\' => 23,
+            'Combodo\\iTop\\AuthentToken\\Test\\' => 31,
+            'Combodo\\iTop\\AuthentToken\\' => 26,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'Combodo\\iTop\\Extension\\' => 
+        'Combodo\\iTop\\AuthentToken\\Test\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/test',
+        ),
+        'Combodo\\iTop\\AuthentToken\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
         ),
     );
 
     public static $classMap = array (
+        'Combodo\\iTop\\AuthentToken\\Exception\\TokenAuthException' => __DIR__ . '/../..' . '/src/Exception/TokenAuthException.php',
+        'Combodo\\iTop\\AuthentToken\\Helper\\TokenAuthHelper' => __DIR__ . '/../..' . '/src/Helper/TokenAuthHelper.php',
+        'Combodo\\iTop\\AuthentToken\\Helper\\TokenAuthLog' => __DIR__ . '/../..' . '/src/Helper/TokenAuthLog.php',
+        'Combodo\\iTop\\AuthentToken\\Hook\\TokenLoginExtension' => __DIR__ . '/../..' . '/src/Hook/TokenLoginExtension.php',
+        'Combodo\\iTop\\AuthentToken\\Hook\\TokenUserUIExtension' => __DIR__ . '/../..' . '/src/Hook/TokenUserUIExtension.php',
+        'Combodo\\iTop\\AuthentToken\\Model\\_PersonalToken' => __DIR__ . '/../..' . '/src/Model/_PersonalToken.php',
+        'Combodo\\iTop\\AuthentToken\\Test\\AbstractRestTest' => __DIR__ . '/../..' . '/test/AbstractRestTest.php',
+        'Combodo\\iTop\\AuthentToken\\Test\\MultiTokenRestTest' => __DIR__ . '/../..' . '/test/MultiTokenRestTest.php',
+        'Combodo\\iTop\\AuthentToken\\Test\\RestTest' => __DIR__ . '/../..' . '/test/RestTest.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
     );
 

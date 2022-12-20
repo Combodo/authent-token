@@ -4,12 +4,12 @@
 	},
 	"autoload" : {
 		"psr-4" : {
-			"Combodo\\iTop\\Extension\\" : "src"
+			"Combodo\\iTop\\AuthentToken\\" : "src"
 		}
 	},
 	"autoload-dev": {
 		"psr-4": {
-			"Combodo\\iTop\\Extension\\Test\\": "test/"
+			"Combodo\\iTop\\AuthentToken\\Test\\": "test/"
 		}
 	},
 	"name" : "combodo/authent-token",

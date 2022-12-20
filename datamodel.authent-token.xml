@@ -6,7 +6,7 @@
     <class id="PersonalToken" _delta="define">
       <parent>cmdbAbstractObject</parent>
       <php_parent>
-        <name>Combodo\iTop\Extension\Model\_PersonalToken</name>
+        <name>Combodo\iTop\AuthentToken\Model\_PersonalToken</name>
       </php_parent>
       <properties>
         <category>addon/authentication,grant_by_profile</category>

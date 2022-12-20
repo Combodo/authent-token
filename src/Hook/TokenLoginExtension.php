@@ -1,10 +1,10 @@
 <?php
 
-namespace Combodo\iTop\Extension\Service;
+namespace Combodo\iTop\AuthentToken\Hook;
 use Combodo\iTop\Application\Helper\Session;
 use AbstractLoginFSMExtension;
-use Combodo\iTop\Extension\Exception\TokenAuthException;
-use Combodo\iTop\Extension\Model\_PersonalToken;
+use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
+use Combodo\iTop\AuthentToken\Model\_PersonalToken;
 use LoginWebPage;
 use utils;
 use User;
@@ -24,23 +24,23 @@ use IssueLog;
 
 class TokenLoginExtension extends AbstractLoginFSMExtension
 {
+	const LOGIN_TYPE = 'token';
 	const LEGACY_LOGIN_TYPE = 'rest-token';
-	const SUPPORTED_LOGIN_MODES = [ 'token', self::LEGACY_LOGIN_TYPE ];
+	const SUPPORTED_LOGIN_MODES = [ self::LOGIN_TYPE , self::LEGACY_LOGIN_TYPE ];
+
+	/**
+	 * @var bool
+	 */
+	private $bErrorOccurred = false;
 
 	/**
 	 * Return the list of supported login modes for this plugin
 	 *
 	 * @return array of supported login modes
 	 */
-	public function ListSupportedLoginModes()
-	{
-		return [self::LOGIN_TYPE, ];
+	public function ListSupportedLoginModes(){
+		return self::SUPPORTED_LOGIN_MODES;
 	}
-
-	/**
-	 * @var bool
-	 */
-	private $bErrorOccurred = false;
 
 	/**
 	 * @param string $sLoginMode
@@ -166,6 +166,7 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 		}
 
 		$iUserId = $aTokenFields[_PersonalToken::TOKEN_USER];
+		//TODO random field / salt
 		$sOQL = <<<OQL
 SELECT t,u FROM
 PersonalToken AS t

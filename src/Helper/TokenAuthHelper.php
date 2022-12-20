@@ -4,11 +4,11 @@
  * @license     http://opensource.org/licenses/AGPL-3.0
  */
 
-namespace Combodo\iTop\Extension\Helper;
+namespace Combodo\iTop\AuthentToken\Helper;
 
 class TokenAuthHelper
 {
-	const MODULE_NAME = 'authent-multi-token';
+	const MODULE_NAME = 'authent-token';
 
 	public function __construct()
 	{

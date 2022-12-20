@@ -5,7 +5,7 @@
  */
 
 
-namespace Combodo\iTop\Extension\Helper;
+namespace Combodo\iTop\AuthentToken\Helper;
 
 use LogAPI;
 

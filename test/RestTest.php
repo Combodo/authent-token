@@ -1,5 +1,5 @@
 <?php
-namespace Combodo\iTop\Extension\Test;
+namespace Combodo\iTop\AuthentToken\Test;
 
 use Combodo\iTop\Test\UnitTest\ItopDataTestCase;
 use Exception;

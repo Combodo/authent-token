@@ -6,5 +6,14 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Combodo\\iTop\\AuthentToken\\Exception\\TokenAuthException' => $baseDir . '/src/Exception/TokenAuthException.php',
+    'Combodo\\iTop\\AuthentToken\\Helper\\TokenAuthHelper' => $baseDir . '/src/Helper/TokenAuthHelper.php',
+    'Combodo\\iTop\\AuthentToken\\Helper\\TokenAuthLog' => $baseDir . '/src/Helper/TokenAuthLog.php',
+    'Combodo\\iTop\\AuthentToken\\Hook\\TokenLoginExtension' => $baseDir . '/src/Hook/TokenLoginExtension.php',
+    'Combodo\\iTop\\AuthentToken\\Hook\\TokenUserUIExtension' => $baseDir . '/src/Hook/TokenUserUIExtension.php',
+    'Combodo\\iTop\\AuthentToken\\Model\\_PersonalToken' => $baseDir . '/src/Model/_PersonalToken.php',
+    'Combodo\\iTop\\AuthentToken\\Test\\AbstractRestTest' => $baseDir . '/test/AbstractRestTest.php',
+    'Combodo\\iTop\\AuthentToken\\Test\\MultiTokenRestTest' => $baseDir . '/test/MultiTokenRestTest.php',
+    'Combodo\\iTop\\AuthentToken\\Test\\RestTest' => $baseDir . '/test/RestTest.php',
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
 );

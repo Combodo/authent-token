@@ -1,5 +1,5 @@
 <?php
-namespace Combodo\iTop\Extension\Hook;
+namespace Combodo\iTop\AuthentToken\Hook;
 
 use AbstractApplicationUIExtension;
 use WebPage;

@@ -6,5 +6,6 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Combodo\\iTop\\Extension\\' => array($baseDir . '/src'),
+    'Combodo\\iTop\\AuthentToken\\Test\\' => array($baseDir . '/test'),
+    'Combodo\\iTop\\AuthentToken\\' => array($baseDir . '/src'),
 );

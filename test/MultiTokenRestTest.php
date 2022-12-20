@@ -1,12 +1,12 @@
 <?php
-namespace Combodo\iTop\Extension\Test;
+namespace Combodo\iTop\AuthentToken\Test;
 
 require_once __DIR__.'/AbstractRestTest.php';
 use Combodo\iTop\Test\UnitTest\ItopDataTestCase;
 use Exception;
 use MetaModel;
 use AttributeDateTime;
-use Combodo\iTop\Extension\Service\TokenLoginExtension;
+use Combodo\iTop\AuthentToken\Hook\TokenLoginExtension;
 
 
 /**
@@ -28,7 +28,7 @@ class MultiTokenRestTest extends AbstractRestTest
     protected function setUp(): void
     {
 	    parent::setUp();
-	    @require_once(APPROOT . 'env-production/authent-multi-token/vendor/autoload.php');
+	    @require_once(APPROOT . 'env-production/authent-token/vendor/autoload.php');
 
 	    $this->CreateUserToken("RESTTEST");
 
@@ -90,7 +90,7 @@ class MultiTokenRestTest extends AbstractRestTest
 			'version' => '1.3',
 			'auth_token' => $this->GetAuthToken(),
 		];
-		//curl_setopt($ch, CURLOPT_COOKIE, "XDEBUG_SESSION=phpstorm");
+		curl_setopt($ch, CURLOPT_COOKIE, "XDEBUG_SESSION=phpstorm");
 
 		if ($this->iJsonDataMode === self::MODE['JSONDATA_AS_STRING']){
 			$this->sTmpFile = tempnam(sys_get_temp_dir(), 'jsondata_');

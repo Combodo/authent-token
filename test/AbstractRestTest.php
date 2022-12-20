@@ -80,6 +80,9 @@ abstract class AbstractRestTest extends ItopDataTestCase
 	}
 
 	abstract protected function GetPostParameters();
+	protected function GetHeadersParam(){
+		return [];
+	}
 
 	protected function CallRestApi($sJsonDataContent){
 		$ch = curl_init();
@@ -98,6 +101,7 @@ abstract class AbstractRestTest extends ItopDataTestCase
 
 		//curl_setopt($ch, CURLOPT_COOKIE, "XDEBUG_SESSION=phpstorm");
 
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $this->GetHeadersParam());
 		curl_setopt($ch, CURLOPT_URL, "$this->sUrl/webservices/rest.php");
 		curl_setopt($ch, CURLOPT_POST, 1);// set post data to true
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $aPostFields);

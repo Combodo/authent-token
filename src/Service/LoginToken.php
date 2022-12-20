@@ -32,8 +32,8 @@ class LoginToken extends AbstractLoginFSMExtension
 	{
 		if (!Session::IsSet('login_mode') && !$this->bErrorOccurred)
 		{
-			if (isset($_SERVER['HTTP_AUTH_TOKEN'])) {
-				$sAuthToken = $_SERVER['HTTP_AUTH_TOKEN'];
+			if (isset($_SERVER['Auth-Token'])) {
+				$sAuthToken = $_SERVER['Auth-Token'];
 			} else {
 				$sAuthToken = utils::ReadParam('auth_token', null, false, 'raw_data');
 			}

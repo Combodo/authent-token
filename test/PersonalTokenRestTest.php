@@ -2,7 +2,7 @@
 namespace Combodo\iTop\AuthentToken\Test;
 
 require_once __DIR__.'/AbstractRestTest.php';
-use Combodo\iTop\Test\UnitTest\ItopDataTestCase;
+require_once __DIR__.'/AbstractTokenRestTest.php';
 use Exception;
 use MetaModel;
 use AttributeDateTime;
@@ -18,10 +18,8 @@ use Combodo\iTop\AuthentToken\Hook\TokenLoginExtension;
  * @preserveGlobalState disabled
  * @backupGlobals disabled
  */
-class PersonalTokenRestTest extends AbstractRestTest
+class PersonalTokenRestTest extends AbstractTokenRestTest
 {
-	const USE_TRANSACTION = false;
-
 	protected $oPersonalToken;
 
 	/**
@@ -30,16 +28,10 @@ class PersonalTokenRestTest extends AbstractRestTest
     protected function setUp(): void
     {
 	    parent::setUp();
-	    @require_once(APPROOT . 'env-production/authent-token/vendor/autoload.php');
+
+	    $this->InitLoginMode(TokenLoginExtension::LOGIN_TYPE);
 
 	    $this->CreatePersonalToken("RESTTEST");
-
-	    $aAllowedLoginTypes = MetaModel::GetConfig()->GetAllowedLoginTypes();
-	    if (! in_array(TokenLoginExtension::LOGIN_TYPE, $aAllowedLoginTypes)){
-		    $aAllowedLoginTypes[] = TokenLoginExtension::LOGIN_TYPE;
-		    MetaModel::GetConfig()->SetAllowedLoginTypes($aAllowedLoginTypes);
-		    MetaModel::GetConfig()->WriteToFile();
-	    }
 	}
 
 	public function CreatePersonalToken(string $sApplication, $sScope=null){
@@ -52,11 +44,7 @@ class PersonalTokenRestTest extends AbstractRestTest
 	    }
 	}
 
-	public function BasicProvider(){
-		return [
-			'pass json_data as file' => [ 'sJsonDataMode' => self::MODE['JSONDATA_AS_FILE']],
-		];
-	}
+
 
 	private function CheckToken($sNow, $iExpectedUsedCount){
 		$oLastPersonalToken = MetaModel::GetObject("PersonalToken", $this->oPersonalToken->GetKey());
@@ -72,7 +60,7 @@ class PersonalTokenRestTest extends AbstractRestTest
 		}
 	}
 
-	private function GetAuthToken(){
+	protected function GetAuthToken(){
 		$oReflectionClass = new \ReflectionClass("PersonalToken");
 		$oProperty = $oReflectionClass->getProperty('sToken');
 		$oProperty->setAccessible(true);
@@ -81,53 +69,63 @@ class PersonalTokenRestTest extends AbstractRestTest
 		return $oProperty->getValue($this->oPersonalToken);
 	}
 
-	protected function GetPostParameters(){
-		return [
-			'version' => '1.3',
-			'auth_token' => $this->GetAuthToken(),
-		];
-	}
-
 	/**
-	 * @dataProvider BasicProvider
-	 * @param int $iJsonDataMode
+	 * @dataProvider BasicTokenProvider
 	 */
-	public function testCreateApi($iJsonDataMode)
+	public function testCreateApiViaToken($iJsonDataMode, $bTokenInPost)
 	{
-		parent::testCreateApi($iJsonDataMode);
+		parent::testCreateApiViaToken($iJsonDataMode, $bTokenInPost);
 		$this->CheckToken(time(), 4);
 	}
 
 	/**
-	 * @dataProvider BasicProvider
-	 * @param int $iJsonDataMode
+	 * @dataProvider BasicTokenProvider
 	 */
-	public function testUpdateApi($iJsonDataMode)
+	public function testUpdateApiViaToken($iJsonDataMode, $bTokenInPost)
 	{
-		parent::testUpdateApi($iJsonDataMode);
+		parent::testUpdateApiViaToken($iJsonDataMode, $bTokenInPost);
 		$this->CheckToken(time(), 4);
 	}
 
 	/**
-	 * @dataProvider BasicProvider
-	 * @param int $iJsonDataMode
+	 * @dataProvider BasicTokenProvider
 	 */
-	public function testDeleteApi($iJsonDataMode)
+	public function testDeleteApiViaToken($iJsonDataMode, $bTokenInPost)
 	{
-		parent::testDeleteApi($iJsonDataMode);
+		parent::testDeleteApiViaToken($iJsonDataMode, $bTokenInPost);
 		$this->CheckToken(time(), 3);
 	}
 
 	/**
-	 * @dataProvider BasicProvider
-	 * @param int $iJsonDataMode
+	 * @dataProvider BasicTokenProvider
 	 */
-	public function testApiWithExpiredToken($iJsonDataMode)
+	public function testApiWithExpiredToken($iJsonDataMode, $bTokenInPost)
 	{
+		$this->bTokenInPost = $bTokenInPost;
+		$this->iJsonDataMode = $iJsonDataMode;
+
 		$this->oPersonalToken->Set('expiration_date', time() - 1);
 		$this->oPersonalToken->DBWrite();
 
+		//create ticket
+		$description = date('dmY H:i:s');
+
+		$sOuputJson = $this->CreateTicketViaApi($description);
+		$aJson = json_decode($sOuputJson, true);
+		$this->assertTrue(is_null($aJson), "should be html login form instead of any json : " .  $sOuputJson);
+	}
+
+	/**
+	 * @dataProvider BasicTokenProvider
+	 */
+	public function testApiWithAnotherScope($iJsonDataMode, $bTokenInPost)
+	{
+		$this->bTokenInPost = $bTokenInPost;
 		$this->iJsonDataMode = $iJsonDataMode;
+
+		$this->oPersonalToken->Set('scope', 'OTHERS');
+		$this->oPersonalToken->DBWrite();
+
 
 		//create ticket
 		$description = date('dmY H:i:s');
@@ -139,20 +137,25 @@ class PersonalTokenRestTest extends AbstractRestTest
 
 	/**
 	 * @dataProvider BasicProvider
-	 * @param int $iJsonDataMode
 	 */
-	public function testApiWithAnotherScope($iJsonDataMode)
+	public function testCreateApi($iJsonDataMode)
 	{
-		$this->oPersonalToken->Set('scope', 'OTHERS');
-		$this->oPersonalToken->DBWrite();
+		$this->markTestSkipped('');
+	}
 
-		$this->iJsonDataMode = $iJsonDataMode;
+	/**
+	 * @dataProvider BasicProvider
+	 */
+	public function testUpdateApi($iJsonDataMode)
+	{
+		$this->markTestSkipped('');
+	}
 
-		//create ticket
-		$description = date('dmY H:i:s');
-
-		$sOuputJson = $this->CreateTicketViaApi($description);
-		$aJson = json_decode($sOuputJson, true);
-		$this->assertTrue(is_null($aJson), "should be html login form instead of any json : " .  $sOuputJson);
+	/**
+	 * @dataProvider BasicProvider
+	 */
+	public function testDeleteApi($iJsonDataMode)
+	{
+		$this->markTestSkipped('');
 	}
 }

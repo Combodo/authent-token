@@ -2,6 +2,9 @@
 namespace Combodo\iTop\AuthentToken\Test;
 
 require_once __DIR__.'/AbstractRestTest.php';
+require_once __DIR__.'/AbstractTokenRestTest.php';
+
+use Combodo\iTop\AuthentToken\Hook\TokenLoginExtension;
 use Exception;
 use MetaModel;
 use URP_UserProfile;
@@ -18,7 +21,7 @@ use DBObjectSet;
  * @preserveGlobalState disabled
  * @backupGlobals disabled
  */
-class ApplicationTokenRestTest extends AbstractRestTest
+class ApplicationTokenRestTest extends AbstractTokenRestTest
 {
 	protected $oApplicationToken;
 
@@ -29,6 +32,8 @@ class ApplicationTokenRestTest extends AbstractRestTest
     {
 	    parent::setUp();
 	    @require_once(APPROOT . 'env-production/authent-token/vendor/autoload.php');
+
+	    $this->InitLoginMode(TokenLoginExtension::LEGACY_LOGIN_TYPE);
 
 	    $oRestProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'REST Services User'), true);
 	    $oAdminProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'Administrator'), true);
@@ -63,53 +68,35 @@ class ApplicationTokenRestTest extends AbstractRestTest
 	    }
 	}
 
-	public function BasicProvider(){
-		return [
-			'pass json_data as file' => [ 'sJsonDataMode' => self::MODE['JSONDATA_AS_FILE']],
-		];
-	}
 
-	private function GetAuthToken(){
+	protected function GetAuthToken(){
 		$oReflectionClass = new \ReflectionClass("_UserToken");
 		$oProperty = $oReflectionClass->getProperty('sToken');
 		$oProperty->setAccessible(true);
 		return $oProperty->getValue($this->oApplicationToken);
 	}
 
-	protected function GetPostParameters(){
-		return [
-			'version' => '1.3',
-			'auth_token' => $this->GetAuthToken(),
-		];
-	}
-
 	/**
 	 * @dataProvider BasicProvider
-	 * @param int $iJsonDataMode
 	 */
 	public function testCreateApi($iJsonDataMode)
 	{
-		$this->markTestSkipped('for now');
-		parent::testCreateApi($iJsonDataMode);
+		$this->markTestSkipped('');
 	}
 
 	/**
 	 * @dataProvider BasicProvider
-	 * @param int $iJsonDataMode
 	 */
 	public function testUpdateApi($iJsonDataMode)
 	{
-		$this->markTestSkipped('for now');
-		parent::testUpdateApi($iJsonDataMode);
+		$this->markTestSkipped('');
 	}
 
 	/**
 	 * @dataProvider BasicProvider
-	 * @param int $iJsonDataMode
 	 */
 	public function testDeleteApi($iJsonDataMode)
 	{
-		$this->markTestSkipped('for now');
-		parent::testDeleteApi($iJsonDataMode);
+		$this->markTestSkipped('');
 	}
 }

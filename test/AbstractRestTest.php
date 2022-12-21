@@ -2,8 +2,8 @@
 namespace Combodo\iTop\AuthentToken\Test;
 
 use Combodo\iTop\Test\UnitTest\ItopDataTestCase;
-use Exception;
 use Config;
+use Exception;
 use MetaModel;
 use utils;
 
@@ -80,6 +80,7 @@ abstract class AbstractRestTest extends ItopDataTestCase
 	}
 
 	abstract protected function GetPostParameters();
+
 	protected function GetHeadersParam(){
 		return [];
 	}
@@ -99,7 +100,7 @@ abstract class AbstractRestTest extends ItopDataTestCase
 			$aPostFields['json_data'] = $sJsonDataContent;
 		}
 
-		//curl_setopt($ch, CURLOPT_COOKIE, "XDEBUG_SESSION=phpstorm");
+		curl_setopt($ch, CURLOPT_COOKIE, "XDEBUG_SESSION=phpstorm");
 
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $this->GetHeadersParam());
 		curl_setopt($ch, CURLOPT_URL, "$this->sUrl/webservices/rest.php");
@@ -113,10 +114,21 @@ abstract class AbstractRestTest extends ItopDataTestCase
 	}
 
 	/**
-	 * @dataProvider BasicProvider
-	 * @param int $iJsonDataMode
+	 * array_key_first comes with PHP7.3
+	 * itop should also work with previous PHP versions
 	 */
-	public function testCreateApi($iJsonDataMode)
+	private function array_key_first($aTab){
+		if (!is_array($aTab) || empty($aTab)){
+			return false;
+		}
+
+		foreach ($aTab as $sKey => $sVal){
+			return $sKey;
+		}
+	}
+
+
+	public function CreateApiTest($iJsonDataMode)
 	{
 		$this->iJsonDataMode = $iJsonDataMode;
 
@@ -159,25 +171,7 @@ JSON;
 		$this->DeleteTicketFromApi($iId);
 	}
 
-	/**
-	 * array_key_first comes with PHP7.3
-	 * itop should also work with previous PHP versions
-	 */
-	private function array_key_first($aTab){
-		if (!is_array($aTab) || empty($aTab)){
-			return false;
-		}
-
-		foreach ($aTab as $sKey => $sVal){
-			return $sKey;
-		}
-	}
-
-	/**
-	 * @dataProvider BasicProvider
-	 * @param int $iJsonDataMode
-	 */
-	public function testUpdateApi($iJsonDataMode)
+	public function UpdateApiTest($iJsonDataMode)
 	{
 		$this->iJsonDataMode = $iJsonDataMode;
 
@@ -219,11 +213,7 @@ JSON;
 		$this->DeleteTicketFromApi($iId);
 	}
 
-	/**
-	 * @dataProvider BasicProvider
-	 * @param int $iJsonDataMode
-	 */
-	public function testDeleteApi($iJsonDataMode)
+	public function DeleteApiTest($iJsonDataMode)
 	{
 		$this->iJsonDataMode = $iJsonDataMode;
 
@@ -272,14 +262,6 @@ JSON;
 JSON;
 
 		return $this->CallRestApi($sJsonGetContent);
-	}
-
-	public function BasicProvider(){
-		return [
-			'call rest call' => [ 'sJsonDataMode' => self::MODE['JSONDATA_AS_STRING']],
-			'pass json_data as file' => [ 'sJsonDataMode' => self::MODE['JSONDATA_AS_FILE']],
-			'no json data' => [ 'sJsonDataMode' => self::MODE['NO_JSONDATA']]
-		];
 	}
 
 	private function UpdateTicketViaApi($iId, $description){

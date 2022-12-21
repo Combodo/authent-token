@@ -2,9 +2,9 @@
 namespace Combodo\iTop\AuthentToken\Hook;
 
 use AbstractApplicationUIExtension;
-use WebPage;
 use Dict;
 use User;
+use WebPage;
 
 class TokenUserUIExtension  extends AbstractApplicationUIExtension{
 	public function OnDisplayRelations($oObject, WebPage $oPage, $bEditMode = false)
@@ -16,4 +16,6 @@ class TokenUserUIExtension  extends AbstractApplicationUIExtension{
 
 		$oPage->SetCurrentTab('Tokens:Tab', Dict::S('Tokens:TabTitle'));
 	}
+
+
 }

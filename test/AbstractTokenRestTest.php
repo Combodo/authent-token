@@ -2,11 +2,9 @@
 namespace Combodo\iTop\AuthentToken\Test;
 
 require_once __DIR__.'/AbstractRestTest.php';
-use Combodo\iTop\Test\UnitTest\ItopDataTestCase;
+
 use Exception;
 use MetaModel;
-use AttributeDateTime;
-use Combodo\iTop\AuthentToken\Hook\TokenLoginExtension;
 
 
 /**
@@ -85,7 +83,7 @@ abstract class AbstractTokenRestTest extends AbstractRestTest
 	public function testCreateApiViaToken($iJsonDataMode, $bTokenInPost)
 	{
 		$this->bTokenInPost = $bTokenInPost;
-		parent::testCreateApi($iJsonDataMode);
+		parent::CreateApiTest($iJsonDataMode);
 	}
 
 	/**
@@ -94,7 +92,7 @@ abstract class AbstractTokenRestTest extends AbstractRestTest
 	public function testUpdateApiViaToken($iJsonDataMode, $bTokenInPost)
 	{
 		$this->bTokenInPost = $bTokenInPost;
-		parent::testUpdateApi($iJsonDataMode);
+		parent::UpdateApiTest($iJsonDataMode);
 	}
 
 	/**
@@ -103,6 +101,6 @@ abstract class AbstractTokenRestTest extends AbstractRestTest
 	public function testDeleteApiViaToken($iJsonDataMode, $bTokenInPost)
 	{
 		$this->bTokenInPost = $bTokenInPost;
-		parent::testDeleteApi($iJsonDataMode);
+		parent::DeleteApiTest($iJsonDataMode);
 	}
 }

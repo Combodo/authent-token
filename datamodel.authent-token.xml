@@ -6,7 +6,7 @@
     <class id="PersonalToken" _delta="define">
       <parent>cmdbAbstractObject</parent>
       <php_parent>
-        <name>Combodo\iTop\AuthentToken\Model\_PersonalToken</name>
+        <name>AbstractPersonalToken</name>
       </php_parent>
       <properties>
         <category>addon/authentication,grant_by_profile</category>
@@ -43,11 +43,11 @@
         </field>
         <field id="scope" xsi:type="AttributeEnumSet">
           <values>
-            <value id="WEBSERVICE">
-              <code>WEBSERVICE</code>
+            <value id="WebService">
+              <code>REST/JSON</code>
             </value>
-            <value id="OTHERS">
-              <code>OTHERS</code>
+            <value id="Synchro">
+              <code>Synchro</code>
             </value>
           </values>
           <sql>scope</sql>
@@ -134,7 +134,7 @@
     <class id="UserToken" _delta="define">
       <parent>cmdbAbstractObject</parent>
       <php_parent>
-        <name>_UserToken</name>
+        <name>AbstractApplicationToken</name>
       </php_parent>
       <properties>
         <category>addon/authentication,grant_by_profile</category>

@@ -3,10 +3,13 @@ namespace Combodo\iTop\AuthentToken\Test;
 
 require_once __DIR__.'/AbstractRestTest.php';
 require_once __DIR__.'/AbstractTokenRestTest.php';
-use Exception;
-use MetaModel;
+
+use AbstractPersonalToken;
 use AttributeDateTime;
 use Combodo\iTop\AuthentToken\Hook\TokenLoginExtension;
+use Exception;
+use MetaModel;
+use PersonalToken;
 
 
 /**
@@ -36,10 +39,10 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 
 	public function CreatePersonalToken(string $sApplication, $sScope=null){
     	if (is_null($sScope)) {
-		    $this->oPersonalToken = $this->createObject('PersonalToken', [
+		    $this->oPersonalToken = $this->createObject(PersonalToken::class, [
 			    'user_id' => $this->oUser->GetKey(),
 			    'application' => $sApplication,
-			    'scope' => 'WEBSERVICE'
+			    'scope' => 'REST/JSON'
 		    ]);
 	    }
 	}
@@ -47,7 +50,7 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 
 
 	private function CheckToken($sNow, $iExpectedUsedCount){
-		$oLastPersonalToken = MetaModel::GetObject("PersonalToken", $this->oPersonalToken->GetKey());
+		$oLastPersonalToken = MetaModel::GetObject(PersonalToken::class, $this->oPersonalToken->GetKey());
 		$this->assertEquals($iExpectedUsedCount, $oLastPersonalToken->Get('use_count'));
 
 		$sLastUseDate = $oLastPersonalToken->Get('last_use_date');
@@ -61,7 +64,7 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 	}
 
 	protected function GetAuthToken(){
-		$oReflectionClass = new \ReflectionClass("PersonalToken");
+		$oReflectionClass = new \ReflectionClass(AbstractPersonalToken::class);
 		$oProperty = $oReflectionClass->getProperty('sToken');
 		$oProperty->setAccessible(true);
 
@@ -110,9 +113,12 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 		//create ticket
 		$description = date('dmY H:i:s');
 
+		$sExpectedOutput = <<<JSON
+{"code":1,"message":"Error: Invalid login"}
+JSON;
+
 		$sOuputJson = $this->CreateTicketViaApi($description);
-		$aJson = json_decode($sOuputJson, true);
-		$this->assertTrue(is_null($aJson), "should be html login form instead of any json : " .  $sOuputJson);
+		$this->assertEquals($sExpectedOutput, $sOuputJson, "should be html login form instead of any json : " .  $sOuputJson);
 	}
 
 	/**
@@ -130,32 +136,11 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 		//create ticket
 		$description = date('dmY H:i:s');
 
+		$sExpectedOutput = <<<JSON
+{"code":1,"message":"Error: Invalid login"}
+JSON;
+
 		$sOuputJson = $this->CreateTicketViaApi($description);
-		$aJson = json_decode($sOuputJson, true);
-		$this->assertTrue(is_null($aJson), "should be html login form instead of any json : " .  $sOuputJson);
-	}
-
-	/**
-	 * @dataProvider BasicProvider
-	 */
-	public function testCreateApi($iJsonDataMode)
-	{
-		$this->markTestSkipped('');
-	}
-
-	/**
-	 * @dataProvider BasicProvider
-	 */
-	public function testUpdateApi($iJsonDataMode)
-	{
-		$this->markTestSkipped('');
-	}
-
-	/**
-	 * @dataProvider BasicProvider
-	 */
-	public function testDeleteApi($iJsonDataMode)
-	{
-		$this->markTestSkipped('');
+		$this->assertEquals($sExpectedOutput, $sOuputJson, "should be html login form instead of any json : " .  $sOuputJson);
 	}
 }

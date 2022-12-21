@@ -2,28 +2,23 @@
 
 use Combodo\iTop\Application\UI\Base\Component\Button\ButtonUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\Component\Form\FormUIBlockFactory;
+use Combodo\iTop\AuthentToken\Model\iToken;
+use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
 
 /**
  * @copyright   Copyright (C) 2010-2021 Combodo SARL
  * @license     http://opensource.org/licenses/AGPL-3.0
  */
 
-
-class _UserToken extends UserInternal
+abstract class AbstractApplicationToken extends UserInternal implements iToken
 {
 	private $sToken;
 	/**
-	 * @var array[_UserToken]
+	 * @var array[AbstractApplicationToken]
 	 */
 	private static $aCurrentUser = [];
 
-	public static function CheckToken($sToken): bool
-	{
-		$oUser = self::GetUser($sToken);
-		return (!is_null($oUser));
-	}
-
-	public static function GetUser($sToken)
+	public static function GetUserLegacy($sToken)
 	{
 		if (array_key_exists($sToken, self::$aCurrentUser)) {
 			return self::$aCurrentUser[$sToken];
@@ -90,17 +85,11 @@ HTML;
 		}
 	}
 
-
-	public function ComputeValues()
-	{
-		if ($this->IsNew()) {
-			$this->CreateNewToken();
-		}
-		parent::ComputeValues();
-	}
-
 	public function AfterInsert()
 	{
+		$this->CreateNewToken();
+		$this->DBWrite();
+
 		$sMessage = Dict::Format('AuthentToken:CopyToken', $this->sToken);
 		$this::SetSessionMessage(get_class($this), $this->GetKey(), 1, $sMessage, 'INFO', 1);
 		parent::AfterInsert();
@@ -135,12 +124,28 @@ HTML;
 		return parent::GetAsHTML($sAttCode, $bLocalize);
 	}
 
-	private function CreateNewToken(): void {
-		// Generate a new token
-		$rawToken = random_bytes(32);
-		$this->sToken = bin2hex($rawToken);
-		$oPassword = new ormPassword();
-		$oPassword->SetPassword($this->sToken);
+	private function CreateNewToken() : void
+	{
+		$oService = new AuthentTokenService();
+		$this->sToken = $oService->CreateNewToken($this);
+		$oPassword = $oService->CreatePassword($this->sToken);
 		$this->Set('auth_token', $oPassword);
+	}
+
+	public function GetUser() : \User
+	{
+		return $this;
+	}
+
+	public function CheckValidity(string $sToken): void
+	{
+	}
+
+	public function UpdateUsage(): void
+	{
+	}
+
+	public function CheckScopes(): void
+	{
 	}
 }

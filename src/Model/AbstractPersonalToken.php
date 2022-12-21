@@ -1,31 +1,18 @@
 <?php
 
-namespace Combodo\iTop\AuthentToken\Model;
-
 use Combodo\iTop\Application\UI\Base\Component\Button\ButtonUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\Component\Form\FormUIBlockFactory;
-use cmdbAbstractObject;
-use WebPage;
-use ormPassword;
-use Dict;
-use utils;
-use DBProperty;
-use DBObjectSet;
-use DBObjectSearch;
-use SimpleCrypt;
+use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
+use Combodo\iTop\AuthentToken\Model\iToken;
+use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
 
 /**
  * @copyright   Copyright (C) 2010-2021 Combodo SARL
  * @license     http://opensource.org/licenses/AGPL-3.0
  */
 
-
-class _PersonalToken extends cmdbAbstractObject
+abstract class AbstractPersonalToken extends cmdbAbstractObject  implements iToken
 {
-	const APPLICATION_NAME     = 'a';
-	const TOKEN_USER     = 'u';
-	const PRIVATE_KEY    = 'authent-token-priv-key';
-
 	protected $sToken;
 
 	private function InitPrivateKey()
@@ -68,16 +55,19 @@ HTML;
 		}
 	}
 
-	public function ComputeValues()
+	private function CreateNewToken(): void
 	{
-		if ($this->IsNew()) {
-			$this->CreateNewToken();
-		}
-		parent::ComputeValues();
+		$oService = new AuthentTokenService();
+		$this->sToken = $oService->CreateNewToken($this);
+		$oPassword = $oService->CreatePassword($this->sToken);
+		$this->Set('auth_token', $oPassword);
 	}
 
 	public function AfterInsert()
 	{
+		$this->CreateNewToken();
+		$this->DBWrite();
+
 		$sMessage = Dict::Format('PersonalToken:CopyToken', $this->sToken);
 		$this::SetSessionMessage(get_class($this), $this->GetKey(), 1, $sMessage, 'INFO', 1);
 		parent::AfterInsert();
@@ -107,52 +97,63 @@ HTML;
 		return parent::GetAsHTML($sAttCode, $bLocalize);
 	}
 
-	/**
-	 * @param $sToken
-	 *
-	 * @return array|mixed
-	 * @throws \CoreException
-	 * @throws \MySQLException
-	 */
-	public static function DecryptToken($sToken)
+	public function GetUser() : \User
 	{
-		$sPrivateKey = self::GetPrivateKey();
-		$oCrypt = new SimpleCrypt();
-
-		return json_decode($oCrypt->Decrypt($sPrivateKey, hex2bin($sToken)), true);
+		return MetaModel::GetObject(\User::class, $this->Get('user_id'));
 	}
 
-
-	private function CreateNewToken(): void {
-		$aToken = [
-			self::APPLICATION_NAME     => $this->Get('application'),
-			self::TOKEN_USER     => $this->Get('user_id'),
-			//'salt' => random_bytes(8),
-		];
-
-		$sPPrivateKey = self::GetPrivateKey();
-		$oCrypt = new SimpleCrypt();
-		$this->sToken = bin2hex($oCrypt->Encrypt($sPPrivateKey, json_encode($aToken)));
-
-		$oPassword = new ormPassword();
-		$oPassword->SetPassword($this->sToken);
-		$this->Set('auth_token', $oPassword);
-	}
-
-	/**
-	 * @return string
-	 * @throws \CoreException
-	 * @throws \CoreUnexpectedValue
-	 * @throws \MySQLException
-	 */
-	private static function GetPrivateKey()
+	public function CheckValidity(string $sToken): void
 	{
-		$sPrivateKey = DBProperty::GetProperty(self::PRIVATE_KEY);
-		if (is_null($sPrivateKey)) {
-			$sPrivateKey = bin2hex(random_bytes(32));
-			DBProperty::SetProperty(self::PRIVATE_KEY, $sPrivateKey);
+		$oPassword = $this->Get('auth_token');
+		if (! $oPassword->CheckPassword($sToken)) {
+			throw new TokenAuthException('Invalid token');
 		}
 
-		return $sPrivateKey;
+		$oTokenValidity = $this->Get('expiration_date');
+		if (! is_null($oTokenValidity) && time() > $oTokenValidity) {
+			// Not valid anymore
+			throw new TokenAuthException('Invalid token validity');
+		}
+
+		$this->CheckScopes();
 	}
+
+
+	/**
+	 * @return mixed
+	 * @throws \ArchivedObjectException
+	 * @throws \Combodo\iTop\AuthentToken\Exception\TokenAuthException
+	 * @throws \CoreException
+	 */
+	public function CheckScopes(): void
+	{
+		/** @var ormSet $oScope */
+		$oScope = $this->Get('scope');
+		$aScopeValues = $oScope->GetValues();
+		foreach ($aScopeValues as $sScope) {
+			if (\ContextTag::Check($sScope)) {
+				return;
+			}
+		}
+
+		IssueLog::Error(sprintf(
+				"Current context (%s) does not match current Token allowed scopes: %s",
+				implode(',', \ContextTag::GetStack()),
+				implode(",", $aScopeValues)
+			)
+		);
+
+		throw new TokenAuthException('Scope not authorized');
+	}
+
+
+	public function UpdateUsage(): void
+	{
+		$iUseCount = $this->Get('use_count') + 1;
+		$this->Set('use_count', $iUseCount);
+		$this->Set('last_use_date', time());
+		$this->DBUpdate();
+		CMDBObject::SetCurrentChange(null);
+	}
+
 }

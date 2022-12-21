@@ -1,19 +1,17 @@
 <?php
 
 namespace Combodo\iTop\AuthentToken\Hook;
-use Combodo\iTop\Application\Helper\Session;
+use AbstractApplicationToken;
 use AbstractLoginFSMExtension;
+use Combodo\iTop\Application\Helper\Session;
 use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
-use Combodo\iTop\AuthentToken\Model\_PersonalToken;
+use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
+use Combodo\iTop\AuthentToken\Model\iToken;
+use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
 use LoginWebPage;
-use utils;
-use User;
-use DBSearch;
 use MetaModel;
-use DBObjectSet;
-use CMDBObject;
-use ormSet;
-use IssueLog;
+use utils;
+
 
 /**
  * Class LoginToken
@@ -27,6 +25,11 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 	const LOGIN_TYPE = 'token';
 	const LEGACY_LOGIN_TYPE = 'rest-token';
 	const SUPPORTED_LOGIN_MODES = [ self::LOGIN_TYPE , self::LEGACY_LOGIN_TYPE ];
+
+	public function __construct()
+	{
+		TokenAuthLog::Enable(APPROOT.'log/error.log');
+	}
 
 	/**
 	 * @var bool
@@ -85,18 +88,18 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 		if ($this->IsLoginModeSupported(Session::Get('login_mode')))
 		{
 			$sAuthToken = Session::Get('login_temp_auth_token');
-			list($oUser, $oPersonalToken) = self::GetUser($sAuthToken);
-
-			if (empty($oUser))
+			try{
+				$oToken = self::GetToken($sAuthToken);
+			}
+			catch(\Exception $e)
 			{
+				TokenAuthLog::Error("OnCheckCredentials: " . $e->getMessage());
 				$iErrorCode = LoginWebPage::EXIT_CODE_WRONGCREDENTIALS;
 				return LoginWebPage::LOGIN_FSM_ERROR;
 			}
 
-			Session::Set('user_id', $oUser->GetKey());
-			if (!empty($oPersonalToken)) {
-				Session::Set('personal_token_id', $oPersonalToken->GetKey());
-			}
+			Session::Set('token_id', $oToken->GetKey());
+			Session::Set('token_class', get_class($oToken));
 		}
 		return LoginWebPage::LOGIN_FSM_CONTINUE;
 	}
@@ -105,22 +108,17 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 	{
 		if ($this->IsLoginModeSupported(Session::Get('login_mode')))
 		{
-			$iUserId = Session::Get('user_id');
-			$oUser = MetaModel::GetObject('User', $iUserId);
+			/** @var iToken $oToken */
+			$sTokenId = Session::Get('token_id');
+			$sTokenClass = Session::Get('token_class');
+			$oToken = MetaModel::GetObject($sTokenClass, $sTokenId);
+			$oUser = $oToken->GetUser();
 
 			LoginWebPage::OnLoginSuccess($oUser->Get('login'), 'internal', Session::Get('login_mode'));
 
 			MetaModel::GetConfig()->Set('secure_rest_services', false, 'auth-token');
 
-			$iPersonalTokenId = Session::Get('personal_token_id');
-			if (! is_null($iPersonalTokenId)){
-				$oPersonalToken = MetaModel::GetObject('PersonalToken', $iPersonalTokenId);
-				$iUseCount = $oPersonalToken->Get('use_count') + 1;
-				$oPersonalToken->Set('use_count', $iUseCount);
-				$oPersonalToken->Set('last_use_date', time());
-				$oPersonalToken->DBUpdate();
-				CMDBObject::SetCurrentChange(null);
-			}
+			$oToken->UpdateUsage();
 
 		}
 		return LoginWebPage::LOGIN_FSM_CONTINUE;
@@ -141,6 +139,20 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 		{
 			Session::Set('can_logoff', true);
 
+			/** @var iToken $oToken */
+			$sTokenId = Session::Get('token_id');
+			$sTokenClass = Session::Get('token_class');
+			$oToken = MetaModel::GetObject($sTokenClass, $sTokenId);
+			try{
+				$oToken->CheckScopes();
+			}
+			catch(\Exception $e)
+			{
+				TokenAuthLog::Error("OnConnected: " . $e->getMessage());
+				$iErrorCode = LoginWebPage::EXIT_CODE_WRONGCREDENTIALS;
+				return LoginWebPage::LOGIN_FSM_ERROR;
+			}
+
 			return LoginWebPage::CheckLoggedUser($iErrorCode);
 		}
 		return LoginWebPage::LOGIN_FSM_CONTINUE;
@@ -151,67 +163,23 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 	 *
 	 * @return array
 	 */
-	public static function GetUser($sToken)
+	public static function GetToken($sToken) : iToken
 	{
-		$aTokenFields = _PersonalToken::DecryptToken($sToken);
+		$oService = new AuthentTokenService();
+		$aTokenFields = $oService->DecryptToken($sToken);
 		if (!is_array($aTokenFields)) {
+			$oToken = AbstractApplicationToken::GetUserLegacy($sToken);
+			if (! is_null($oToken)){
+				return $oToken;
+			}
+
 			// Not decrypted
 			throw new TokenAuthException('invalid_token');
 		}
 
-		$sApplication = $aTokenFields[_PersonalToken::APPLICATION_NAME] ?? '';
-		if (empty($sApplication)) {
-			// Not an access token
-			throw new TokenAuthException('invalid_token_application');
-		}
+		$oToken = $oService->GetToken($aTokenFields);
 
-		$iUserId = $aTokenFields[_PersonalToken::TOKEN_USER];
-		//TODO random field / salt
-		$sOQL = <<<OQL
-SELECT t,u FROM
-PersonalToken AS t
-JOIN User AS u
-ON t.user_id = u.id
-WHERE u.id = $iUserId
-AND t.application = "$sApplication"
-OQL;
-		$oSearch = DBSearch::FromOQL($sOQL);
-		/** var \DBObjectSet  $oSet*/
-		$oSet = new DBObjectSet($oSearch);
-
-		while ($aObjects = $oSet->FetchAssoc()) {
-			if (sizeof($aObjects) === 0){
-				continue;
-			}
-			/** @var PersonalToken $oPersonalToken */
-			$oPersonalToken = $aObjects['t'];
-			$oUserToken = $oPersonalToken->Get('auth_token');
-			if ($oUserToken->CheckPassword($sToken)) {
-				$oTokenValidity = $oPersonalToken->Get('expiration_date');
-				if (! is_null($oTokenValidity) && time() > $oTokenValidity) {
-					// Not valid anymore
-					throw new TokenAuthException('invalid_token_validity');
-				}
-
-				$sCurrentScope = \Combodo\iTop\Application\Helper\Session::Get("ENDPOINT_CATEGORY");
-				if (is_null($sCurrentScope)){
-					IssueLog::Error("No scope to current endpoint (no ENDPOINT_CATEGORY in session) ");
-					throw new TokenAuthException('no_scope_to_current_endpoint');
-				}
-
-				/** @var ormSet $oScope */
-				$oScope = $oPersonalToken->Get('scope');
-				$aScopeValues = $oScope->GetValues();
-				if (! in_array($sCurrentScope, $aScopeValues)){
-					IssueLog::Error("Current scope $sCurrentScope does not match current Token allowed scopes: " . implode(",", $aScopeValues));
-					throw new TokenAuthException('scope_not_authorized');
-				}
-
-				/** @var User $oUser */
-				$oUser = $aObjects['u'];
-				return [ $oUser, $oPersonalToken ];
-			}
-		}
-		return [];
+		$oToken->CheckValidity($sToken);
+		return $oToken;
 	}
 }

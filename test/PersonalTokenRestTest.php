@@ -34,6 +34,10 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 
 	    $this->InitLoginMode(TokenLoginExtension::LOGIN_TYPE);
 
+	    MetaModel::GetConfig()->Set('secure_rest_services', true, 'auth-token');
+	    MetaModel::GetConfig()->Set('allow_rest_services_via_tokens', true, 'auth-token');
+	    MetaModel::GetConfig()->WriteToFile();
+
 	    $this->CreatePersonalToken("RESTTEST");
 	}
 

@@ -63,14 +63,10 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
 		    {
 			    $this->AddProfileToUser($this->oApplicationToken, $oRestProfile->GetKey());
 		    } else {
-			    $this->sConfigTmpBackupFile = tempnam(sys_get_temp_dir(), "config_");
-			    MetaModel::GetConfig()->WriteToFile($this->sConfigTmpBackupFile);
-
-			    MetaModel::GetConfig()->Set('secure_rest_services', false, 'auth-multi-token');
+			    MetaModel::GetConfig()->Set('secure_rest_services', false, 'auth-token');
 			    MetaModel::GetConfig()->WriteToFile();
 		    }
 	    }
-
 
 	    $oReflectionClass = new \ReflectionClass(AbstractApplicationToken::class);
 	    $oProperty = $oReflectionClass->getProperty('sToken');

@@ -46,22 +46,13 @@ abstract class AbstractRestTest extends ItopDataTestCase
 		$this->sUrl = MetaModel::GetConfig()->Get('app_root_url');
 		@chmod($sConfigFile, 0444); // Read-only
 
-	    $oRestProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'REST Services User'),
-		    true);
+	    $this->sConfigTmpBackupFile = tempnam(sys_get_temp_dir(), "config_");
+	    MetaModel::GetConfig()->WriteToFile($this->sConfigTmpBackupFile);
+
 	    $oAdminProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'Administrator'), true);
 
 	    if (is_object($oAdminProfile)) {
 		    $this->oUser = $this->CreateContactlessUser($this->sLogin, $oAdminProfile->GetKey(), $this->sPassword);
-
-		    if (is_object($oRestProfile)) {
-			    $this->AddProfileToUser($this->oUser, $oRestProfile->GetKey());
-		    } else {
-			    $this->sConfigTmpBackupFile = tempnam(sys_get_temp_dir(), "config_");
-			    MetaModel::GetConfig()->WriteToFile($this->sConfigTmpBackupFile);
-
-			    MetaModel::GetConfig()->Set('secure_rest_services', false, 'auth-multi-token');
-			    MetaModel::GetConfig()->WriteToFile();
-		    }
 	    }
 	}
 

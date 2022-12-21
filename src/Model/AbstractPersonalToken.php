@@ -3,6 +3,7 @@
 use Combodo\iTop\Application\UI\Base\Component\Button\ButtonUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\Component\Form\FormUIBlockFactory;
 use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
+use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Model\iToken;
 use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
 
@@ -136,7 +137,7 @@ HTML;
 			}
 		}
 
-		IssueLog::Error(sprintf(
+		TokenAuthLog::Error(sprintf(
 				"Current context (%s) does not match current Token allowed scopes: %s",
 				implode(',', \ContextTag::GetStack()),
 				implode(",", $aScopeValues)
@@ -154,6 +155,12 @@ HTML;
 		$this->Set('last_use_date', time());
 		$this->DBUpdate();
 		CMDBObject::SetCurrentChange(null);
+
+		if (MetaModel::GetConfig()->Get('allow_rest_services_via_tokens')
+			&& \ContextTag::Check(\ContextTag::TAG_REST)){
+			//let user do rest calls even without rest profiles
+			MetaModel::GetConfig()->Set('secure_rest_services', false, 'auth-token');
+		}
 	}
 
 }

@@ -14,7 +14,7 @@ use utils;
 
 
 /**
- * Class LoginToken
+ * Class TokenLoginExtension
  *
  * @copyright   Copyright (C) 2010-2021 Combodo SARL
  * @license     http://opensource.org/licenses/AGPL-3.0
@@ -42,7 +42,7 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 	 * @return array of supported login modes
 	 */
 	public function ListSupportedLoginModes(){
-		return self::SUPPORTED_LOGIN_MODES;
+		return [self::LOGIN_TYPE];
 	}
 
 	/**
@@ -115,11 +115,6 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 			$oUser = $oToken->GetUser();
 
 			LoginWebPage::OnLoginSuccess($oUser->Get('login'), 'internal', Session::Get('login_mode'));
-
-			MetaModel::GetConfig()->Set('secure_rest_services', false, 'auth-token');
-
-			$oToken->UpdateUsage();
-
 		}
 		return LoginWebPage::LOGIN_FSM_CONTINUE;
 	}
@@ -152,6 +147,8 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 				$iErrorCode = LoginWebPage::EXIT_CODE_WRONGCREDENTIALS;
 				return LoginWebPage::LOGIN_FSM_ERROR;
 			}
+
+			$oToken->UpdateUsage();
 
 			return LoginWebPage::CheckLoggedUser($iErrorCode);
 		}

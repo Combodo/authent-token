@@ -1,0 +1,7 @@
+{% UIFieldSet Standard {sLegend: 'MyAccount:SubTitle:' ~ index | dict_s} %}
+	{% for key, value in Infos %}
+		{% UIField Small {sLabel: 'MyAccount:Field:' ~ key | dict_s} %}
+{{ value }}
+		{% EndUIField %}
+	{% endfor %}
+{% EndUIFieldSet %}

@@ -26,12 +26,13 @@ class ComposerStaticInit3bffe940f87be1abac8a88b0b96ab76f
     );
 
     public static $classMap = array (
+        'Combodo\\iTop\\AuthentToken\\Controller\\MyAccountController' => __DIR__ . '/../..' . '/src/Controller/MyAccountController.php',
         'Combodo\\iTop\\AuthentToken\\Exception\\TokenAuthException' => __DIR__ . '/../..' . '/src/Exception/TokenAuthException.php',
         'Combodo\\iTop\\AuthentToken\\Helper\\TokenAuthHelper' => __DIR__ . '/../..' . '/src/Helper/TokenAuthHelper.php',
         'Combodo\\iTop\\AuthentToken\\Helper\\TokenAuthLog' => __DIR__ . '/../..' . '/src/Helper/TokenAuthLog.php',
         'Combodo\\iTop\\AuthentToken\\Hook\\LegacyTokenLoginExtension' => __DIR__ . '/../..' . '/src/Hook/LegacyTokenLoginExtension.php',
+        'Combodo\\iTop\\AuthentToken\\Hook\\MyAccountPopupMenuExtension' => __DIR__ . '/../..' . '/src/Hook/MyAccountPopupMenuExtension.php',
         'Combodo\\iTop\\AuthentToken\\Hook\\TokenLoginExtension' => __DIR__ . '/../..' . '/src/Hook/TokenLoginExtension.php',
-        'Combodo\\iTop\\AuthentToken\\Hook\\TokenUserUIExtension' => __DIR__ . '/../..' . '/src/Hook/TokenUserUIExtension.php',
         'Combodo\\iTop\\AuthentToken\\Model\\iToken' => __DIR__ . '/../..' . '/src/Model/iToken.php',
         'Combodo\\iTop\\AuthentToken\\Service\\AuthentTokenService' => __DIR__ . '/../..' . '/src/Service/AuthentTokenService.php',
         'Combodo\\iTop\\AuthentToken\\Test\\AbstractRestTest' => __DIR__ . '/../..' . '/test/AbstractRestTest.php',

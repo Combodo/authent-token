@@ -6,12 +6,13 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Combodo\\iTop\\AuthentToken\\Controller\\MyAccountController' => $baseDir . '/src/Controller/MyAccountController.php',
     'Combodo\\iTop\\AuthentToken\\Exception\\TokenAuthException' => $baseDir . '/src/Exception/TokenAuthException.php',
     'Combodo\\iTop\\AuthentToken\\Helper\\TokenAuthHelper' => $baseDir . '/src/Helper/TokenAuthHelper.php',
     'Combodo\\iTop\\AuthentToken\\Helper\\TokenAuthLog' => $baseDir . '/src/Helper/TokenAuthLog.php',
     'Combodo\\iTop\\AuthentToken\\Hook\\LegacyTokenLoginExtension' => $baseDir . '/src/Hook/LegacyTokenLoginExtension.php',
+    'Combodo\\iTop\\AuthentToken\\Hook\\MyAccountPopupMenuExtension' => $baseDir . '/src/Hook/MyAccountPopupMenuExtension.php',
     'Combodo\\iTop\\AuthentToken\\Hook\\TokenLoginExtension' => $baseDir . '/src/Hook/TokenLoginExtension.php',
-    'Combodo\\iTop\\AuthentToken\\Hook\\TokenUserUIExtension' => $baseDir . '/src/Hook/TokenUserUIExtension.php',
     'Combodo\\iTop\\AuthentToken\\Model\\iToken' => $baseDir . '/src/Model/iToken.php',
     'Combodo\\iTop\\AuthentToken\\Service\\AuthentTokenService' => $baseDir . '/src/Service/AuthentTokenService.php',
     'Combodo\\iTop\\AuthentToken\\Test\\AbstractRestTest' => $baseDir . '/test/AbstractRestTest.php',

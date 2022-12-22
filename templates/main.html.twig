@@ -1,0 +1,25 @@
+{% apply spaceless %}
+
+{% UIMultiColumn Standard {} %}
+	{% UIColumn Standard {} %}
+		{% set index = 'user' %}
+		{% set Infos = Params.user %}
+		{% include 'section.html.twig' %}
+	{% EndUIColumn %}
+	{% if null != Params.contact %}
+		{% UIColumn Standard {} %}
+			{% set index = 'contact' %}
+			{% set Infos = Params.contact %}
+			{% include 'section.html.twig' %}
+		{% EndUIColumn %}
+	{% endif %}
+{% EndUIMultiColumn %}
+
+
+{% if null != Params.personaltoken %}
+	{% UIColumn Standard {} %}
+	{% include 'personaltoken.html.twig' %}
+	{% EndUIColumn %}
+{% endif %}
+
+{% endapply %}

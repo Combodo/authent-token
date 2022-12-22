@@ -57,11 +57,13 @@
         <field id="expiration_date" xsi:type="AttributeDateTime" _delta="define">
           <sql>expiration_date</sql>
           <default_value/>
+          <tracking_level>none</tracking_level>
           <is_null_allowed>true</is_null_allowed>
         </field>
         <field id="use_count" xsi:type="AttributeInteger" _delta="define">
           <sql>use_count</sql>
           <default_value>0</default_value>
+          <tracking_level>none</tracking_level>
           <is_null_allowed>true</is_null_allowed>
         </field>
         <field id="last_use_date" xsi:type="AttributeDateTime" _delta="define">
@@ -70,7 +72,49 @@
           <is_null_allowed>true</is_null_allowed>
         </field>
       </fields>
-      <methods/>
+
+
+
+
+
+
+      <methods>
+        <method id="GetAttributeFlags">
+          <comment></comment>
+          <static>false</static>
+          <access>public </access>
+          <code><![CDATA[   	public function GetAttributeFlags($sAttCode, &$aReasons = array(), $sTargetState = '')
+	{
+		// This function is invoked when the object is EDITED on the Console
+		// It is called for each and every field of the object,
+		// but we just want to change the behavior for a single field
+		if ($sAttCode == 'use_count' || $sAttCode == 'last_use_date')
+		{
+			// Combine the new Flag with those impose by a parent class
+			return(OPT_ATT_READONLY | parent::GetAttributeFlags($sAttCode, $aReasons, $sTargetState));
+		}
+		return parent::GetAttributeFlags($sAttCode, $aReasons, $sTargetState);
+	}]]></code>
+        </method>
+        <method id="GetInitialStateAttributeFlags">
+          <comment></comment>
+          <static>false</static>
+          <access>public </access>
+          <code><![CDATA[   	public function GetInitialStateAttributeFlags($sAttCode, &$aReasons = array())
+{
+    // This function is invoked when the object is CREATED on the Console
+    // It is called for each and every field of the object,
+    // but we just want to change the behavior for a single field
+		if ($sAttCode == 'use_count' || $sAttCode == 'last_use_date')
+    {
+        // Combine the new Flag with those imposed by a parent class
+        return(OPT_ATT_READONLY | parent::GetInitialStateAttributeFlags($sAttCode, $aReasons));
+    }
+    // For other fields ask the parent class to do the job
+    return parent::GetInitialStateAttributeFlags($sAttCode, $aReasons);
+}]]></code>
+        </method>
+      </methods>
       <presentation>
         <details _delta="redefine">
           <items>

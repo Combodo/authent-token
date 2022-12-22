@@ -26,7 +26,6 @@ SetupWebPage::AddModule(
 			'vendor/autoload.php',
 			'legacy/Helper/Session.php',
 			'src/Model/AbstractPersonalToken.php',
-			'src/Hook/TokenUserUIExtension.php',
 			'src/Hook/TokenLoginExtension.php',
 			'src/Hook/LegacyTokenLoginExtension.php',
 			'src/Model/AbstractApplicationToken.php',

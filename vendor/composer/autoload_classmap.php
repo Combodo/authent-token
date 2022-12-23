@@ -19,6 +19,7 @@ return array(
     'Combodo\\iTop\\AuthentToken\\Test\\AbstractTokenRestTest' => $baseDir . '/test/AbstractTokenRestTest.php',
     'Combodo\\iTop\\AuthentToken\\Test\\ApplicationTokenRestTest' => $baseDir . '/test/ApplicationTokenRestTest.php',
     'Combodo\\iTop\\AuthentToken\\Test\\AuthentTokenServiceTest' => $baseDir . '/test/AuthentTokenServiceTest.php',
+    'Combodo\\iTop\\AuthentToken\\Test\\MyAccountControllerTest' => $baseDir . '/test/MyAccountControllerTest.php',
     'Combodo\\iTop\\AuthentToken\\Test\\PersonalTokenRestTest' => $baseDir . '/test/PersonalTokenRestTest.php',
     'Combodo\\iTop\\AuthentToken\\Test\\RestTest' => $baseDir . '/test/RestTest.php',
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',

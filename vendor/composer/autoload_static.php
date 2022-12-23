@@ -39,6 +39,7 @@ class ComposerStaticInit3bffe940f87be1abac8a88b0b96ab76f
         'Combodo\\iTop\\AuthentToken\\Test\\AbstractTokenRestTest' => __DIR__ . '/../..' . '/test/AbstractTokenRestTest.php',
         'Combodo\\iTop\\AuthentToken\\Test\\ApplicationTokenRestTest' => __DIR__ . '/../..' . '/test/ApplicationTokenRestTest.php',
         'Combodo\\iTop\\AuthentToken\\Test\\AuthentTokenServiceTest' => __DIR__ . '/../..' . '/test/AuthentTokenServiceTest.php',
+        'Combodo\\iTop\\AuthentToken\\Test\\MyAccountControllerTest' => __DIR__ . '/../..' . '/test/MyAccountControllerTest.php',
         'Combodo\\iTop\\AuthentToken\\Test\\PersonalTokenRestTest' => __DIR__ . '/../..' . '/test/PersonalTokenRestTest.php',
         'Combodo\\iTop\\AuthentToken\\Test\\RestTest' => __DIR__ . '/../..' . '/test/RestTest.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',

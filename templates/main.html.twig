@@ -15,9 +15,10 @@
 	{% endif %}
 {% EndUIMultiColumn %}
 
-
 {% if null != Params.personaltoken %}
 	{% UIColumn Standard {} %}
+	{% set index = 'personaltoken' %}
+	{% set Infos = Params.personaltoken %}
 	{% include 'personaltoken.html.twig' %}
 	{% EndUIColumn %}
 {% endif %}

@@ -44,70 +44,31 @@ class MyAccountController extends Controller{
 	}
 
 	public function ProvideHtmlUserInfo(\User $oUser, &$aParams): void{
-		$aData = [];
-		$oUser = $this->ProvideUserInfo($oUser, $aData);
-
 		if (is_null($oUser)){
 			return;
 		}
 
-		$this->ConvertToHtml($aParams, $aData, 'user', $oUser);
-	}
+		$aUserInfo = [
+			'login' => $oUser->Get('login'),
+			'profile_list' => $oUser->Get('profile_list'),
+			'allowed_org_list' => $oUser->Get('allowed_org_list'),
+			'org_id' => $oUser->Get('org_id'),
+		];
 
-	public function ProvideUserInfo(\User $oUser, &$aParams){
-		if (is_null($oUser)){
-			return null;
-		}
-
-		$aUserInfo = ['login' => $oUser->Get('login')];
-
-		$oProfileSet = $oUser->Get('profile_list');
-		$aProfiles = [];
-		while (($oProfile = $oProfileSet->Fetch()) != null){
-			$aProfiles[]= $oProfile->Get('profile');
-		}
-		$aUserInfo['profile_list'] = implode(', ', $aProfiles);
-
-		$oAllowedOrgList = $oUser->Get('allowed_org_list');
-		$aAllowedOrgs = [];
-		while (($oUserOrg = $oAllowedOrgList->Fetch()) != null){
-			$aAllowedOrgs[]= $oUserOrg->Get('allowed_org_name');
-		}
-		$aUserInfo['allowed_org_list'] = implode(', ', $aAllowedOrgs);
-
-		$aParams['user'] = $aUserInfo;
-		return $oUser;
+		$this->ConvertToHtml($aParams, $aUserInfo, 'user', $oUser);
 	}
 
 	public function ProvideHtmlContactInfo(\User $oUser, &$aParams): void{
-		$aData = [];
-		$oPerson = $this->ProvideContactInfo($oUser, $aData);
-
-		if (is_null($oPerson)){
-			return;
-		}
-
-		$this->ConvertToHtml($aParams, $aData, 'contact', $oPerson);
-	}
-
-	public function ConvertToHtml(&$aParams, $aData, $sKey, DBObject $oObject)
-	{
-		foreach ($aData[$sKey] as $sAttCode => $sValue){
-			$aParams[$sKey][MetaModel::GetLabel(get_class($oObject), $sAttCode)] = $oObject->GetAsHTML($sAttCode);
-		}
-	}
-
-	public function ProvideContactInfo(\User $oUser, &$aParams) {
 		if (is_null($oUser)){
-			return null;
+			return;
 		}
 
 		$iPersonId = $oUser->Get('contactid');
 		if (0 === $iPersonId){
-			return null;
+			return;
 		}
-		$oPerson = MetaModel::GetObject('Person', $iPersonId);
 
+		$oPerson = MetaModel::GetObject('Person', $iPersonId);
 		$aContactInfo = [
 			'picture' => $oPerson->Get('picture'),
 			'first_name' => $oPerson->Get('first_name'),
@@ -117,8 +78,14 @@ class MyAccountController extends Controller{
 			'location_name' => $oPerson->Get('location_name'),
 		];
 
-		$aParams['contact'] = $aContactInfo;
-		return $oPerson;
+		$this->ConvertToHtml($aParams, $aContactInfo, 'contact', $oPerson);
+	}
+
+	public function ConvertToHtml(&$aParams, $aData, $sKey, DBObject $oObject)
+	{
+		foreach ($aData as $sAttCode => $sValue){
+			$aParams[$sKey][MetaModel::GetLabel(get_class($oObject), $sAttCode)] = $oObject->GetAsHTML($sAttCode);
+		}
 	}
 
 	public function ProvideTokenInfo(\User $oUser): ?array{
@@ -129,23 +96,29 @@ class MyAccountController extends Controller{
 	}
 
 	public function ProvideHtmlTokenInfo(\User $oUser, &$aParams){
-		$aData = $this->ProvideTokenInfo($oUser);
 		$aFields = ["application", "scope", "expiration_date", "use_count", "last_use_date"];
 
 		$aColumns=[];
 		foreach ($aFields as $sField){
 			$aColumns[] = ['label' => MetaModel::GetLabel(\PersonalToken::class, $sField)];
 		}
-		
+
 		$aDataValues=[];
-		if (!is_null($aData)){
-			foreach ($aData as $oToken){
+
+		$sOql = sprintf("SELECT PersonalToken WHERE user_id = %s", $oUser->GetKey());
+		$oFilter = DBObjectSearch::FromOQL($sOql, []);
+		$oSet = new DBObjectSet($oFilter);
+
+		if ($oSet->Count() > 0){
+			while($oToken=$oSet->Fetch()){
+				$aCurrentTokenData=[];
 				foreach ($aFields as $sField) {
-					$aDataValues[] = $oToken->GetAsHTML($sField);
+					$aCurrentTokenData[] = $oToken->GetAsHTML($sField);
 				}
+				$aDataValues[]=$aCurrentTokenData;
 			}
 		}
-		
+
 		$aParams['personaltoken'] = [
 			'aColumns' => $aColumns,
 			'aData' => $aDataValues,

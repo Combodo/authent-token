@@ -5,7 +5,7 @@
  * @copyright   Copyright (C) 2022 Combodo SARL
  */
 
-Dict::Add('FR FR', 'French', 'Français', array(
+Dict::Add('FR FR', 'French', 'Français', [
 	'UI:MyAccount' => 'Mon compte',
-));
+]);
 

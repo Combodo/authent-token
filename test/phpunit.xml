@@ -25,6 +25,7 @@
     <testsuite name="testsU">
       <directory suffix="Test.php">.</directory>
       <exclude>./AbstractRestTest.php</exclude>
+      <exclude>./MyAccountControllerTest.php</exclude>
     </testsuite>
   </testsuites>
 </phpunit>

@@ -12,7 +12,7 @@
         <category>addon/authentication,grant_by_profile</category>
         <abstract>false</abstract>
         <key_type>autoincrement</key_type>
-        <db_table>priv_user_multi_token</db_table>
+        <db_table>priv_personal_token</db_table>
         <db_key_field>id</db_key_field>
         <db_final_class_field/>
         <icon/>
@@ -25,9 +25,11 @@
       <fields>
         <field id="user_id" xsi:type="AttributeExternalKey" _delta="define">
           <sql>user_id</sql>
-          <filter/>
+          <filter><![CDATA[SELECT User ]]></filter>
           <dependencies/>
           <is_null_allowed>true</is_null_allowed>
+          <allow_target_creation>false</allow_target_creation>
+          <display_style>list</display_style>
           <target_class>User</target_class>
           <on_target_delete>DEL_AUTO</on_target_delete>
         </field>
@@ -245,13 +247,13 @@
     <dictionary id="EN US" _delta="must_exist">
       <entries>
         <entry id="Class:User/Attribute:tokens_list" _delta="define"><![CDATA[Tokens]]></entry>
-        <entry id="Menu:SearchMultiTokens" _delta="define"><![CDATA[Tokens]]></entry>
-        <entry id="Menu:SearchMultiTokens+" _delta="define"><![CDATA[Tokens]]></entry>
+        <entry id="Menu:SearchPersonalTokens" _delta="define"><![CDATA[Tokens]]></entry>
+        <entry id="Menu:SearchPersonalTokens+" _delta="define"><![CDATA[Tokens]]></entry>
       </entries>
     </dictionary>
   </dictionaries>
   <menus>
-    <menu xsi:type="OQLMenuNode" id="SearchMultiTokens" _delta="define">
+    <menu xsi:type="OQLMenuNode" id="SearchPersonalTokens" _delta="define">
       <parent>UserManagement</parent>
       <rank>30</rank>
       <oql>SELECT PersonalToken</oql>

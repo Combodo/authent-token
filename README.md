@@ -14,5 +14,4 @@
 "key": "SELECT Person WHERE email LIKE '\''%.fr'\''",
 "output_fields": "friendlyname, email"
 }' \
---header 'Content-Type: application/x-www-form-urlencoded' \
 --header 'Auth-Token: 1207cc8fd2ea4cecc16d43b723db2c0d49a1a76259a863150c5d93597048e621'`

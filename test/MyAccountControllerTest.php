@@ -25,12 +25,13 @@ class MyAccountControllerTest  extends ItopDataTestCase {
 	public function testProvideUserInfo_OnlyLoginWith1Profile() {
 		$aParams = [];
 		$oMyAccountController = new MyAccountController('');
-		$oMyAccountController->ProvideUserInfo($this->oUser, $aParams);
+		$oMyAccountController->ProvideHtmlUserInfo($this->oUser, $aParams);
 
 		$aExpectedParams = ['user' => [
 			'login' => $this->sLogin,
 			'profiles' => 'Administrator',
 			'allowed_orgs' => '',
+			'org_id' => 0
 			]
 		];
 		$this->assertEquals($aExpectedParams, $aParams);
@@ -44,11 +45,12 @@ class MyAccountControllerTest  extends ItopDataTestCase {
 		$oOtherProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => $sProfile), true);
 		$this->AddProfileToUser($this->oUser, $oOtherProfile->GetKey());
 
-		$oMyAccountController->ProvideUserInfo($this->oUser, $aParams);
+		$oMyAccountController->ProvideHtmlUserInfo($this->oUser, $aParams);
 		$aExpectedParams = ['user' => [
 			'login' => $this->sLogin,
 			'profiles' => "Administrator, $sProfile",
 			'allowed_orgs' => '',
+			'org_id' => 0,
 		]
 		];
 
@@ -71,11 +73,12 @@ class MyAccountControllerTest  extends ItopDataTestCase {
 		$this->oUser->Set('allowed_org_list', $oAllowedOrgList);
 		$this->oUser->DBWrite();
 
-		$oMyAccountController->ProvideUserInfo($this->oUser, $aParams);
+		$oMyAccountController->ProvideHtmlUserInfo($this->oUser, $aParams);
 		$aExpectedParams = ['user' => [
 			'login' => $this->sLogin,
 			'profiles' => "Administrator",
-			'allowed_orgs' => 'org1, org2'
+			'allowed_orgs' => 'org1, org2',
+			'org_id' => 0,
 			]
 		];
 
@@ -105,14 +108,15 @@ class MyAccountControllerTest  extends ItopDataTestCase {
 
 		$aParams = [];
 		$oMyAccountController = new MyAccountController('');
-		$oMyAccountController->ProvideUserInfo($this->oUser, $aParams);
-		$oMyAccountController->ProvideContactInfo($this->oUser, $aParams);
+		$oMyAccountController->ProvideHtmlUserInfo($this->oUser, $aParams);
+		$oMyAccountController->ProvideHtmlContactInfo($this->oUser, $aParams);
 
 		$aExpectedParams = [
 			'user' => [
 				'login' => $this->sLogin,
 				'profiles' => "Administrator",
-				'allowed_orgs' => ''
+				'allowed_orgs' => '',
+				'org_id' => 0
 			],
 			'contact' => [
 				'firstname' => 'zomeu',
@@ -141,14 +145,15 @@ class MyAccountControllerTest  extends ItopDataTestCase {
 
 		$aParams = [];
 		$oMyAccountController = new MyAccountController('');
-		$oMyAccountController->ProvideUserInfo($this->oUser, $aParams);
-		$oMyAccountController->ProvideContactInfo($this->oUser, $aParams);
+		$oMyAccountController->ProvideHtmlUserInfo($this->oUser, $aParams);
+		$oMyAccountController->ProvideHtmlContactInfo($this->oUser, $aParams);
 
 		$aExpectedParams = [
 			'user' => [
 				'login' => $this->sLogin,
 				'profiles' => "Administrator",
-				'allowed_orgs' => ''
+				'allowed_orgs' => '',
+				'org_id' => 0
 			],
 			'contact' => [
 				'firstname' => 'zomeu',

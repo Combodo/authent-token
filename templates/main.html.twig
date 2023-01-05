@@ -5,6 +5,7 @@
 	{% UIColumn Standard {} %}
 		{% set title = 'MyAccount:SubTitle:user' | dict_s %}
 		{% set Infos = Params.user %}
+		{% set edit_link = Params.user_link %}
 		{% include 'section.html.twig' %}
 	{% EndUIColumn %}
 	{% endif %}
@@ -12,6 +13,7 @@
 		{% UIColumn Standard {} %}
 			{% set title = 'MyAccount:SubTitle:contact' | dict_s %}
 			{% set Infos = Params.contact %}
+			{% set edit_link = Params.contact_link %}
 			{% include 'section.html.twig' %}
 		{% EndUIColumn %}
 	{% endif %}

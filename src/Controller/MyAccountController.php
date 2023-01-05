@@ -8,7 +8,10 @@ use DBObjectSearch;
 use DBObjectSet;
 use MetaModel;
 use UserRights;
+use utils;
 use WebPage;
+use AttributeLinkedSet;
+use Person;
 
 class MyAccountController extends Controller{
 	const EXTENSION_NAME = "authent-token";
@@ -43,16 +46,38 @@ class MyAccountController extends Controller{
 		$oPage->details($aValues);
 	}
 
+	private function GetEditLink(DBObject $oObject) : string
+	{
+		return sprintf("%spages/UI.php?operation=modify&class=%s&id=%s",
+			utils::GetAbsoluteUrlAppRoot(), get_class($oObject), $oObject->GetKey());
+	}
+
 	public function ProvideHtmlUserInfo(\User $oUser, &$aParams): void{
 		if (is_null($oUser)){
 			return;
 		}
 
+		$aParams['user_link']= $this->GetEditLink($oUser);
+
+		$oProfileSet = $oUser->Get('profile_list');
+		$aProfiles = [];
+		while (($oProfile = $oProfileSet->Fetch()) != null){
+			$aProfiles[]= $oProfile->GetAsHTML('profile');
+		}
+		$sProfileListHtml = implode('<BR>', $aProfiles);
+
+		$oAllowedOrgList = $oUser->Get('allowed_org_list');
+		$aAllowedOrgs = [];
+		while (($oUserOrg = $oAllowedOrgList->Fetch()) != null){
+			$aAllowedOrgs[]= $oUserOrg->GetAsHTML('allowed_org_name');
+		}
+		$sAllowedOrgHtml = implode('<BR>', $aAllowedOrgs);
+
 		$aUserInfo = [
-			'login' => $oUser->Get('login'),
-			'profile_list' => $oUser->Get('profile_list'),
-			'allowed_org_list' => $oUser->Get('allowed_org_list'),
-			'org_id' => $oUser->Get('org_id'),
+			'login' => null,
+			'profile_list' => $sProfileListHtml,
+			'org_id' => null,
+			'allowed_org_list' => $sAllowedOrgHtml,
 		];
 
 		$this->ConvertToHtml($aParams, $aUserInfo, 'user', $oUser);
@@ -69,22 +94,28 @@ class MyAccountController extends Controller{
 		}
 
 		$oPerson = MetaModel::GetObject('Person', $iPersonId);
+
+		$aParams['contact_link']= $this->GetEditLink($oPerson);
 		$aContactInfo = [
-			'picture' => $oPerson->Get('picture'),
-			'first_name' => $oPerson->Get('first_name'),
-			'name' => $oPerson->Get('name'),
-			'email' => $oPerson->Get('email'),
-			'phone' => $oPerson->Get('phone'),
-			'location_name' => $oPerson->Get('location_name'),
+			'first_name' => null,
+			'name' => null,
+			'email' => null,
+			'phone' => null,
+			'location_name' => null,
 		];
 
+		$aParams['contact']['picture'] = UserRights::GetUserPictureAbsUrl($oUser->Get('login'));//$oPerson->GetAsHTML('picture');
 		$this->ConvertToHtml($aParams, $aContactInfo, 'contact', $oPerson);
 	}
 
 	public function ConvertToHtml(&$aParams, $aData, $sKey, DBObject $oObject)
 	{
-		foreach ($aData as $sAttCode => $sValue){
-			$aParams[$sKey][MetaModel::GetLabel(get_class($oObject), $sAttCode)] = $oObject->GetAsHTML($sAttCode);
+		foreach ($aData as $sAttCode => $sAttHtml){
+			if ($sAttHtml) {
+				$aParams[$sKey][MetaModel::GetLabel(get_class($oObject), $sAttCode)] = $sAttHtml;
+			} else {
+				$aParams[$sKey][MetaModel::GetLabel(get_class($oObject), $sAttCode)] = $oObject->GetAsHTML($sAttCode);
+			}
 		}
 	}
 
@@ -123,5 +154,10 @@ class MyAccountController extends Controller{
 			'aColumns' => $aColumns,
 			'aData' => $aDataValues,
 		];
+	}
+
+	public static function IsMenuAllowed() : bool
+	{
+		return true;
 	}
 }

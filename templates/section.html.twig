@@ -1,6 +1,39 @@
-{% UIFieldSet Standard {sLegend: title | dict_s} %}
-	{% for label, value in Infos %}
-		{% UIField Small {sLabel: label, sValueHtml:value} %}
-		{% EndUIField %}
-	{% endfor %}
-{% EndUIFieldSet %}
+{% if Infos.picture %}
+<div id="ibo-panel-ez-{{ index}}" class="ibo-panel ibo-content-block ibo-block  ibo-has-icon ibo-has-medallion-icon  ibo-is-neutral
+ibo-is-opened" data-role="ibo-panel">
+	<div class="ibo-panel--header" data-role="ibo-panel--header">
+		<div class="ibo-panel--header-left" data-role="ibo-panel--header-left">
+			<div class="ibo-panel--icon" data-role="ibo-panel--icon">
+				<div class="ibo-panel--icon-background ibo-panel--icon-background--must-cover" data-role="ibo-panel--icon-background"
+				     style="background-image: url('{{ Infos.picture }}');"></div>
+			</div>
+{% else %}
+<div id="ibo-panel-ez-{{ index}}" class="ibo-panel ibo-content-block ibo-block  ibo-is-neutral ibo-is-opened" data-role="ibo-panel">
+	<div class="ibo-panel--header" data-role="ibo-panel--header">
+		<div class="ibo-panel--header-left" data-role="ibo-panel--header-left">
+{% endif %}
+
+			<div class="ibo-panel--titles" data-role="ibo-panel--titles">
+				<div class="ibo-panel--title" data-role="ibo-panel--title">{{ title }}</div>
+			</div>
+		</div>
+		<div class="ibo-panel--header-right" data-role="ibo-panel--header-right">
+			{% UIToolbar ForButton {} %}
+				<a id="{{ index ~ '_button' }}" class="ibo-button ibo-button ibo-block  ibo-is-regular ibo-is-primary "
+				   data-role="ibo-button" href="{{ edit_link }}"
+				   target="_self" title="Edit" aria-label="Edit">
+					<span class="ibo-button--loading-icon fas fa-spinner fa-pulse"></span>
+					<span class="ibo-button--label">{{ 'Brick:Portal:Browse:Action:Edit'|dict_s }}</span>
+				</a>
+			{% EndUIToolbar %}
+		</div>
+	</div>
+	<div class="ibo-panel--body" data-role="ibo-panel--body">
+		{% for label, value in Infos %}
+			{% if 'picture' != label %}
+			{% UIField Small {sLabel: label, sValueHtml:value} %}
+			{% EndUIField %}
+			{% endif %}
+		{% endfor %}
+	</div>
+</div>

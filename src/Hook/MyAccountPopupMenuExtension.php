@@ -2,6 +2,7 @@
 
 namespace Combodo\iTop\AuthentToken\Hook;
 
+use Combodo\iTop\AuthentToken\Controller\MyAccountController;
 use Dict;
 use iPopupMenuExtension;
 use URLPopupMenuItem;
@@ -28,13 +29,9 @@ class MyAccountPopupMenuExtension implements iPopupMenuExtension
 			 * $param is null
 			 */
 			case iPopupMenuExtension::MENU_USER_ACTIONS:
-				$aResult[] = new URLPopupMenuItem('MyAccount', Dict::S('UI:MyAccount'), utils::GetAbsoluteUrlModulePage('authent-token', "index.php"), '_blank');
-				/*PopoverMenuItemFactory::MakeFromApplicationPopupMenuItem(
-					new JSPopupMenuItem(
-						'UI:MyAccount',
-						Dict::S('UI:MyAccount'),
-						utils::GetAbsoluteUrlModulePage('authent-token', "index.php")
-					)*/
+				if (MyAccountController::IsMenuAllowed()){
+					$aResult[] = new URLPopupMenuItem('MyAccount', Dict::S('UI:MyAccount'), utils::GetAbsoluteUrlModulePage('authent-token', "index.php"));
+				}
 				break;
         }
 			return $aResult;

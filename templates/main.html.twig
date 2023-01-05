@@ -20,11 +20,9 @@
 {% EndUIMultiColumn %}
 
 {% if null != Params.personaltoken %}
-	{% UIColumn Standard {} %}
 	{% set title = 'MyAccount:SubTitle:personaltokens' | dict_s %}
 	{% set Infos = Params.personaltoken %}
 	{% include 'personaltokens.html.twig' %}
-	{% EndUIColumn %}
 {% endif %}
 
 {% endapply %}

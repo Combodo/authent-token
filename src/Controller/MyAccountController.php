@@ -3,6 +3,7 @@
 namespace Combodo\iTop\AuthentToken\Controller;
 
 use Combodo\iTop\Application\TwigBase\Controller\Controller;
+use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
 use DBObject;
 use DBObjectSearch;
 use DBObjectSet;
@@ -24,7 +25,11 @@ class MyAccountController extends Controller{
 
 		$this->ProvideHtmlUserInfo($oUser, $aParams);
 		$this->ProvideHtmlContactInfo($oUser, $aParams);
-		$this->ProvideHtmlTokenInfo($oUser, $aParams);
+
+		if (self::IsPersonalTokenManagementAllowed($oUser)){
+			$this->ProvideHtmlTokenInfo($oUser, $aParams);
+		}
+
 		$this->DisplayPage(['Params' => $aParams ], 'main');
 	}
 
@@ -156,8 +161,43 @@ class MyAccountController extends Controller{
 		];
 	}
 
-	public static function IsMenuAllowed() : bool
+	public static function IsMenuAllowed($oUser) : bool
 	{
-		return true;
+		if (is_null($oUser)){
+			return false;
+		}
+
+		if (UserRights::IsAdministrator($oUser)){
+			return true;
+		}
+
+		if (utils::GetConfig()->GetModuleSetting(TokenAuthHelper::MODULE_NAME, 'enable_myaccount_menu', false)){
+			return true;
+		}
+
+		return self::IsPersonalTokenManagementAllowed($oUser);
+	}
+
+	public static function IsPersonalTokenManagementAllowed($oUser) : bool
+	{
+		if (is_null($oUser)){
+			return false;
+		}
+
+		if (UserRights::IsAdministrator($oUser)){
+			return true;
+		}
+
+		$aProfiles = utils::GetConfig()->GetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', []);
+
+		foreach($aProfiles as $sProfile)
+		{
+			if (UserRights::HasProfile($sProfile, $oUser))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

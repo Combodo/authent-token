@@ -7,6 +7,7 @@ use Dict;
 use iPopupMenuExtension;
 use URLPopupMenuItem;
 use utils;
+use UserRights;
 
 class MyAccountPopupMenuExtension implements iPopupMenuExtension
 {
@@ -29,7 +30,7 @@ class MyAccountPopupMenuExtension implements iPopupMenuExtension
 			 * $param is null
 			 */
 			case iPopupMenuExtension::MENU_USER_ACTIONS:
-				if (MyAccountController::IsMenuAllowed()){
+				if (MyAccountController::IsMenuAllowed(UserRights::GetUserObject())){
 					$aResult[] = new URLPopupMenuItem('MyAccount', Dict::S('UI:MyAccount'), utils::GetAbsoluteUrlModulePage('authent-token', "index.php"));
 				}
 				break;

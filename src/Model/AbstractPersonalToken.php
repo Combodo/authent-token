@@ -6,6 +6,7 @@ use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Model\iToken;
 use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
+use Combodo\iTop\AuthentToken\Controller\MyAccountController;
 
 /**
  * @copyright   Copyright (C) 2010-2021 Combodo SARL
@@ -105,6 +106,11 @@ HTML;
 
 	public function CheckValidity(string $sToken): void
 	{
+		$oUser = $this->GetUser();
+		if (! MyAccountController::IsPersonalTokenManagementAllowed($oUser)){
+			throw new TokenAuthException('Current user has not the Personal Token allowed profiles.');
+		}
+
 		$oPassword = $this->Get('auth_token');
 		if (! $oPassword->CheckPassword($sToken)) {
 			throw new TokenAuthException('Invalid token');

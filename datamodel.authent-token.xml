@@ -25,7 +25,6 @@
       <fields>
         <field id="user_id" xsi:type="AttributeExternalKey" _delta="define">
           <sql>user_id</sql>
-          <filter><![CDATA[SELECT User ]]></filter>
           <dependencies/>
           <is_null_allowed>true</is_null_allowed>
           <allow_target_creation>false</allow_target_creation>

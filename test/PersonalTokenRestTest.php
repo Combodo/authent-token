@@ -6,6 +6,7 @@ require_once __DIR__.'/AbstractTokenRestTest.php';
 
 use AbstractPersonalToken;
 use AttributeDateTime;
+use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
 use Combodo\iTop\AuthentToken\Hook\TokenLoginExtension;
 use Exception;
 use MetaModel;
@@ -36,6 +37,8 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 
 	    MetaModel::GetConfig()->Set('secure_rest_services', true, 'auth-token');
 	    MetaModel::GetConfig()->Set('allow_rest_services_via_tokens', true, 'auth-token');
+	    MetaModel::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Administrator']);
+
 	    MetaModel::GetConfig()->WriteToFile();
 
 	    $this->CreatePersonalToken("RESTTEST");
@@ -50,8 +53,6 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 		    ]);
 	    }
 	}
-
-
 
 	private function CheckToken($sNow, $iExpectedUsedCount){
 		$oLastPersonalToken = MetaModel::GetObject(PersonalToken::class, $this->oPersonalToken->GetKey());
@@ -136,6 +137,28 @@ JSON;
 		$this->oPersonalToken->Set('scope', 'OTHERS');
 		$this->oPersonalToken->DBWrite();
 
+
+		//create ticket
+		$description = date('dmY H:i:s');
+
+		$sExpectedOutput = <<<JSON
+{"code":1,"message":"Error: Invalid login"}
+JSON;
+
+		$sOuputJson = $this->CreateTicketViaApi($description);
+		$this->assertEquals($sExpectedOutput, $sOuputJson, "should be html login form instead of any json : " .  $sOuputJson);
+	}
+
+	/**
+	 * @dataProvider BasicTokenProvider
+	 */
+	public function testApiShouldFailWithACorrectTokenAssociatedToAUserWithoutAuthorizedProfileInConf($iJsonDataMode, $bTokenInPost)
+	{
+		$this->bTokenInPost = $bTokenInPost;
+		$this->iJsonDataMode = $iJsonDataMode;
+
+		MetaModel::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Configuration Manager']);
+		MetaModel::GetConfig()->WriteToFile();
 
 		//create ticket
 		$description = date('dmY H:i:s');

@@ -19,12 +19,8 @@ ibo-is-opened" data-role="ibo-panel">
 		</div>
 		<div class="ibo-panel--header-right" data-role="ibo-panel--header-right">
 			{% UIToolbar ForButton {} %}
-				<a id="{{ index ~ '_button' }}" class="ibo-button ibo-button ibo-block  ibo-is-regular ibo-is-primary "
-				   data-role="ibo-button" href="{{ edit_link }}"
-				   target="_self" title="Edit" aria-label="Edit">
-					<span class="ibo-button--loading-icon fas fa-spinner fa-pulse"></span>
-					<span class="ibo-button--label">{{ 'Brick:Portal:Browse:Action:Edit'|dict_s }}</span>
-				</a>
+			{% UIButton IconLink {sIconClasses:'fas fa-pen', sTooltipText:'UI:Links:ActionRow:Edit'|dict_s , sURL:edit_link,
+				sTarget:'value', sId:'value'} %}
 			{% EndUIToolbar %}
 		</div>
 	</div>

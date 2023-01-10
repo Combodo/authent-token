@@ -7,11 +7,14 @@
 		</div>
 		<div class="ibo-panel--header-right" data-role="ibo-panel--header-right">
 			{% UIToolbar ForButton {} %}
+
+				{% UIButton IconLink {sIconClasses:'fas fa-plus', sTooltipText:'UI:Links:ActionRow:AddToken:Edit'|dict_s , sURL:Infos
+				.newtoken_link,
+					sTarget:'TokenAdd', sId:'TokenAdd'} %}
 			{% EndUIToolbar %}
 		</div>
 	</div>
 	<div class="ibo-panel--body" data-role="ibo-panel--body">
-		{% UIDataTable ForStaticData { sId: index, sTitle: '', aColumns:Infos.aColumns, aData:Infos.aData}%}
-		{% EndUIDataTable %}
+		{{render_block(Infos.oDatatable)}}
 	</div>
 </div>

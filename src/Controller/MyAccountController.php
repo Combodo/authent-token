@@ -72,8 +72,10 @@ class MyAccountController extends Controller{
 
 		try {
 			$oSearch = new DBObjectSearch(\PersonalToken::class);
+			//keep this or nobody else than admin will be able to perform this action
 			$oSearch->AllowAllData();
 			$oSearch->Addcondition('id', $sTokenId, '=');
+			$oSearch->Addcondition('user_id', $oUser->GetKey(), '=');
 			$oTokens = new DBObjectSet($oSearch);
 			$oToken = $oTokens->Fetch();
 			$oToken->AllowWrite();
@@ -212,32 +214,31 @@ class MyAccountController extends Controller{
 				'label'         => 'UI:Links:ActionRow:Edit',
 				'tooltip'       => 'UI:Links:ActionRow:Edit+',
 				'icon_classes'  => 'fas fa-pen',
-				'js_row_action' => "EditToken(this, 'ID');",
+				'action-class' => "token-edit-button",
 			],
 			[
 				'label'         => 'AuthentToken:RebuildToken',
 				'tooltip'       => 'AuthentToken:RebuildToken+',
 				'icon_classes'  => 'fas fa-sync-alt',
-				'js_row_action' => "RefreshToken(this, 'ID');",
+				'action-class' => "token-refresh-button",
 			],
 			[
 				'label'         => 'UI:Links:ActionRow:Delete',
 				'tooltip'       => 'UI:Links:ActionRow:Delete+',
 				'icon_classes'  => 'fas fa-trash',
-				'js_row_action' => "DeleteToken(this, 'ID');",
+				'action-class' => "token-delete-button",
 				'color' => Button::ENUM_COLOR_SCHEME_DESTRUCTIVE,
 			]
 		];
 
-		list($oDatatableBlock, $aButtonBlocks) = $this->BuildDatatable('tokens', $aColumns, $aDataValues, '', $aRowActions, $aTokenIds);
+		$oDatatableBlock = $this->BuildDatatable('tokens', $aColumns, $aDataValues, '', $aRowActions, $aTokenIds);
 		$aParams['personaltoken'] = [
 			'oDatatable' => $oDatatableBlock,
-			'aButtonBlocks' => $aButtonBlocks,
 			'newtoken_link' => sprintf("%spages/UI.php?exec_module=authent-token&exec_page=ajax.php&operation=new", utils::GetAbsoluteUrlAppRoot())
 		];
 	}
 
-	private function BuildDatatable(string $sRef, array $aColumns, array $aData = [], string $sFilter = '', array $aRowActions, array $aTokenIds) : array
+	private function BuildDatatable(string $sRef, array $aColumns, array $aData = [], string $sFilter = '', array $aRowActions, array $aTokenIds) : FormTable
 	{
 		$oTable = new FormTable("datatable_".$sRef);
 		$oTable->SetRef($sRef);
@@ -248,23 +249,26 @@ class MyAccountController extends Controller{
 		$oTable->SetColumns($aColumns);
 		$oTable->SetFilter($sFilter);
 
-		$aButtonBlocks = [];
-
 		foreach ($aData as $iRowId => $aRow) {
-			$oToolbar = self::MakeActionRowToolbarTemplate($oTable, $aRowActions, $aTokenIds[$iRowId], $aButtonBlocks);
+			$sTokenId = $aTokenIds[$iRowId];
+			$oToolbar = self::MakeActionRowToolbarTemplate($oTable, $aRowActions, $sTokenId);
 
 			$oBlockRenderer = new BlockRenderer($oToolbar);
 
 			//add toolbar html code as last row field
-			$aRow[]= $oBlockRenderer->RenderHtml();
+			$sRowHtml = str_replace('data-role="ibo-button"',
+				sprintf('data-role="ibo-button" data-token-id="%s"', $sTokenId),
+				$oBlockRenderer->RenderHtml()
+			);
+			$aRow[]= $sRowHtml;
 			$oRow = new FormTableRow($sRef, $aColumns, $aRow, $iRowId);
 			$oTable->AddRow($oRow);
 		}
 
-		return [ $oTable, $aButtonBlocks ];
+		return $oTable;
 	}
 
-	public static function MakeActionRowToolbarTemplate(iUIBlock $oTable, array $aRowActions, string $sTokenId, &$aButtonBlocks)
+	public static function MakeActionRowToolbarTemplate(iUIBlock $oTable, array $aRowActions, string $sTokenId)
 	{
 		// row actions toolbar container
 		$oToolbar = ToolbarUIBlockFactory::MakeStandard();
@@ -273,11 +277,10 @@ class MyAccountController extends Controller{
 		// for each action...create an icon button
 		foreach ($aRowActions as $iKey => $aAction) {
 			$oButton = ButtonUIBlockFactory::MakeAlternativeNeutral('', $aAction['label']);
-			$sJsCode = str_replace('ID', $sTokenId, $aAction['js_row_action']);
 			$oButton->SetIconClass($aAction['icon_classes'])
-				->SetOnClickJsCode($sJsCode)
 				->SetTooltip(Dict::S($aAction['tooltip']))
-				->AddCSSClasses(['ibo-action-button', 'ibo-regular-action-button']);
+				//->AddDataAttribute("token-id", $sTokenId)
+				->AddCSSClasses([$aAction['action-class'], 'ibo-action-button', 'ibo-regular-action-button']);
 
 			if (array_key_exists('color', $aAction)){
 				$oButton->SetColor($aAction['color']);
@@ -285,8 +288,6 @@ class MyAccountController extends Controller{
 
 			$oButton->SetDataAttributes(['label' => Dict::S($aAction['label']), 'action-id' => $iKey, 'table-id' => $oTable->GetId()]);
 			$oToolbar->AddSubBlock($oButton);
-
-			$aButtonBlocks[] = $oButton;
 		}
 
 		return $oToolbar;

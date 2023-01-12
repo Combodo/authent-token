@@ -21,7 +21,8 @@
 
 {% if null != Params.personaltoken %}
 	<BR/>
-	{% UIAlert ForInformation {sTitle:'', sContent:'', sId:'refresh_token_alert', IsHidden:false} %}
+	{% UIAlert ForInformation {sTitle:'', sContent:'', sId:'refresh_token_alert', IsHidden:true, IsCollapsible:true, IsClosable: false} %}
+	temporary
 	{% EndUIAlert %}
 	<BR/>
 	{% set title = 'MyAccount:SubTitle:personaltokens' | dict_s %}

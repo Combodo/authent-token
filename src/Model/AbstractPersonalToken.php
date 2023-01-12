@@ -35,6 +35,13 @@ abstract class AbstractPersonalToken extends cmdbAbstractObject  implements iTok
 		return parent::DisplayBareHeader($oPage, $bEditMode);
 	}
 
+	/**
+	 * @return string : get token value only when refreshing its value
+	 */
+	public function getToken() : ?string {
+		return $this->sToken;
+	}
+
 	public function DisplayDetails(WebPage $oPage, $bEditMode = false)
 	{
 		parent::DisplayDetails($oPage, $bEditMode);
@@ -50,7 +57,7 @@ HTML;
 			$oPage->add($sHtml);
 		} else {
 			$oForm = FormUIBlockFactory::MakeStandard();
-			$oButton = ButtonUIBlockFactory::MakeForDestructiveAction(Dict::S('PersonalToken:RebuildToken'), 'rebuild_Token', 1, true);
+			$oButton = ButtonUIBlockFactory::MakeForDestructiveAction(Dict::S('AuthentToken:RebuildToken'), 'rebuild_Token', 1, true);
 			$oButton->SetTooltip(Dict::S('AuthentToken:RebuildToken+'));
 			$oForm->AddSubBlock($oButton);
 			$oPage->AddSubBlock($oForm);

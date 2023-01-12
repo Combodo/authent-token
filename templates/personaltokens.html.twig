@@ -8,9 +8,9 @@
 		<div class="ibo-panel--header-right" data-role="ibo-panel--header-right">
 			{% UIToolbar ForButton {} %}
 
-				{% UIButton IconLink {sIconClasses:'fas fa-plus', sTooltipText:'UI:Links:ActionRow:AddToken:Edit'|dict_s , sURL:Infos
-				.newtoken_link,
-					sTarget:'TokenAdd', sId:'TokenAdd'} %}
+				{% UIButton IconLink {sIconClasses:'fas fa-plus', CSSClasses:['.ibo-quick-create--icon'],
+				sTooltipText:'UI:Links:ActionRow:AddToken:Edit'|dict_s ,
+					sURL:Infos.newtoken_link, sTarget:'TokenAdd', sId:'TokenAdd'} %}
 			{% EndUIToolbar %}
 		</div>
 	</div>
@@ -18,3 +18,5 @@
 		{{render_block(Infos.oDatatable)}}
 	</div>
 </div>
+
+

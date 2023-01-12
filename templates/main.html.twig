@@ -20,6 +20,10 @@
 {% EndUIMultiColumn %}
 
 {% if null != Params.personaltoken %}
+	<BR/>
+	{% UIAlert ForInformation {sTitle:'', sContent:'', sId:'refresh_token_alert', IsHidden:false} %}
+	{% EndUIAlert %}
+	<BR/>
 	{% set title = 'MyAccount:SubTitle:personaltokens' | dict_s %}
 	{% set Infos = Params.personaltoken %}
 	{% include 'personaltokens.html.twig' %}

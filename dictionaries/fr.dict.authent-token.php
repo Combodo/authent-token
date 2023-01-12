@@ -16,8 +16,6 @@ Dict::Add('FR FR', 'French', 'Français', [
 	'UI:Datatables:Column:RowActions:Description' => '',
 	'UI:Links:ActionRow:Delete' => "Supprimer l'objet",
 	'UI:Links:ActionRow:Delete+' => "Supprimer l'objet",
-	'UI:Links:ActionRow:RefreshToken' => 'Regénérer le token',
-	'UI:Links:ActionRow:RefreshToken+' => 'Regénérer le token',
 	'UI:Links:ActionRow:AddToken' => 'Ajouter un token',
 	'UI:Links:ActionRow:AddToken+' => 'Ajouter un token',
 	'UI:Links:ActionRow:Edit' => "Editer l'objet",

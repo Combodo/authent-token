@@ -16,8 +16,6 @@ Dict::Add('EN US', 'English', 'English', [
 	'UI:Datatables:Column:RowActions:Description' => '',
 	'UI:Links:ActionRow:Delete' => 'Delete',
 	'UI:Links:ActionRow:Delete+' => 'Delete object',
-	'UI:Links:ActionRow:RefreshToken' => 'Regenerate token value.',
-	'UI:Links:ActionRow:RefreshToken+' => 'Regenerate token value',
 	'UI:Links:ActionRow:AddToken' => 'Add a new personal token',
 	'UI:Links:ActionRow:AddToken+' => 'Add a new personal token',
 	'UI:Links:ActionRow:Edit' => 'Edit object',

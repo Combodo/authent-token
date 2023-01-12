@@ -2,7 +2,9 @@
 
 namespace Combodo\iTop\AuthentToken\Controller;
 
+use AjaxPage;
 use Combodo\iTop\Application\TwigBase\Controller\Controller;
+use Combodo\iTop\Application\UI\Base\Component\Button\Button;
 use Combodo\iTop\Application\UI\Base\Component\Button\ButtonUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\Component\DataTable\StaticTable\FormTable\FormTable;
 use Combodo\iTop\Application\UI\Base\Component\DataTable\StaticTable\FormTableRow\FormTableRow;
@@ -10,17 +12,17 @@ use Combodo\iTop\Application\UI\Base\Component\DataTable\tTableRowActions;
 use Combodo\iTop\Application\UI\Base\Component\Template\TemplateUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\Component\Toolbar\ToolbarUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\iUIBlock;
-use Combodo\iTop\Renderer\Console\ConsoleBlockRenderer;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
+use Combodo\iTop\Renderer\BlockRenderer;
 use DBObject;
 use DBObjectSearch;
 use DBObjectSet;
 use Dict;
+use IssueLog;
 use MetaModel;
 use UserRights;
 use utils;
 use WebPage;
-use AjaxPage;
 
 class MyAccountController extends Controller{
 	const EXTENSION_NAME = "authent-token";
@@ -33,7 +35,7 @@ class MyAccountController extends Controller{
 
 		if (! self::IsMenuAllowed($oUser)){
 			//in case someone not allowed try to type full URL...
-			http_response_code(403);
+			http_response_code(401);
 			die("User not allowed to access current ressource.");
 		}
 
@@ -42,10 +44,51 @@ class MyAccountController extends Controller{
 
 		if (self::IsPersonalTokenManagementAllowed($oUser)){
 			$this->ProvideHtmlTokenInfo($oUser, $aParams);
+			$aParams['refresh_token_url']= utils::GetAbsoluteUrlModulePage(self::EXTENSION_NAME, 'ajax.php',
+				['operation' => 'RefreshToken', 'rebuild_Token' => 1]);
 		}
 
 		$this->DisplayPage(['Params' => $aParams ], 'main');
 	}
+
+	public function OperationRefreshToken()
+	{
+		/** @var \User $oUser */
+		$oUser = UserRights::GetUserObject();
+
+		if (! self::IsPersonalTokenManagementAllowed($oUser)){
+			//in case someone not allowed try to type full URL...
+			http_response_code(401);
+			die("User not allowed to access current ressource.");
+		}
+
+		$sTokenId = utils::ReadParam('token_id', null);
+
+		if ($sTokenId===null){
+			IssueLog::error("Cannot refresh token without its id");
+			$this->DisplayJSONPage(['result' => 'error'], 200);
+			return;
+		}
+
+		try {
+			$oSearch = new DBObjectSearch(\PersonalToken::class);
+			$oSearch->AllowAllData();
+			$oSearch->Addcondition('id', $sTokenId, '=');
+			$oTokens = new DBObjectSet($oSearch);
+			$oToken = $oTokens->Fetch();
+			$oToken->AllowWrite();
+
+			$oPage = new AjaxPage("");
+			$oToken->DisplayBareHeader($oPage, true);
+
+			$sMessage = Dict::Format('PersonalToken:CopyToken', $oToken->getToken());
+			$this->DisplayJSONPage(['result' => 'ok', 'message' => $sMessage], 200);
+		} catch (\Exception $e){
+			IssueLog::error("Cannot refresh token: " + $e->getMessage());
+			$this->DisplayJSONPage(['result' => 'error'], 200);
+		}
+	}
+
 
 	public function DisplayDetails(WebPage $oPage, DBObject $oObject, $aFields)
 	{
@@ -69,11 +112,6 @@ class MyAccountController extends Controller{
 	{
 		return sprintf("%spages/UI.php?operation=modify&class=%s&id=%s",
 			utils::GetAbsoluteUrlAppRoot(), get_class($oObject), $oObject->GetKey());
-	}
-
-	private function GetAddLink(string $sClass) : string {
-		return sprintf("%spages/UI.php?operation=new&class=%s",
-			utils::GetAbsoluteUrlAppRoot(), $sClass);
 	}
 
 	public function ProvideHtmlUserInfo(\User $oUser, &$aParams): void{
@@ -157,6 +195,7 @@ class MyAccountController extends Controller{
 		$oFilter = DBObjectSearch::FromOQL($sOql, []);
 		$oSet = new DBObjectSet($oFilter);
 
+		$aTokenIds = [];
 		if ($oSet->Count() > 0){
 			while($oToken=$oSet->Fetch()){
 				$aCurrentTokenData=[];
@@ -164,6 +203,7 @@ class MyAccountController extends Controller{
 					$aCurrentTokenData[] = $oToken->GetAsHTML($sField);
 				}
 				$aDataValues[]=$aCurrentTokenData;
+				$aTokenIds[] = $oToken->GetKey();
 			}
 		}
 
@@ -172,40 +212,32 @@ class MyAccountController extends Controller{
 				'label'         => 'UI:Links:ActionRow:Edit',
 				'tooltip'       => 'UI:Links:ActionRow:Edit+',
 				'icon_classes'  => 'fas fa-pen',
-				'js_row_action' => "",
+				'js_row_action' => "EditToken(this, 'ID');",
 			],
 			[
-				'label'         => 'UI:Links:ActionRow:RefreshToken',
-				'tooltip'       => 'UI:Links:ActionRow:RefreshToken+',
+				'label'         => 'AuthentToken:RebuildToken',
+				'tooltip'       => 'AuthentToken:RebuildToken+',
 				'icon_classes'  => 'fas fa-sync-alt',
-				'js_row_action' => "",
+				'js_row_action' => "RefreshToken(this, 'ID');",
 			],
 			[
 				'label'         => 'UI:Links:ActionRow:Delete',
 				'tooltip'       => 'UI:Links:ActionRow:Delete+',
 				'icon_classes'  => 'fas fa-trash',
-				'js_row_action' => "",
+				'js_row_action' => "DeleteToken(this, 'ID');",
+				'color' => Button::ENUM_COLOR_SCHEME_DESTRUCTIVE,
 			]
-
-
-					/*$oButton = ButtonUIBlockFactory::MakeIconAction('fas fa-trash', Dict::S('Attachments:DeleteBtn'),
-						'',
-						Dict::S('Attachments:DeleteBtn'),
-						false,
-						"btn_remove_".$iAttId);
-		$oButton->AddCSSClass('btn_hidden')
-			->SetOnClickJsCode("RemoveAttachment(".$iAttId.");")
-			->SetColor(Button::ENUM_COLOR_SCHEME_DESTRUCTIVE);*/
 		];
 
-		$oDatatableBlock = $this->BuildDatatable('tokens', $aColumns, $aDataValues, '', $aRowActions);
+		list($oDatatableBlock, $aButtonBlocks) = $this->BuildDatatable('tokens', $aColumns, $aDataValues, '', $aRowActions, $aTokenIds);
 		$aParams['personaltoken'] = [
 			'oDatatable' => $oDatatableBlock,
-			'newtoken_link' => $this->GetAddLink(\PersonalToken::class)
+			'aButtonBlocks' => $aButtonBlocks,
+			'newtoken_link' => sprintf("%spages/UI.php?exec_module=authent-token&exec_page=ajax.php&operation=new", utils::GetAbsoluteUrlAppRoot())
 		];
 	}
 
-	private function BuildDatatable(string $sRef, array $aColumns, array $aData = [], string $sFilter = '', array $aRowActions)
+	private function BuildDatatable(string $sRef, array $aColumns, array $aData = [], string $sFilter = '', array $aRowActions, array $aTokenIds) : array
 	{
 		$oTable = new FormTable("datatable_".$sRef);
 		$oTable->SetRef($sRef);
@@ -216,20 +248,23 @@ class MyAccountController extends Controller{
 		$oTable->SetColumns($aColumns);
 		$oTable->SetFilter($sFilter);
 
-		foreach ($aData as $iRowId => $aRow) {
-			$oToolbar = self::MakeActionRowToolbarTemplate($oTable, $aRowActions);
+		$aButtonBlocks = [];
 
-			$oPage = new AjaxPage("");
-			$sHtml = ConsoleBlockRenderer::RenderBlockTemplateInPage($oPage, $oToolbar);
-			$aRow[]= $sHtml;
+		foreach ($aData as $iRowId => $aRow) {
+			$oToolbar = self::MakeActionRowToolbarTemplate($oTable, $aRowActions, $aTokenIds[$iRowId], $aButtonBlocks);
+
+			$oBlockRenderer = new BlockRenderer($oToolbar);
+
+			//add toolbar html code as last row field
+			$aRow[]= $oBlockRenderer->RenderHtml();
 			$oRow = new FormTableRow($sRef, $aColumns, $aRow, $iRowId);
 			$oTable->AddRow($oRow);
 		}
 
-		return $oTable;
+		return [ $oTable, $aButtonBlocks ];
 	}
 
-	public static function MakeActionRowToolbarTemplate(iUIBlock $oTable, array $aRowActions)
+	public static function MakeActionRowToolbarTemplate(iUIBlock $oTable, array $aRowActions, string $sTokenId, &$aButtonBlocks)
 	{
 		// row actions toolbar container
 		$oToolbar = ToolbarUIBlockFactory::MakeStandard();
@@ -237,13 +272,21 @@ class MyAccountController extends Controller{
 
 		// for each action...create an icon button
 		foreach ($aRowActions as $iKey => $aAction) {
-			$oButton = ButtonUIBlockFactory::MakeIconAction(
-				array_key_exists('icon_classes', $aAction) ? $aAction['icon_classes'] : 'fas fa-question',
-				array_key_exists('tooltip', $aAction) ? Dict::S($aAction['tooltip']) : '',
-				array_key_exists('name', $aAction) ? $aAction['name'] : 'undefined'
-			);
+			$oButton = ButtonUIBlockFactory::MakeAlternativeNeutral('', $aAction['label']);
+			$sJsCode = str_replace('ID', $sTokenId, $aAction['js_row_action']);
+			$oButton->SetIconClass($aAction['icon_classes'])
+				->SetOnClickJsCode($sJsCode)
+				->SetTooltip(Dict::S($aAction['tooltip']))
+				->AddCSSClasses(['ibo-action-button', 'ibo-regular-action-button']);
+
+			if (array_key_exists('color', $aAction)){
+				$oButton->SetColor($aAction['color']);
+			}
+
 			$oButton->SetDataAttributes(['label' => Dict::S($aAction['label']), 'action-id' => $iKey, 'table-id' => $oTable->GetId()]);
 			$oToolbar->AddSubBlock($oButton);
+
+			$aButtonBlocks[] = $oButton;
 		}
 
 		return $oToolbar;

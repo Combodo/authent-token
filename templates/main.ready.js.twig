@@ -1,0 +1,46 @@
+
+{% if null != Params.personaltoken %}
+{% set Infos = Params.personaltoken %}
+function RefreshToken(button, token_id)
+{
+	$(button).prop('disabled', true);
+
+	var refresh_url = '{{Params.refresh_token_url|raw}}&token_id=' + token_id;
+	$.ajax({
+		type: "POST",
+		url: refresh_url
+		//data: formData,
+		//processData: false,
+		//contentType: false
+	})
+	.done(function (data) {
+		$(button).prop('disabled', false);
+		if (data.result == 'ok')
+		{
+			$('#refresh_token_alert').html(data.message);
+		}
+		else
+		{
+			alert('KO');
+		}
+	})
+	.fail(function (data) {
+		$(button).prop('disabled', false);
+		alert('FAIL');
+	});
+}
+
+	{% for oUIBlock in Infos.aButtonBlocks %}
+	{% if (oUIBlock.GetOnClickJsCode() is not empty) or (oUIBlock.GetJsCode() is not empty) %}
+	{% if oUIBlock.GetOnClickJsCode() is not empty %}
+	$('#{{ oUIBlock.GetId() }}').on('click', function () {
+	{{ oUIBlock.GetOnClickJsCode()|raw }}
+});
+	{% endif %}
+	{% if oUIBlock.GetJsCode() is not empty %}
+	{{ oUIBlock.GetJsCode()|raw }}
+	{% endif %}
+	{% endif %}
+	{% endfor %}
+
+{% endif %}

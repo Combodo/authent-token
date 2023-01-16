@@ -52,7 +52,7 @@
             </value>
           </values>
           <sql>scope</sql>
-          <default_value>OTHERS</default_value>
+          <default_value>WebService</default_value>
           <is_null_allowed>true</is_null_allowed>
         </field>
         <field id="expiration_date" xsi:type="AttributeDateTime" _delta="define">

@@ -15,8 +15,13 @@ use Combodo\iTop\Application\UI\Base\Component\Panel\PanelUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\Component\Field\FieldUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\Component\Toolbar\ToolbarUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\iUIBlock;
+use Combodo\iTop\Application\UI\Base\Layout\TabContainer\TabContainer;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
+use Combodo\iTop\Form\Field\DateTimeField;
+use Combodo\iTop\Form\Field\SelectField;
+use Combodo\iTop\Form\Field\StringField;
 use Combodo\iTop\Renderer\BlockRenderer;
+use Combodo\iTop\Renderer\Console\FieldRenderer\ConsoleSimpleFieldRenderer;
 use DBObject;
 use DBObjectSearch;
 use DBObjectSet;
@@ -48,6 +53,28 @@ class MyAccountController extends Controller{
 			$this->ProvideHtmlTokenInfo($oUser, $aParams);
 		}
 
+		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/json.js');
+		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/forms-json-utils.js');
+		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/wizardhelper.js');
+		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/wizard.utils.js');
+		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/linkswidget.js');
+		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/linksdirectwidget.js');
+		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/extkeywidget.js');
+		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/jquery.blockUI.js');
+
+		foreach (TabContainer::DEFAULT_JS_FILES_REL_PATH as $sJsFile){
+			$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().$sJsFile);
+		}
+
+
+		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/ui-block.js');
+		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/components/panel.js');
+
+		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/layouts/tab-container/tab-container.js');
+		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/layouts/tab-container/regular-tabs.js');
+		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/layouts/tab-container/scrollable-tabs.js');
+		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/layouts/object/object-details.js');
+
 		$this->DisplayPage(['Params' => $aParams ], 'main');
 	}
 
@@ -77,7 +104,7 @@ class MyAccountController extends Controller{
 			$oPage = new AjaxPage("");
 			$oToken->DisplayBareHeader($oPage, true);
 
-			$sMessage = Dict::Format('AuthentToken:CopyToken ', $oToken->getToken());
+			$sMessage = Dict::Format('AuthentToken:CopyToken', $oToken->getToken());
 			$this->DisplayJSONPage(['result' => 'ok', 'message' => $sMessage], 200);
 		} catch (\Exception $e){
 			IssueLog::error("Cannot refresh token: " + $e->getMessage());
@@ -139,34 +166,14 @@ class MyAccountController extends Controller{
 		try {
 			if ($sTokenId==="0"){
 				$oToken = new \PersonalToken();
+				$oToken->Set('user_id', $oUser->GetKey());
 			} else {
 				$oToken = $this->FetchToken($oUser, $sTokenId);
 			}
 
-			$aPersonalTokenToEdit = [
-				'application',
-				'scope',
-				'expiration_date',
-			];
-
-			$oPanel = PanelUIBlockFactory::MakeNeutral('');
-			foreach ($aPersonalTokenToEdit as $sAttCode){
-				//$oConsoleSimpleFieldRenderer = new ConsoleSimpleFieldRenderer($oField);
-
-				$sValue = $oToken->Get($sAttCode);
-				$oInputBlock = InputUIBlockFactory::MakeStandard('text', $sAttCode, is_null($sValue) ? '': $sValue);
-				$oInputBlockRenderer = new BlockRenderer($oInputBlock);
-				$oUIField = FieldUIBlockFactory::MakeSmall(
-					MetaModel::GetLabel(get_class($oToken), $sAttCode),
-					$oInputBlockRenderer->RenderHtml()
-				);
-				$oPanel->AddSubBlock($oUIField);
-			}
-
-			$oBlockRenderer = new BlockRenderer($oPanel);
-			$sPanelHtml = $oBlockRenderer->RenderHtml();
-
-			$this->DisplayJSONPage(['result' => 'ok', 'html' => $sPanelHtml], 200);
+			$oPage = new AjaxPage('');
+			$oToken->DisplayModifyForm($oPage);
+			$oPage->output();
 		} catch (\Exception $e){
 			IssueLog::error("Cannot edit token: " + $e->getMessage());
 			$this->DisplayJSONPage(['result' => 'error'], 200);
@@ -337,8 +344,9 @@ class MyAccountController extends Controller{
 			$oBlockRenderer = new BlockRenderer($oToolbar);
 
 			//add toolbar html code as last row field
+			$sDeletionLabel = Dict::Format("AuthentToken:DeleteTokenConfirmation", "rrrr");
 			$sRowHtml = str_replace('data-role="ibo-button"',
-				sprintf('data-role="ibo-button" data-token-id="%s"', $sTokenId),
+				sprintf('data-role="ibo-button" data-token-id="%s" data-deletion-label="%s"', $sTokenId, $sDeletionLabel),
 				$oBlockRenderer->RenderHtml()
 			);
 			$aRow[]= $sRowHtml;

@@ -39,10 +39,12 @@ $('.token-delete-button').on('click', function(){
 	$(button).prop('disabled', true);
 
 	var token_id = $(this).attr('data-token-id');
+	var deletion_label = $(this).attr('data-deletion-label');
 
 	var deletion_popup = $('#deletion_popup');
 
-	deletion_popup.dialog( { width:'650', height: 'auto', closeOnEscape: true, autoOpen:
+	deletion_popup.html(deletion_label);
+	deletion_popup.dialog( { width:'auto', height: 'auto', closeOnEscape: true, autoOpen:
 			true, modal:true,
 		buttons: [
 			{
@@ -99,36 +101,76 @@ $('.token-edit-button').on('click', function(){
 
 	var token_id = $(this).attr('data-token-id');
 
-	var edition_popup = $('#edition_popup');
+	var edit_token_url = '{{Infos.edit_token_url|raw}}&token_id=' + token_id ;
 
-	edition_popup.dialog( { width:'650', height: 'auto', title: token_id, closeOnEscape: true, autoOpen:
-			true, modal:true,
+	$.ajax({
+			type: "POST",
+			url: edit_token_url
+		})
+		.done(function (data) {
+			DisplayEditionPopup(data, token_id);
+		})
+		.fail(function (data) {
+		}
+	);
+
+	$(button).prop('disabled', false);
+});
+
+function DisplayEditionPopup(html, token_id){
+	this.dlg = $('<div id="modify_dialog" class="dialog">'+html+'</div>');
+	var modifyDialog = this.dlg;
+
+	modifyDialog.find('.cancel').remove();
+	modifyDialog.find('.action[type=submit]').remove();
+
+	current_form = modifyDialog.find('form');
+	current_form.on('submit',function(event){
+		/* stop form from submitting normally */
+		event.preventDefault();
+		/* get the action attribute from the <form action=""> element */
+		var $form = $(this);
+
+		if(CheckFields($form.attr('id'), false))
+		{
+			var url = $form.attr('action');
+			var posting = $.post( url, $form.serialize());
+
+			/* Alerts the results */
+			posting.done(function( data ) {
+				location.reload(true);
+			});
+		}
+	});
+
+	modifyDialog.dialog( { width:'auto', height: 'auto', title: '', closeOnEscape: true, modal:true,
+		close: function () {
+			modifyDialog.remove();
+		},
 		buttons: [
 			{
 				id: "close_button",
 				text: "{{ 'UI:Button:Cancel'|dict_s }}",
 				click: function() {
-					edition_popup.dialog('close');
+					modifyDialog.dialog('close');
 				}
 			}
 			,{
 				id: "confirm_modification",
 				text: "{{ 'UI:Links:ActionRow:EditToken'|dict_s }}",
 				click: function() {
-					//EditToken(token_id);
+					current_form.submit();
 				}
 			}
 			,{
 				id: "confirm_creation",
 				text: "{{ 'UI:Links:ActionRow:AddToken'|dict_s }}",
 				click: function() {
-					//EditToken(token_id);
+					current_form.submit();
 				}
 			}
 		],
 	});
-
-	$(button).prop('disabled', false);
 
 	var confirm_modification_button = $('#confirm_modification');
 	var confirm_creation_button = $('#confirm_creation');
@@ -144,30 +186,13 @@ $('.token-edit-button').on('click', function(){
 		confirm_modification_button.addClass("ibo-is-primary");
 	}
 
-	EditToken(token_id);
-});
-
-function EditToken(token_id){
-	var edit_token_url = '{{Infos.edit_token_url|raw}}&token_id=' + token_id;
-	$.ajax({
-			type: "POST",
-			url: edit_token_url
-			//data: formData,
-			//processData: false,
-			//contentType: false
-		})
-		.done(function (data) {
-			if (data.result == 'ok')
-			{
-				$('#edition_popup').html(data.html);
-			}
-			else
-			{
-				alert('KO');
-			}
-		})
-		.fail(function (data) {
-		});
+	//hide datamodel tab
+	modifyDialog.find('.ibo-tab-container--tab-header').each(function(){
+		if ($(this).attr('data-tab-id') === "tab_DataModel")
+		{
+			$(this).hide();
+		}
+	});
 }
 
 {% endif %}

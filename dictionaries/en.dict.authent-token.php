@@ -6,6 +6,14 @@
  */
 
 Dict::Add('EN US', 'English', 'English', [
+	'AuthentToken:CopyToken' => 'The credentials you have to provide are:<p>auth_token=%1$s</p>Copy them now, you won\'t be able to get them later!',
+	'AuthentToken:RebuildToken' => 'Rebuild token',
+	'AuthentToken:RebuildToken+' => 'The authentification token will be recreated, BEWARE the previous one will be lost',
+
+	'Class:UserToken' => 'Token based user',
+	'Class:UserToken/Attribute:login' => 'Remote application',
+	'Class:UserToken/Attribute:login+' => 'Remote application identification string',
+
 	'UI:MyAccount' => 'My Account',
 	'authent-token/Operation:MainPage/Title' => 'My Account',
 	'MyAccount:SubTitle:user' => 'My user',
@@ -14,11 +22,10 @@ Dict::Add('EN US', 'English', 'English', [
 
 	'UI:Datatables:Column:RowActions:Label' => '',
 	'UI:Datatables:Column:RowActions:Description' => '',
-	'UI:Links:ActionRow:Delete' => 'Delete',
-	'UI:Links:ActionRow:Delete+' => 'Delete object',
-	'UI:Links:ActionRow:AddToken' => 'Add a new personal token',
-	'UI:Links:ActionRow:AddToken+' => 'Add a new personal token',
-	'UI:Links:ActionRow:Edit' => 'Edit object',
-	'UI:Links:ActionRow:Edit+' => 'Edit object',
+	'UI:Links:ActionRow:DeleteToken' => 'Delete token',
+	'UI:Links:ActionRow:AddToken' => 'Add a new token',
+	'UI:Links:ActionRow:EditToken' => 'Edit token',
+
+	'AuthentToken:DeleteTokenConfirmation' => 'Do you want to remove token?',
 ]);
 

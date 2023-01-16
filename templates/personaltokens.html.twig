@@ -1,3 +1,10 @@
+<div id="deletion_popup" style="display:none">
+	{{ 'AuthentToken:DeleteTokenConfirmation'|dict_s }}
+</div>
+
+<div id="edition_popup" style="display:none">
+</div>
+
 <div id="ibo-panel-ez-{{ index}}" class="ibo-panel ibo-content-block ibo-block  ibo-is-neutral ibo-is-opened" data-role="ibo-panel">
 	<div class="ibo-panel--header" data-role="ibo-panel--header">
 		<div class="ibo-panel--header-left" data-role="ibo-panel--header-left">
@@ -8,9 +15,9 @@
 		<div class="ibo-panel--header-right" data-role="ibo-panel--header-right">
 			{% UIToolbar ForButton {} %}
 
-				{% UIButton IconLink {sIconClasses:'fas fa-plus', CSSClasses:['.ibo-quick-create--icon'],
-				sTooltipText:'UI:Links:ActionRow:AddToken:Edit'|dict_s ,
-					sURL:Infos.newtoken_link, sTarget:'TokenAdd', sId:'TokenAdd'} %}
+				{% UIButton IconAction {sIconClasses:'fas fa-plus', CSSClasses:['.ibo-quick-create--icon token-edit-button'],
+				sTooltipText:'UI:Links:ActionRow:AddToken'|dict_s,
+					sTarget:'TokenAdd', sId:'TokenAdd', DataAttributes:{'token-id':'0'} } %}
 			{% EndUIToolbar %}
 		</div>
 	</div>
@@ -18,5 +25,3 @@
 		{{render_block(Infos.oDatatable)}}
 	</div>
 </div>
-
-

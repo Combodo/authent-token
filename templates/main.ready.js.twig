@@ -4,11 +4,11 @@
 
 $('.token-refresh-button').on('click', function(){
 	var button = $(this);
-	var token_id = $(this).attr('data-token-id');
-
 	$(button).prop('disabled', true);
 
-	var refresh_url = '{{Params.refresh_token_url|raw}}&token_id=' + token_id;
+	var token_id = $(this).attr('data-token-id');
+
+	var refresh_url = '{{Infos.refresh_token_url|raw}}&token_id=' + token_id;
 	$.ajax({
 			type: "POST",
 			url: refresh_url
@@ -33,5 +33,141 @@ $('.token-refresh-button').on('click', function(){
 			$(button).prop('disabled', false);
 		});
 });
+
+$('.token-delete-button').on('click', function(){
+	var button = $(this);
+	$(button).prop('disabled', true);
+
+	var token_id = $(this).attr('data-token-id');
+
+	var deletion_popup = $('#deletion_popup');
+
+	deletion_popup.dialog( { width:'650', height: 'auto', closeOnEscape: true, autoOpen:
+			true, modal:true,
+		buttons: [
+			{
+				id: "close_button",
+				text: "{{ 'UI:Button:Cancel'|dict_s }}",
+				click: function() {
+					deletion_popup.dialog('close');
+				}
+			}
+			,{
+				id: "confirm_deletion_button",
+				text: "{{ 'UI:Links:ActionRow:DeleteToken'|dict_s }}",
+				click: function() {
+					DeleteToken(button, token_id);
+				}
+			}
+		],
+	});
+
+	$(button).prop('disabled', false);
+	var confirm_deletion_button = $('#confirm_deletion_button');
+	confirm_deletion_button.focus();
+	confirm_deletion_button.addClass("ibo-is-primary");
+});
+
+function DeleteToken(button, token_id){
+	var delete_token_url = '{{Infos.delete_token_url|raw}}&token_id=' + token_id;
+	$.ajax({
+			type: "POST",
+			url: delete_token_url
+			//data: formData,
+			//processData: false,
+			//contentType: false
+		})
+		.done(function (data) {
+			$('#deletion_popup').dialog('close');
+
+			if (data.result == 'ok')
+			{
+				location.reload(true);
+			}
+			else
+			{
+				alert('KO');
+			}
+		})
+		.fail(function (data) {
+		});
+}
+
+$('.token-edit-button').on('click', function(){
+	var button = $(this);
+	$(button).prop('disabled', true);
+
+	var token_id = $(this).attr('data-token-id');
+
+	var edition_popup = $('#edition_popup');
+
+	edition_popup.dialog( { width:'650', height: 'auto', title: token_id, closeOnEscape: true, autoOpen:
+			true, modal:true,
+		buttons: [
+			{
+				id: "close_button",
+				text: "{{ 'UI:Button:Cancel'|dict_s }}",
+				click: function() {
+					edition_popup.dialog('close');
+				}
+			}
+			,{
+				id: "confirm_modification",
+				text: "{{ 'UI:Links:ActionRow:EditToken'|dict_s }}",
+				click: function() {
+					//EditToken(token_id);
+				}
+			}
+			,{
+				id: "confirm_creation",
+				text: "{{ 'UI:Links:ActionRow:AddToken'|dict_s }}",
+				click: function() {
+					//EditToken(token_id);
+				}
+			}
+		],
+	});
+
+	$(button).prop('disabled', false);
+
+	var confirm_modification_button = $('#confirm_modification');
+	var confirm_creation_button = $('#confirm_creation');
+	if (token_id==="0"){
+		//adding a token
+		confirm_modification_button.hide();
+		confirm_creation_button.focus();
+		confirm_creation_button.addClass("ibo-is-primary");
+	} else {
+		//modifying a token
+		confirm_creation_button.hide();
+		confirm_modification_button.focus();
+		confirm_modification_button.addClass("ibo-is-primary");
+	}
+
+	EditToken(token_id);
+});
+
+function EditToken(token_id){
+	var edit_token_url = '{{Infos.edit_token_url|raw}}&token_id=' + token_id;
+	$.ajax({
+			type: "POST",
+			url: edit_token_url
+			//data: formData,
+			//processData: false,
+			//contentType: false
+		})
+		.done(function (data) {
+			if (data.result == 'ok')
+			{
+				$('#edition_popup').html(data.html);
+			}
+			else
+			{
+				alert('KO');
+			}
+		})
+		.fail(function (data) {
+		});
+}
 
 {% endif %}

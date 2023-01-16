@@ -9,7 +9,10 @@ use Combodo\iTop\Application\UI\Base\Component\Button\ButtonUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\Component\DataTable\StaticTable\FormTable\FormTable;
 use Combodo\iTop\Application\UI\Base\Component\DataTable\StaticTable\FormTableRow\FormTableRow;
 use Combodo\iTop\Application\UI\Base\Component\DataTable\tTableRowActions;
+use Combodo\iTop\Application\UI\Base\Component\Input\InputUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\Component\Template\TemplateUIBlockFactory;
+use Combodo\iTop\Application\UI\Base\Component\Panel\PanelUIBlockFactory;
+use Combodo\iTop\Application\UI\Base\Component\Field\FieldUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\Component\Toolbar\ToolbarUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\iUIBlock;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
@@ -22,7 +25,6 @@ use IssueLog;
 use MetaModel;
 use UserRights;
 use utils;
-use WebPage;
 
 class MyAccountController extends Controller{
 	const EXTENSION_NAME = "authent-token";
@@ -44,8 +46,6 @@ class MyAccountController extends Controller{
 
 		if (self::IsPersonalTokenManagementAllowed($oUser)){
 			$this->ProvideHtmlTokenInfo($oUser, $aParams);
-			$aParams['refresh_token_url']= utils::GetAbsoluteUrlModulePage(self::EXTENSION_NAME, 'ajax.php',
-				['operation' => 'RefreshToken', 'rebuild_Token' => 1]);
 		}
 
 		$this->DisplayPage(['Params' => $aParams ], 'main');
@@ -71,19 +71,13 @@ class MyAccountController extends Controller{
 		}
 
 		try {
-			$oSearch = new DBObjectSearch(\PersonalToken::class);
-			//keep this or nobody else than admin will be able to perform this action
-			$oSearch->AllowAllData();
-			$oSearch->Addcondition('id', $sTokenId, '=');
-			$oSearch->Addcondition('user_id', $oUser->GetKey(), '=');
-			$oTokens = new DBObjectSet($oSearch);
-			$oToken = $oTokens->Fetch();
-			$oToken->AllowWrite();
+			$oToken = $this->FetchToken($oUser, $sTokenId);
 
+			$oToken->AllowWrite();
 			$oPage = new AjaxPage("");
 			$oToken->DisplayBareHeader($oPage, true);
 
-			$sMessage = Dict::Format('PersonalToken:CopyToken', $oToken->getToken());
+			$sMessage = Dict::Format('AuthentToken:CopyToken ', $oToken->getToken());
 			$this->DisplayJSONPage(['result' => 'ok', 'message' => $sMessage], 200);
 		} catch (\Exception $e){
 			IssueLog::error("Cannot refresh token: " + $e->getMessage());
@@ -91,23 +85,110 @@ class MyAccountController extends Controller{
 		}
 	}
 
-
-	public function DisplayDetails(WebPage $oPage, DBObject $oObject, $aFields)
+	public function OperationDeleteToken()
 	{
-		$oPage->add('<h1>'.MetaModel::GetName(get_class($oObject)).': '.$oObject->GetName().'</h1>');
-		$aValues = array();
-		$aList = MetaModel::FlattenZList(MetaModel::GetZListItems(get_class($oObject), 'details'));
-		if (empty($aList))
-		{
-			$aList = array_keys(MetaModel::ListAttributeDefs(get_class($oObject)));
+		/** @var \User $oUser */
+		$oUser = UserRights::GetUserObject();
+
+		if (! self::IsPersonalTokenManagementAllowed($oUser)){
+			//in case someone not allowed try to type full URL...
+			http_response_code(401);
+			die("User not allowed to access current ressource.");
 		}
-		foreach($aList as $sAttCode)
-		{
-			if (in_array($sAttCode, $aFields)){
-				$aValues[$sAttCode] = array('label' => MetaModel::GetLabel(get_class($oObject), $sAttCode), 'value' => $oObject->GetAsHTML($sAttCode));
+
+		$sTokenId = utils::ReadParam('token_id', null);
+
+		if ($sTokenId===null){
+			IssueLog::error("Cannot delete token without its id");
+			$this->DisplayJSONPage(['result' => 'error'], 200);
+			return;
+		}
+
+		try {
+			$oToken = $this->FetchToken($oUser, $sTokenId);
+
+			$oToken->AllowDelete();
+			$oToken->DBDelete();
+
+			$this->DisplayJSONPage(['result' => 'ok'], 200);
+		} catch (\Exception $e){
+			IssueLog::error("Cannot delete token: " + $e->getMessage());
+			$this->DisplayJSONPage(['result' => 'error'], 200);
+		}
+	}
+
+	public function OperationEditToken()
+	{
+		/** @var \User $oUser */
+		$oUser = UserRights::GetUserObject();
+
+		if (! self::IsPersonalTokenManagementAllowed($oUser)){
+			//in case someone not allowed try to type full URL...
+			http_response_code(401);
+			die("User not allowed to access current ressource.");
+		}
+
+		$sTokenId = utils::ReadParam('token_id', null);
+
+		if ($sTokenId===null){
+			IssueLog::error("Missing token_id for token edition");
+			$this->DisplayJSONPage(['result' => 'error'], 200);
+			return;
+		}
+
+		try {
+			if ($sTokenId==="0"){
+				$oToken = new \PersonalToken();
+			} else {
+				$oToken = $this->FetchToken($oUser, $sTokenId);
 			}
+
+			$aPersonalTokenToEdit = [
+				'application',
+				'scope',
+				'expiration_date',
+			];
+
+			$oPanel = PanelUIBlockFactory::MakeNeutral('');
+			foreach ($aPersonalTokenToEdit as $sAttCode){
+				//$oConsoleSimpleFieldRenderer = new ConsoleSimpleFieldRenderer($oField);
+
+				$sValue = $oToken->Get($sAttCode);
+				$oInputBlock = InputUIBlockFactory::MakeStandard('text', $sAttCode, is_null($sValue) ? '': $sValue);
+				$oInputBlockRenderer = new BlockRenderer($oInputBlock);
+				$oUIField = FieldUIBlockFactory::MakeSmall(
+					MetaModel::GetLabel(get_class($oToken), $sAttCode),
+					$oInputBlockRenderer->RenderHtml()
+				);
+				$oPanel->AddSubBlock($oUIField);
+			}
+
+			$oBlockRenderer = new BlockRenderer($oPanel);
+			$sPanelHtml = $oBlockRenderer->RenderHtml();
+
+			$this->DisplayJSONPage(['result' => 'ok', 'html' => $sPanelHtml], 200);
+		} catch (\Exception $e){
+			IssueLog::error("Cannot edit token: " + $e->getMessage());
+			$this->DisplayJSONPage(['result' => 'error'], 200);
 		}
-		$oPage->details($aValues);
+	}
+
+	private function FetchToken(\User $oUser, string $sTokenId) : ?\DbObject
+	{
+		$oSearch = new DBObjectSearch(\PersonalToken::class);
+		//keep this or nobody else than admin will be able to perform this action
+		$oSearch->AllowAllData();
+
+		$oSearch->Addcondition('id', $sTokenId, '=');
+		$sUserId = $oUser->GetKey();
+		$oSearch->Addcondition('user_id', $sUserId, '=');
+		$oTokens = new DBObjectSet($oSearch);
+		$oToken = $oTokens->Fetch();
+		if (null === $oToken){
+			IssueLog::error(sprintf('Cannot find token with id %s and user_id %s', $sTokenId, ));
+			throw new \Exception('Cannot find token');
+		}
+		return $oToken;
 	}
 
 	private function GetEditLink(DBObject $oObject) : string
@@ -211,20 +292,17 @@ class MyAccountController extends Controller{
 
 		$aRowActions = [
 			[
-				'label'         => 'UI:Links:ActionRow:Edit',
-				'tooltip'       => 'UI:Links:ActionRow:Edit+',
+				'tooltip'       => 'UI:Links:ActionRow:EditToken',
 				'icon_classes'  => 'fas fa-pen',
 				'action-class' => "token-edit-button",
 			],
 			[
-				'label'         => 'AuthentToken:RebuildToken',
 				'tooltip'       => 'AuthentToken:RebuildToken+',
 				'icon_classes'  => 'fas fa-sync-alt',
 				'action-class' => "token-refresh-button",
 			],
 			[
-				'label'         => 'UI:Links:ActionRow:Delete',
-				'tooltip'       => 'UI:Links:ActionRow:Delete+',
+				'tooltip'         => 'UI:Links:ActionRow:DeleteToken',
 				'icon_classes'  => 'fas fa-trash',
 				'action-class' => "token-delete-button",
 				'color' => Button::ENUM_COLOR_SCHEME_DESTRUCTIVE,
@@ -234,7 +312,10 @@ class MyAccountController extends Controller{
 		$oDatatableBlock = $this->BuildDatatable('tokens', $aColumns, $aDataValues, '', $aRowActions, $aTokenIds);
 		$aParams['personaltoken'] = [
 			'oDatatable' => $oDatatableBlock,
-			'newtoken_link' => sprintf("%spages/UI.php?exec_module=authent-token&exec_page=ajax.php&operation=new", utils::GetAbsoluteUrlAppRoot())
+			'refresh_token_url' => utils::GetAbsoluteUrlModulePage(self::EXTENSION_NAME, 'ajax.php', ['operation' => 'RefreshToken', 'rebuild_Token' => 1]),
+			'edit_token_url' => utils::GetAbsoluteUrlModulePage(self::EXTENSION_NAME, 'ajax.php', ['operation' => 'EditToken']),
+			'delete_token_url' => utils::GetAbsoluteUrlModulePage(self::EXTENSION_NAME, 'ajax.php', ['operation' => 'DeleteToken']),
+			'new_token_link' => sprintf("%spages/UI.php?exec_module=authent-token&exec_page=ajax.php&operation=new", utils::GetAbsoluteUrlAppRoot())
 		];
 	}
 
@@ -276,7 +357,7 @@ class MyAccountController extends Controller{
 
 		// for each action...create an icon button
 		foreach ($aRowActions as $iKey => $aAction) {
-			$oButton = ButtonUIBlockFactory::MakeAlternativeNeutral('', $aAction['label']);
+			$oButton = ButtonUIBlockFactory::MakeAlternativeNeutral('', $aAction['tooltip']);
 			$oButton->SetIconClass($aAction['icon_classes'])
 				->SetTooltip(Dict::S($aAction['tooltip']))
 				//->AddDataAttribute("token-id", $sTokenId)
@@ -286,7 +367,7 @@ class MyAccountController extends Controller{
 				$oButton->SetColor($aAction['color']);
 			}
 
-			$oButton->SetDataAttributes(['label' => Dict::S($aAction['label']), 'action-id' => $iKey, 'table-id' => $oTable->GetId()]);
+			$oButton->SetDataAttributes(['label' => Dict::S($aAction['tooltip']), 'action-id' => $iKey, 'table-id' => $oTable->GetId()]);
 			$oToolbar->AddSubBlock($oButton);
 		}
 

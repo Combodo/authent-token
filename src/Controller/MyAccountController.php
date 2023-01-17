@@ -9,19 +9,15 @@ use Combodo\iTop\Application\UI\Base\Component\Button\ButtonUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\Component\DataTable\StaticTable\FormTable\FormTable;
 use Combodo\iTop\Application\UI\Base\Component\DataTable\StaticTable\FormTableRow\FormTableRow;
 use Combodo\iTop\Application\UI\Base\Component\DataTable\tTableRowActions;
-use Combodo\iTop\Application\UI\Base\Component\Input\InputUIBlockFactory;
+use Combodo\iTop\Application\UI\Base\Component\Panel\Panel;
 use Combodo\iTop\Application\UI\Base\Component\Template\TemplateUIBlockFactory;
-use Combodo\iTop\Application\UI\Base\Component\Panel\PanelUIBlockFactory;
-use Combodo\iTop\Application\UI\Base\Component\Field\FieldUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\Component\Toolbar\ToolbarUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\iUIBlock;
+use Combodo\iTop\Application\UI\Base\Layout\Object\ObjectDetails;
 use Combodo\iTop\Application\UI\Base\Layout\TabContainer\TabContainer;
+use Combodo\iTop\Application\UI\Base\UIBlock;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
-use Combodo\iTop\Form\Field\DateTimeField;
-use Combodo\iTop\Form\Field\SelectField;
-use Combodo\iTop\Form\Field\StringField;
 use Combodo\iTop\Renderer\BlockRenderer;
-use Combodo\iTop\Renderer\Console\FieldRenderer\ConsoleSimpleFieldRenderer;
 use DBObject;
 use DBObjectSearch;
 use DBObjectSet;
@@ -31,6 +27,11 @@ use MetaModel;
 use UserRights;
 use utils;
 
+/**
+ * PersonalToken objects are protected and writable only as Administrator
+ * Lot of operations are done here as a workaround to bypass the rights to let user handle his own tokens only from MyAccount menu:
+ * creation / modification / refresh / deletion
+ */
 class MyAccountController extends Controller{
 	const EXTENSION_NAME = "authent-token";
 
@@ -66,14 +67,18 @@ class MyAccountController extends Controller{
 			$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().$sJsFile);
 		}
 
+		$aJsFilesArrays = [
+			UIBlock::DEFAULT_JS_FILES_REL_PATH,
+			Panel::DEFAULT_JS_FILES_REL_PATH,
+			TabContainer::DEFAULT_JS_FILES_REL_PATH,
+			ObjectDetails::DEFAULT_JS_FILES_REL_PATH,
+		];
 
-		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/ui-block.js');
-		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/components/panel.js');
-
-		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/layouts/tab-container/tab-container.js');
-		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/layouts/tab-container/regular-tabs.js');
-		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/layouts/tab-container/scrollable-tabs.js');
-		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/layouts/object/object-details.js');
+		foreach ($aJsFilesArrays as $aJsFilesArray){
+			foreach ($aJsFilesArray as $sJsRelFile){
+				$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().$sJsRelFile);
+			}
+		}
 
 		$this->DisplayPage(['Params' => $aParams ], 'main');
 	}
@@ -144,6 +149,12 @@ class MyAccountController extends Controller{
 		}
 	}
 
+	/**
+	 * We cannot rely on apply_new persistence mecanism
+	 * PersonalToken objects are protected and writable only as Administrator
+	 * As a workaround we bypass the rights in this controller to let user handle his own tokens only.
+	 * @return void
+	 */
 	public function OperationEditToken()
 	{
 		/** @var \User $oUser */
@@ -178,6 +189,73 @@ class MyAccountController extends Controller{
 			IssueLog::error("Cannot edit token: " + $e->getMessage());
 			$this->DisplayJSONPage(['result' => 'error'], 200);
 		}
+	}
+
+	public function Operationapply_modify() {
+		try {
+			/** @var \User $oUser */
+			$oUser = UserRights::GetUserObject();
+
+			$sTokenId = utils::ReadParam('id', null);
+
+			if ($sTokenId===null){
+				IssueLog::error("Missing token_id for token edition");
+				$this->DisplayJSONPage(['result' => 'error'], 200);
+				return;
+			}
+
+			$oToken = $this->FetchToken($oUser, $sTokenId);
+			$this->OperationSaveToken($oUser, $oToken);
+		} catch (\Exception $e){
+			IssueLog::error("Cannot modify token: " + $e->getMessage());
+			$this->DisplayJSONPage(['result' => 'error'], 200);
+		}
+	}
+
+	public function Operationapply_new() {
+		try {
+			/** @var \User $oUser */
+			$oUser = UserRights::GetUserObject();
+
+			$oToken = new \PersonalToken();
+			$oToken->Set('user_id', $oUser->GetKey());
+
+			$this->OperationSaveToken($oUser, $oToken);
+		} catch (\Exception $e){
+			IssueLog::error("Cannot create token: " + $e->getMessage());
+			$this->DisplayJSONPage(['result' => 'error'], 200);
+		}
+	}
+
+	private function OperationSaveToken(\User $oUser, \PersonalToken $oToken)
+	{
+		$sTransactionId = utils::ReadPostedParam('transaction_id', '', 'transaction_id');
+		if (!utils::IsTransactionValid($sTransactionId, false))
+		{
+			IssueLog::Error(sprintf("OperationSaveToken : invalid transaction_id ! data: user='%s'", $oUser->Get('login')));
+			echo Dict::S('UI:Error:ObjectAlreadyCreated');
+			return;
+		}
+
+		if (! self::IsPersonalTokenManagementAllowed($oUser)){
+			//in case someone not allowed try to type full URL...
+			http_response_code(401);
+			die("User not allowed to access current ressource.");
+		}
+
+		$sScope = utils::ReadParam('attr_scope', null);
+		$sApplication = utils::ReadParam('attr_application', null);
+		$sExpirationDate = utils::ReadParam('attr_expiration_date', null);
+
+		$oToken->AllowWrite();
+		$oToken->Set('scope', $sScope);
+		$oToken->Set('application', $sApplication);
+		$oToken->Set('expiration_date', $sExpirationDate);
+		$oToken->DBWrite();
+
+		$oPage = new AjaxPage('');
+		$oToken->DisplayModifyForm($oPage);
+		$oPage->output();
 	}
 
 	private function FetchToken(\User $oUser, string $sTokenId) : ?\DbObject
@@ -322,7 +400,7 @@ class MyAccountController extends Controller{
 			'refresh_token_url' => utils::GetAbsoluteUrlModulePage(self::EXTENSION_NAME, 'ajax.php', ['operation' => 'RefreshToken', 'rebuild_Token' => 1]),
 			'edit_token_url' => utils::GetAbsoluteUrlModulePage(self::EXTENSION_NAME, 'ajax.php', ['operation' => 'EditToken']),
 			'delete_token_url' => utils::GetAbsoluteUrlModulePage(self::EXTENSION_NAME, 'ajax.php', ['operation' => 'DeleteToken']),
-			'new_token_link' => sprintf("%spages/UI.php?exec_module=authent-token&exec_page=ajax.php&operation=new", utils::GetAbsoluteUrlAppRoot())
+			'save_token_link' => utils::GetAbsoluteUrlModulePage(self::EXTENSION_NAME, 'ajax.php', ['operation' => 'SaveToken']),
 		];
 	}
 

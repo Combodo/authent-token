@@ -124,6 +124,7 @@ function DisplayEditionPopup(html, token_id){
 	modifyDialog.find('.cancel').remove();
 	modifyDialog.find('.action[type=submit]').remove();
 
+	var save_token_url = '{{Infos.save_token_link|raw}}';
 	current_form = modifyDialog.find('form');
 	current_form.on('submit',function(event){
 		/* stop form from submitting normally */
@@ -133,8 +134,7 @@ function DisplayEditionPopup(html, token_id){
 
 		if(CheckFields($form.attr('id'), false))
 		{
-			var url = $form.attr('action');
-			var posting = $.post( url, $form.serialize());
+			var posting = $.post( save_token_url, $form.serialize());
 
 			/* Alerts the results */
 			posting.done(function( data ) {

@@ -233,8 +233,7 @@ class MyAccountController extends Controller{
 		if (!utils::IsTransactionValid($sTransactionId, false))
 		{
 			IssueLog::Error(sprintf("OperationSaveToken : invalid transaction_id ! data: user='%s'", $oUser->Get('login')));
-			echo Dict::S('UI:Error:ObjectAlreadyCreated');
-			return;
+			throw new \Exception(Dict::S('UI:Error:ObjectAlreadyCreated'));
 		}
 
 		if (! self::IsPersonalTokenManagementAllowed($oUser)){
@@ -243,14 +242,15 @@ class MyAccountController extends Controller{
 			die("User not allowed to access current ressource.");
 		}
 
-		$sScope = utils::ReadParam('attr_scope', null);
-		$sApplication = utils::ReadParam('attr_application', null);
-		$sExpirationDate = utils::ReadParam('attr_expiration_date', null);
+		$aErrors = $oToken->UpdateObjectFromPostedForm();
+		if (!empty($aErrors))
+		{
+			$sErrors = implode(',', $aErrors);
+			IssueLog::Error(sprintf("OperationSaveToken :  user='%s' errors:", $oUser->Get('login'), $sErrors));
+			throw new \CoreCannotSaveObjectException(['issues' => $aErrors, 'id' => $oToken->GetKey(), 'class' => \PersonalToken::class ]);
+		}
 
 		$oToken->AllowWrite();
-		$oToken->Set('scope', $sScope);
-		$oToken->Set('application', $sApplication);
-		$oToken->Set('expiration_date', $sExpirationDate);
 		$oToken->DBWrite();
 
 		$oPage = new AjaxPage('');

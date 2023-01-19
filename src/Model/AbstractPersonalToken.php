@@ -29,7 +29,7 @@ abstract class AbstractPersonalToken extends cmdbAbstractObject  implements iTok
 		if ($bRebuildToken) {
 			$this->CreateNewToken();
 			$this->DBUpdate();
-			$sMessage = Dict::Format('PersonalToken:CopyToken', $this->sToken);
+			$sMessage = Dict::Format('AuthentToken:CopyToken', $this->sToken);
 			$this::SetSessionMessage(get_class($this), $this->GetKey(), 1, $sMessage, 'INFO', 1);
 		}
 
@@ -57,7 +57,7 @@ abstract class AbstractPersonalToken extends cmdbAbstractObject  implements iTok
 		$oPage->SetCurrentTab('UI:PropertiesTab');
 
 		if (version_compare(ITOP_DESIGN_LATEST_VERSION, '2.7', '<=')) {
-			$sButtonLabel = Dict::S('PersonalToken:RebuildToken');
+			$sButtonLabel = Dict::S('AuthentToken:RebuildToken');
 			$sHtml = <<<HTML
 <form method="post">
 	<button type="submit" name="rebuild_Token" value="1">{$sButtonLabel}</button>
@@ -93,7 +93,7 @@ HTML;
 
 	public function GetInitialStateAttributeFlags($sAttCode, &$aReasons = array())
 	{
-		if ($sAttCode == 'auth_token') {
+		if (in_array($sAttCode, [ 'auth_token', 'use_count', 'last_use_date' ])) {
 			return OPT_ATT_HIDDEN;
 		} else if ($sAttCode == 'user_id' && !$this->GetCanEditUserId()) {
 			return OPT_ATT_READONLY;
@@ -103,7 +103,7 @@ HTML;
 
 	public function GetAttributeFlags($sAttCode, &$aReasons = array(), $sTargetState = '')
 	{
-		if ($sAttCode == 'auth_token') {
+		if (in_array($sAttCode, [ 'auth_token', 'use_count', 'last_use_date' ])) {
 			return OPT_ATT_HIDDEN;
 		} else if ($sAttCode == 'user_id' && !$this->GetCanEditUserId()) {
 			return OPT_ATT_READONLY;

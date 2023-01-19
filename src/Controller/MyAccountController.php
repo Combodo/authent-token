@@ -230,17 +230,17 @@ class MyAccountController extends Controller{
 
 	private function OperationSaveToken(\User $oUser, \PersonalToken $oToken)
 	{
+		if (! self::IsPersonalTokenManagementAllowed($oUser)){
+			//in case someone not allowed try to type full URL...
+			http_response_code(401);
+			die("User not allowed to access current ressource.");
+		}
+
 		$sTransactionId = utils::ReadPostedParam('transaction_id', '', 'transaction_id');
 		if (!utils::IsTransactionValid($sTransactionId, false))
 		{
 			IssueLog::Error(sprintf("OperationSaveToken : invalid transaction_id ! data: user='%s'", $oUser->Get('login')));
 			throw new \Exception(Dict::S('UI:Error:ObjectAlreadyCreated'));
-		}
-
-		if (! self::IsPersonalTokenManagementAllowed($oUser)){
-			//in case someone not allowed try to type full URL...
-			http_response_code(401);
-			die("User not allowed to access current ressource.");
 		}
 
 		$aErrors = $oToken->UpdateObjectFromPostedForm();

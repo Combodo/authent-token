@@ -246,8 +246,37 @@
     <dictionary id="EN US" _delta="must_exist">
       <entries>
         <entry id="Class:User/Attribute:tokens_list" _delta="define"><![CDATA[Tokens]]></entry>
-        <entry id="Menu:SearchPersonalTokens" _delta="define"><![CDATA[Tokens]]></entry>
-        <entry id="Menu:SearchPersonalTokens+" _delta="define"><![CDATA[Tokens]]></entry>
+        <entry id="Menu:SearchPersonalTokens" _delta="define"><![CDATA[Personal Tokens]]></entry>
+
+        <entry id="Class:PersonalToken/Attribute:user_id" _delta="define"><![CDATA[User]]></entry>
+        <entry id="Class:PersonalToken/Attribute:application" _delta="define"><![CDATA[Application]]></entry>
+        <entry id="Class:PersonalToken/Attribute:scope" _delta="define"><![CDATA[Scope]]></entry>
+        <entry id="Class:PersonalToken/Attribute:auth_token" _delta="define"><![CDATA[Token]]></entry>
+        <entry id="Class:PersonalToken/Attribute:expiration_date" _delta="define"><![CDATA[Expiration date]]></entry>
+        <entry id="Class:PersonalToken/Attribute:use_count" _delta="define"><![CDATA[Authentication count]]></entry>
+        <entry id="Class:PersonalToken/Attribute:use_count+" _delta="define"><![CDATA[Number of times token has been used for
+        authentication]]></entry>
+        <entry id="Class:PersonalToken/Attribute:last_use_date" _delta="define"><![CDATA[Last use date]]></entry>
+        <entry id="Class:PersonalToken/Attribute:last_use_date+" _delta="define"><![CDATA[Last date token has been used for
+        authentication]]></entry>
+      </entries>
+    </dictionary>
+    <dictionary id="FR FR" _delta="must_exist">
+      <entries>
+        <entry id="Class:User/Attribute:tokens_list" _delta="define"><![CDATA[Tokens]]></entry>
+        <entry id="Menu:SearchPersonalTokens" _delta="define"><![CDATA[Tokens personels]]></entry>
+
+        <entry id="Class:PersonalToken/Attribute:user_id" _delta="define"><![CDATA[Utilisateur]]></entry>
+        <entry id="Class:PersonalToken/Attribute:application" _delta="define"><![CDATA[Application]]></entry>
+        <entry id="Class:PersonalToken/Attribute:scope" _delta="define"><![CDATA[Contexte]]></entry>
+        <entry id="Class:PersonalToken/Attribute:auth_token" _delta="define"><![CDATA[Token]]></entry>
+        <entry id="Class:PersonalToken/Attribute:expiration_date" _delta="define"><![CDATA[Date d'expiration]]></entry>
+        <entry id="Class:PersonalToken/Attribute:use_count" _delta="define"><![CDATA[Décompte d'authentification]]></entry>
+        <entry id="Class:PersonalToken/Attribute:use_count+"
+               _delta="define"><![CDATA[Nombre de fois où le token a servi à s'authentifier]]></entry>
+        <entry id="Class:PersonalToken/Attribute:last_use_date" _delta="define"><![CDATA[Dernière date d'authentification]]></entry>
+        <entry id="Class:PersonalToken/Attribute:last_use_date+"
+               _delta="define"><![CDATA[Date de la dernière fois où le token a  servi à s'authentifier]]></entry>
       </entries>
     </dictionary>
   </dictionaries>

@@ -2,7 +2,9 @@
 {% if null != Params.personaltoken %}
 {% set Infos = Params.personaltoken %}
 
-$('.token-refresh-button').on('click', function(){
+var $datatableTokens = $('#datatable_tokens');
+
+$datatableTokens.on('click', '.token-refresh-button', function(){
 	var button = $(this);
 	$(button).prop('disabled', true);
 
@@ -31,7 +33,7 @@ $('.token-refresh-button').on('click', function(){
 		});
 });
 
-$('.token-delete-button').on('click', function(){
+$datatableTokens.on('click', '.token-delete-button', function(){
 	var button = $(this);
 	$(button).prop('disabled', true);
 
@@ -41,7 +43,8 @@ $('.token-delete-button').on('click', function(){
 	var deletion_popup = $('#deletion_popup');
 
 	deletion_popup.html(deletion_label);
-	deletion_popup.dialog( { width:'auto', height: 'auto', closeOnEscape: true, autoOpen:
+	deletion_popup.dialog( { width:'auto', height: 'auto', title: "{{ 'AuthentToken:Title:DeleteTokenConfirmation' | dict_s }}",
+		closeOnEscape: true, autoOpen:
 			true, modal:true,
 		buttons: [
 			{
@@ -89,7 +92,7 @@ function DeleteToken(button, token_id){
 		});
 }
 
-$('.token-edit-button').on('click', function(){
+$datatableTokens.on('click', '.token-edit-button', function(){
 	var button = $(this);
 	$(button).prop('disabled', true);
 
@@ -150,35 +153,15 @@ function DisplayEditionPopup(html, token_id){
 				}
 			}
 			,{
-				id: "confirm_modification",
-				text: "{{ 'UI:Links:ActionRow:EditToken'|dict_s }}",
-				click: function() {
-					current_form.submit();
-				}
-			}
-			,{
-				id: "confirm_creation",
-				text: "{{ 'UI:Links:ActionRow:AddToken'|dict_s }}",
+				id: "save_button",
+				text: "{{ 'UI:Links:ActionRow:SaveToken'|dict_s }}",
+				class: "ibo-is-primary",
 				click: function() {
 					current_form.submit();
 				}
 			}
 		],
 	});
-
-	var confirm_modification_button = $('#confirm_modification');
-	var confirm_creation_button = $('#confirm_creation');
-	if (token_id==="0"){
-		//adding a token
-		confirm_modification_button.hide();
-		confirm_creation_button.focus();
-		confirm_creation_button.addClass("ibo-is-primary");
-	} else {
-		//modifying a token
-		confirm_creation_button.hide();
-		confirm_modification_button.focus();
-		confirm_modification_button.addClass("ibo-is-primary");
-	}
 
 	//hide datamodel tab
 	modifyDialog.find('.ibo-tab-container--tab-header').each(function(){

@@ -2,11 +2,11 @@
 
 use Combodo\iTop\Application\UI\Base\Component\Button\ButtonUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\Component\Form\FormUIBlockFactory;
+use Combodo\iTop\AuthentToken\Controller\MyAccountController;
 use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Model\iToken;
 use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
-use Combodo\iTop\AuthentToken\Controller\MyAccountController;
 
 /**
  * @copyright   Copyright (C) 2010-2021 Combodo SARL
@@ -16,6 +16,7 @@ use Combodo\iTop\AuthentToken\Controller\MyAccountController;
 abstract class AbstractPersonalToken extends cmdbAbstractObject  implements iToken
 {
 	protected $sToken;
+	protected $bCanEditUserId = true;
 
 	private function InitPrivateKey()
 	{
@@ -33,6 +34,14 @@ abstract class AbstractPersonalToken extends cmdbAbstractObject  implements iTok
 		}
 
 		return parent::DisplayBareHeader($oPage, $bEditMode);
+	}
+
+	public function SetCanEditUserId(bool $bCanEdit) : void {
+		$this->bCanEditUserId = $bCanEdit;
+	}
+
+	public function GetCanEditUserId() : bool {
+		return $this->bCanEditUserId;
 	}
 
 	/**
@@ -86,6 +95,8 @@ HTML;
 	{
 		if ($sAttCode == 'auth_token') {
 			return OPT_ATT_HIDDEN;
+		} else if ($sAttCode == 'user_id' && !$this->GetCanEditUserId()) {
+			return OPT_ATT_READONLY;
 		}
 		return parent::GetInitialStateAttributeFlags($sAttCode, $aReasons);
 	}
@@ -94,6 +105,8 @@ HTML;
 	{
 		if ($sAttCode == 'auth_token') {
 			return OPT_ATT_HIDDEN;
+		} else if ($sAttCode == 'user_id' && !$this->GetCanEditUserId()) {
+			return OPT_ATT_READONLY;
 		}
 		return parent::GetAttributeFlags($sAttCode, $aReasons, $sTargetState);
 	}

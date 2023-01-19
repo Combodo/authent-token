@@ -183,6 +183,7 @@ class MyAccountController extends Controller{
 			}
 
 			$oPage = new AjaxPage('');
+			$oToken->SetCanEditUserId(false);
 			$oToken->DisplayModifyForm($oPage);
 			$oPage->output();
 		} catch (\Exception $e){
@@ -243,6 +244,7 @@ class MyAccountController extends Controller{
 		}
 
 		$aErrors = $oToken->UpdateObjectFromPostedForm();
+
 		if (!empty($aErrors))
 		{
 			$sErrors = implode(',', $aErrors);
@@ -250,12 +252,10 @@ class MyAccountController extends Controller{
 			throw new \CoreCannotSaveObjectException(['issues' => $aErrors, 'id' => $oToken->GetKey(), 'class' => \PersonalToken::class ]);
 		}
 
+		//prevent from passing another user id
+		$oToken->Set('user_id', $oUser->GetKey());
 		$oToken->AllowWrite();
 		$oToken->DBWrite();
-
-		$oPage = new AjaxPage('');
-		$oToken->DisplayModifyForm($oPage);
-		$oPage->output();
 	}
 
 	private function FetchToken(\User $oUser, string $sTokenId) : ?\DbObject
@@ -364,6 +364,7 @@ class MyAccountController extends Controller{
 		$oSet = new DBObjectSet($oFilter);
 
 		$aTokenIds = [];
+		$aTokenNames = [];
 		if ($oSet->Count() > 0){
 			while($oToken=$oSet->Fetch()){
 				$aCurrentTokenData=[];
@@ -372,6 +373,7 @@ class MyAccountController extends Controller{
 				}
 				$aDataValues[]=$aCurrentTokenData;
 				$aTokenIds[] = $oToken->GetKey();
+				$aTokenNames[] = $oToken->Get('application');
 			}
 		}
 
@@ -394,7 +396,7 @@ class MyAccountController extends Controller{
 			]
 		];
 
-		$oDatatableBlock = $this->BuildDatatable('tokens', $aColumns, $aDataValues, '', $aRowActions, $aTokenIds);
+		$oDatatableBlock = $this->BuildDatatable('tokens', $aColumns, $aDataValues, '', $aRowActions, $aTokenIds, $aTokenNames);
 		$aParams['personaltoken'] = [
 			'oDatatable' => $oDatatableBlock,
 			'refresh_token_url' => utils::GetAbsoluteUrlModulePage(self::EXTENSION_NAME, 'ajax.php', ['operation' => 'RefreshToken', 'rebuild_Token' => 1]),
@@ -404,7 +406,23 @@ class MyAccountController extends Controller{
 		];
 	}
 
-	private function BuildDatatable(string $sRef, array $aColumns, array $aData = [], string $sFilter = '', array $aRowActions, array $aTokenIds) : FormTable
+	/**
+	 * Generate Datapanel with CRUD action button on each row.
+	 * this could be replaced by iTop 3.1 build-it twig code. For SaaS it has to work in 3.0
+	 * @param string $sRef
+	 * @param array $aColumns
+	 * @param array $aData
+	 * @param string $sFilter
+	 * @param array $aRowActions
+	 * @param array $aTokenIds
+	 *
+	 * @return \Combodo\iTop\Application\UI\Base\Component\DataTable\StaticTable\FormTable\FormTable
+	 * @throws \ReflectionException
+	 * @throws \Twig\Error\LoaderError
+	 * @throws \Twig\Error\RuntimeError
+	 * @throws \Twig\Error\SyntaxError
+	 */
+	private function BuildDatatable(string $sRef, array $aColumns, array $aData, string $sFilter, array $aRowActions, array $aTokenIds, array $aTokenNames) : FormTable
 	{
 		$oTable = new FormTable("datatable_".$sRef);
 		$oTable->SetRef($sRef);
@@ -417,12 +435,14 @@ class MyAccountController extends Controller{
 
 		foreach ($aData as $iRowId => $aRow) {
 			$sTokenId = $aTokenIds[$iRowId];
+
 			$oToolbar = self::MakeActionRowToolbarTemplate($oTable, $aRowActions, $sTokenId);
 
 			$oBlockRenderer = new BlockRenderer($oToolbar);
 
 			//add toolbar html code as last row field
-			$sDeletionLabel = Dict::Format("AuthentToken:DeleteTokenConfirmation", "rrrr");
+			$sTokenName = $aTokenNames[$iRowId];
+			$sDeletionLabel = Dict::Format("AuthentToken:Message:DeleteTokenConfirmation", $sTokenName);
 			$sRowHtml = str_replace('data-role="ibo-button"',
 				sprintf('data-role="ibo-button" data-token-id="%s" data-deletion-label="%s"', $sTokenId, $sDeletionLabel),
 				$oBlockRenderer->RenderHtml()

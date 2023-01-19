@@ -54,6 +54,8 @@ class MyAccountController extends Controller{
 			$this->ProvideHtmlTokenInfo($oUser, $aParams);
 		}
 
+		//adding all below js. some in order to avoid a js console error. which is not fonctionnal even when displaying token forms
+
 		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/json.js');
 		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/forms-json-utils.js');
 		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/wizardhelper.js');

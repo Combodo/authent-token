@@ -17,21 +17,30 @@ $datatableTokens.on('click', '.token-refresh-button', function(){
 		})
 		.done(function (data) {
 			$(button).prop('disabled', false);
+			var refresh_alert_ok = $('#refresh_token_alert_ok');
+			var refresh_alert_fail = $('#operation_fail_alert');
 			if (data.result == 'ok')
 			{
-				var refresh_alert = $('#refresh_token_alert');
-				refresh_alert.find('.ibo-alert--body').html(data.message);
-				refresh_alert.removeClass('ibo-is-hidden');
+				refresh_alert_fail.addClass('ibo-is-hidden');
+				refresh_alert_ok.find('.ibo-alert--body').html(data.message);
+				refresh_alert_ok.removeClass('ibo-is-hidden');
 			}
 			else
 			{
-				alert('KO');
+				refresh_alert_ok.addClass('ibo-is-hidden');
+				refresh_alert_fail.removeClass('ibo-is-hidden');
 			}
 		})
 		.fail(function (data) {
 			$(button).prop('disabled', false);
+			refresh_alert_ok.addClass('ibo-is-hidden');
+			refresh_alert_fail.removeClass('ibo-is-hidden');
 		});
 });
+
+function DisplayFailureAlert(popup_selector){
+	$(popup_selector).find('#operation_fail_alert').removeClass('ibo-is-hidden');
+}
 
 $datatableTokens.on('click', '.token-delete-button', function(){
 	var button = $(this);
@@ -41,8 +50,12 @@ $datatableTokens.on('click', '.token-delete-button', function(){
 	var deletion_label = $(this).attr('data-deletion-label');
 
 	var deletion_popup = $('#deletion_popup');
+	var cloned_alert = $('#operation_fail_alert').clone();
+	cloned_alert.addClass('ibo-is-hidden');
 
-	deletion_popup.html(deletion_label);
+	deletion_popup.html(cloned_alert);
+	deletion_popup.append(deletion_label);
+
 	deletion_popup.dialog( { width:'auto', height: 'auto', title: "{{ 'AuthentToken:Title:DeleteTokenConfirmation' | dict_s }}",
 		closeOnEscape: true, autoOpen:
 			true, modal:true,
@@ -51,7 +64,9 @@ $datatableTokens.on('click', '.token-delete-button', function(){
 				id: "close_button",
 				text: "{{ 'UI:Button:Cancel'|dict_s }}",
 				click: function() {
-					deletion_popup.dialog('close');
+					//deletion_popup.dialog('close');
+
+					DisplayFailureAlert('#deletion_popup');
 				}
 			}
 			,{
@@ -85,10 +100,11 @@ function DeleteToken(button, token_id){
 			}
 			else
 			{
-				alert('KO');
+				DisplayFailureAlert('#deletion_popup');
 			}
 		})
 		.fail(function (data) {
+			DisplayFailureAlert('#deletion_popup');
 		});
 }
 
@@ -115,8 +131,14 @@ $('#ibo-panel-ez-token').on('click', '.token-edit-button', function(){
 });
 
 function DisplayEditionPopup(html, token_id){
-	this.dlg = $('<div id="modify_dialog" class="dialog">'+html+'</div>');
+	this.dlg = $('<div id="modify_dialog" class="dialog"></div>');
 	var modifyDialog = this.dlg;
+
+	var cloned_alert = $('#operation_fail_alert').clone();
+	cloned_alert.addClass('ibo-is-hidden');
+
+	modifyDialog.html(cloned_alert);
+	modifyDialog.append(html);
 
 	modifyDialog.find('.cancel').remove();
 	modifyDialog.find('.action[type=submit]').remove();
@@ -137,6 +159,10 @@ function DisplayEditionPopup(html, token_id){
 			posting.done(function( data ) {
 				location.reload(true);
 			});
+
+			posting.fail(function( data ) {
+				DisplayFailureAlert('#modify_dialog');
+			});
 		}
 	});
 
@@ -149,6 +175,7 @@ function DisplayEditionPopup(html, token_id){
 				id: "close_button",
 				text: "{{ 'UI:Button:Cancel'|dict_s }}",
 				click: function() {
+					window.bInSubmit = true;
 					modifyDialog.dialog('close');
 				}
 			}
@@ -157,6 +184,7 @@ function DisplayEditionPopup(html, token_id){
 				text: "{{ 'UI:Links:ActionRow:SaveToken'|dict_s }}",
 				class: "ibo-is-primary",
 				click: function() {
+					window.bInSubmit = true;
 					current_form.submit();
 				}
 			}

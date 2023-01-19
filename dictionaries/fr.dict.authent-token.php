@@ -24,7 +24,8 @@ Dict::Add('FR FR', 'French', 'Français', [
 	'UI:Datatables:Column:RowActions:Description' => '',
 	'UI:Links:ActionRow:DeleteToken' => "Supprimer le token",
 	'UI:Links:ActionRow:AddToken' => 'Ajouter un token',
-	'UI:Links:ActionRow:Edit' => "Modifier le token",
+	'UI:Links:ActionRow:EditToken' => "Modifier le token",
+	'UI:Links:ActionRow:Edit' => 'Modifier',
 	'UI:Links:ActionRow:SaveToken' => 'Sauver le token',
 
 	'AuthentToken:Title:DeleteTokenConfirmation' => 'Confirmation',

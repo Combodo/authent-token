@@ -1,5 +1,15 @@
-<div id="deletion_popup" style="display:none">
-	{{ 'AuthentToken:DeleteTokenConfirmation'|dict_s }}
+<BR/>
+{% UIAlert ForInformation {sTitle:'', sContent:'', sId:'refresh_token_alert_ok', IsHidden:true, IsCollapsible:true, IsClosable:
+	false} %}
+temporary
+{% EndUIAlert %}
+	{% UIAlert ForFailure {sTitle:'', sContent:'', sId:'operation_fail_alert', IsHidden:true, IsCollapsible:true, IsClosable:
+		false} %}
+Operation failed
+{% EndUIAlert %}
+<BR/>
+
+<div id="deletion_popup">
 </div>
 
 <div id="ibo-panel-ez-token" class="ibo-panel ibo-content-block ibo-block  ibo-is-neutral ibo-is-opened" data-role="ibo-panel">

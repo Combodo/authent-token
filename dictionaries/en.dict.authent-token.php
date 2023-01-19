@@ -25,6 +25,7 @@ Dict::Add('EN US', 'English', 'English', [
 	'UI:Links:ActionRow:DeleteToken' => 'Delete token',
 	'UI:Links:ActionRow:AddToken' => 'Add a new token',
 	'UI:Links:ActionRow:EditToken' => 'Edit token',
+	'UI:Links:ActionRow:Edit' => 'Edit',
 	'UI:Links:ActionRow:SaveToken' => 'Save token',
 
 	'AuthentToken:Title:DeleteTokenConfirmation' => 'Confirmation',

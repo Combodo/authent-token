@@ -12,9 +12,6 @@ $('.token-refresh-button').on('click', function(){
 	$.ajax({
 			type: "POST",
 			url: refresh_url
-			//data: formData,
-			//processData: false,
-			//contentType: false
 		})
 		.done(function (data) {
 			$(button).prop('disabled', false);
@@ -75,16 +72,13 @@ function DeleteToken(button, token_id){
 	$.ajax({
 			type: "POST",
 			url: delete_token_url
-			//data: formData,
-			//processData: false,
-			//contentType: false
 		})
 		.done(function (data) {
 			$('#deletion_popup').dialog('close');
 
 			if (data.result == 'ok')
 			{
-				location.reload(true);
+				$('#tokens_row_' + token_id).remove();
 			}
 			else
 			{

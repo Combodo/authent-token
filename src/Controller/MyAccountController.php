@@ -428,7 +428,7 @@ class MyAccountController extends Controller{
 				$oBlockRenderer->RenderHtml()
 			);
 			$aRow[]= $sRowHtml;
-			$oRow = new FormTableRow($sRef, $aColumns, $aRow, $iRowId);
+			$oRow = new FormTableRow($sRef, $aColumns, $aRow, $sTokenId);
 			$oTable->AddRow($oRow);
 		}
 

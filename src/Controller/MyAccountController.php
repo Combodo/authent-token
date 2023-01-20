@@ -3,6 +3,7 @@
 namespace Combodo\iTop\AuthentToken\Controller;
 
 use AjaxPage;
+use Combodo\iTop\Application\Helper\Session;
 use Combodo\iTop\Application\TwigBase\Controller\Controller;
 use Combodo\iTop\Application\UI\Base\Component\Button\Button;
 use Combodo\iTop\Application\UI\Base\Component\Button\ButtonUIBlockFactory;
@@ -111,8 +112,8 @@ class MyAccountController extends Controller{
 			$oPage = new AjaxPage("");
 			$oToken->DisplayBareHeader($oPage, true);
 
-			$sMessage = Dict::Format('AuthentToken:CopyToken', $oToken->getToken());
-			$this->DisplayJSONPage(['result' => 'ok', 'message' => $sMessage], 200);
+			$sMessage = Dict::Format('AuthentToken:CopyToken', $oToken->GetToken());
+			$this->DisplayJSONPage(['result' => 'ok', 'message' => $sMessage, 'title' => $oToken->Get('application')], 200);
 		} catch (\Exception $e){
 			IssueLog::error("Cannot refresh token: " + $e->getMessage());
 			$this->DisplayJSONPage(['result' => 'error'], 200);
@@ -224,6 +225,15 @@ class MyAccountController extends Controller{
 			$oToken->Set('user_id', $oUser->GetKey());
 
 			$this->OperationSaveToken($oUser, $oToken);
+
+			//pass token to display after page reload
+			$sMessage = Dict::Format('AuthentToken:CopyToken', $oToken->getToken());
+			Session::Set('AuthentToken:CopyToken',
+				[
+					'credential_message' => $sMessage,
+					'token_name' => $oToken->Get('application')
+				]
+			);
 		} catch (\Exception $e){
 			IssueLog::error("Cannot create token: " + $e->getMessage());
 			$this->DisplayJSONPage(['result' => 'error'], 200);
@@ -258,10 +268,6 @@ class MyAccountController extends Controller{
 		$oToken->Set('user_id', $oUser->GetKey());
 		$oToken->AllowWrite();
 		$oToken->DBWrite();
-
-		/*$oRow = $this->BuildFormTableRow($oToken, 'tokens');
-		$oBlockRenderer = new BlockRenderer($oRow);
-		$this->DisplayJSONPage(['result' => 'ok', 'html' => $oBlockRenderer->RenderHtml() ], 200);*/
 	}
 
 	private function FetchToken(\User $oUser, string $sTokenId) : ?\DbObject
@@ -376,8 +382,21 @@ class MyAccountController extends Controller{
 			}
 		}
 
+		$aRefreshedTokenInfo = Session::Get('AuthentToken:CopyToken', null);
+		if ($aRefreshedTokenInfo){
+			$sTokenValue = $aRefreshedTokenInfo['credential_message'];
+			$sTokenName = $aRefreshedTokenInfo['token_name'];
+			//reset token value in the session for next display
+			Session::Unset('AuthentToken:CopyToken');
+		} else {
+			$sTokenValue = null;
+			$sTokenName = "";
+		}
+
 		$oDatatableBlock = $this->BuildDatatable('tokens', $aColumns, $aToken);
 		$aParams['personaltoken'] = [
+			'token_name' => $sTokenName,
+			'token_value' => $sTokenValue,
 			'oDatatable' => $oDatatableBlock,
 			'refresh_token_url' => utils::GetAbsoluteUrlModulePage(self::EXTENSION_NAME, 'ajax.php', ['operation' => 'RefreshToken', 'rebuild_Token' => 1]),
 			'edit_token_url' => utils::GetAbsoluteUrlModulePage(self::EXTENSION_NAME, 'ajax.php', ['operation' => 'EditToken']),
@@ -421,7 +440,7 @@ class MyAccountController extends Controller{
 		return $oTable;
 	}
 
-	private function BuildFormTableRow($oToken, string $sTableRef) : FormTableRow{
+	private function BuildFormTableRow($oToken, string $sTableRef, array $aColumns) : FormTableRow{
 		$aFields = $this->GetFields();
 		$aTokenRowData=[];
 		foreach ($aFields as $sField) {

@@ -47,7 +47,7 @@ abstract class AbstractPersonalToken extends cmdbAbstractObject  implements iTok
 	/**
 	 * @return string : get token value only when refreshing its value
 	 */
-	public function getToken() : ?string {
+	public function GetToken() : ?string {
 		return $this->sToken;
 	}
 

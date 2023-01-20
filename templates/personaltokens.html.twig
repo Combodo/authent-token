@@ -1,12 +1,19 @@
 <BR/>
-{% UIAlert ForInformation {sTitle:'', sContent:'', sId:'refresh_token_alert_ok', IsHidden:true, IsCollapsible:true, IsClosable:
-	false} %}
-temporary
-{% EndUIAlert %}
-	{% UIAlert ForFailure {sTitle:'', sContent:'', sId:'operation_fail_alert', IsHidden:true, IsCollapsible:true, IsClosable:
-		false} %}
+
+{% if null != Infos.token_value %}
+	{% UIAlert ForInformation {sTitle:Infos.token_name, sContent:'', sId:'refresh_token_alert_ok', IsHidden:false, IsCollapsible:true,
+		IsClosable:false, AddHtml: Infos.token_value} %}
+	{% EndUIAlert %}
+{% else %}
+	{% UIAlert ForInformation {sTitle:'fake title', sContent:'', sId:'refresh_token_alert_ok', IsHidden:true, IsCollapsible:true,
+	IsClosable:false} %}
+	fake and hidden message
+	{% EndUIAlert %}
+{% endif %}
+
+	{% UIAlert ForFailure {sTitle:'', sContent:'', sId:'operation_fail_alert', IsHidden:true, IsCollapsible:true, IsClosable:false} %}
 Operation failed
-{% EndUIAlert %}
+	{% EndUIAlert %}
 <BR/>
 
 <div id="deletion_popup">

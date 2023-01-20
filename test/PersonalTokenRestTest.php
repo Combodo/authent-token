@@ -37,9 +37,12 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 
 	    MetaModel::GetConfig()->Set('secure_rest_services', true, 'auth-token');
 	    MetaModel::GetConfig()->Set('allow_rest_services_via_tokens', true, 'auth-token');
-	    MetaModel::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Administrator']);
+	    MetaModel::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Configuration Manager']);
 
 	    MetaModel::GetConfig()->WriteToFile();
+
+	    $oConfigurationManagerProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'Configuration Manager'), true);
+	    $this->oUser = $this->CreateContactlessUser($this->sLogin, $oConfigurationManagerProfile->GetKey(), $this->sPassword);
 
 	    $this->CreatePersonalToken("RESTTEST");
 	}

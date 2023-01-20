@@ -180,6 +180,7 @@ HTML;
 		$iUseCount = $this->Get('use_count') + 1;
 		$this->Set('use_count', $iUseCount);
 		$this->Set('last_use_date', time());
+		$this->AllowWrite();
 		$this->DBUpdate();
 		CMDBObject::SetCurrentChange(null);
 

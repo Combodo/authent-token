@@ -41,7 +41,6 @@ abstract class AbstractRestTest extends ItopDataTestCase
 		    unlink($this->sTmpFile);
 	    }
 
-		$sConfigFile = utils::GetConfig()->GetLoadedFile();
 		$this->sUrl = MetaModel::GetConfig()->Get('app_root_url');
 
 	    $this->sConfigTmpBackupFile = tempnam(sys_get_temp_dir(), "config_");

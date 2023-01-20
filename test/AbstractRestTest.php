@@ -32,6 +32,13 @@ abstract class AbstractRestTest extends ItopDataTestCase
     {
 	    parent::setUp();
 
+	    $sConfigPath = MetaModel::GetConfig()->GetLoadedFile();
+
+	    clearstatcache();
+	    echo sprintf("rights via ls on %s:\n %s \n", $sConfigPath, exec("ls -al $sConfigPath"));
+	    $sFilePermOutput = substr(sprintf('%o', fileperms('/etc/passwd')), -4);
+	    echo sprintf("rights via fileperms on %s:\n %s \n", $sConfigPath, $sFilePermOutput);
+
 	    $sUid = date('dmYHis');
 	    $this->sLogin = "rest-user-".$sUid;
 	    $this->sOrgName = "Org-$sUid";

@@ -37,6 +37,7 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
 	    parent::setUp();
 	    @require_once(APPROOT . 'env-production/authent-token/vendor/autoload.php');
 
+	    @chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
 	    $this->InitLoginMode(TokenLoginExtension::LEGACY_LOGIN_TYPE);
 
 	    $oRestProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'REST Services User'), true);
@@ -67,6 +68,7 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
 			    MetaModel::GetConfig()->WriteToFile();
 		    }
 	    }
+	    @chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
 
 	    $oReflectionClass = new \ReflectionClass(AbstractApplicationToken::class);
 	    $oProperty = $oReflectionClass->getProperty('sToken');

@@ -33,6 +33,7 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
     {
 	    parent::setUp();
 
+	    @chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
 	    $this->InitLoginMode(TokenLoginExtension::LOGIN_TYPE);
 
 	    MetaModel::GetConfig()->Set('secure_rest_services', true, 'auth-token');
@@ -40,6 +41,7 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 	    MetaModel::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Configuration Manager']);
 
 	    MetaModel::GetConfig()->WriteToFile();
+	    @chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
 
 	    $oConfigurationManagerProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'Configuration Manager'), true);
 	    $this->oUser = $this->CreateContactlessUser($this->sLogin, $oConfigurationManagerProfile->GetKey(), $this->sPassword);

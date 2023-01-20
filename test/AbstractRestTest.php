@@ -69,8 +69,10 @@ abstract class AbstractRestTest extends ItopDataTestCase
 		if (! is_null($this->sConfigTmpBackupFile) && is_file($this->sConfigTmpBackupFile)){
 			//put config back
 			$sConfigPath = MetaModel::GetConfig()->GetLoadedFile();
+			@chmod($sConfigPath, 0770);
 			$oConfig = new Config($this->sConfigTmpBackupFile);
 			$oConfig->WriteToFile($sConfigPath);
+			@chmod($sConfigPath, 0440);
 		}
 	}
 

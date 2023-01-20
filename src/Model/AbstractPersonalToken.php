@@ -58,15 +58,16 @@ abstract class AbstractPersonalToken extends cmdbAbstractObject  implements iTok
 
 		if (version_compare(ITOP_DESIGN_LATEST_VERSION, '2.7', '<=')) {
 			$sButtonLabel = Dict::S('AuthentToken:RebuildToken');
+			$sButtonTooltipLabel = Dict::S('AuthentToken:RebuildToken+');
 			$sHtml = <<<HTML
 <form method="post">
-	<button type="submit" name="rebuild_Token" value="1">{$sButtonLabel}</button>
+	<button type="submit" name="rebuild_Token" value="1" title="{$sButtonTooltipLabel}">{$sButtonLabel}</button>
 </form>
 HTML;
 			$oPage->add($sHtml);
 		} else {
 			$oForm = FormUIBlockFactory::MakeStandard();
-			$oButton = ButtonUIBlockFactory::MakeForDestructiveAction(Dict::S('AuthentToken:RebuildToken'), 'rebuild_Token', 1, true);
+			$oButton = ButtonUIBlockFactory::MakeForPositiveAction(Dict::S('AuthentToken:RebuildToken'), 'rebuild_Token', 1, true);
 			$oButton->SetTooltip(Dict::S('AuthentToken:RebuildToken+'));
 			$oForm->AddSubBlock($oButton);
 			$oPage->AddSubBlock($oForm);

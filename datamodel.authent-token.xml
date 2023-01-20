@@ -247,6 +247,7 @@
       <entries>
         <entry id="Class:User/Attribute:tokens_list" _delta="define"><![CDATA[Tokens]]></entry>
         <entry id="Menu:SearchPersonalTokens" _delta="define"><![CDATA[Personal Tokens]]></entry>
+        <entry id="Menu:SearchPersonalTokens+" _delta="define"><![CDATA[Personal Tokens]]></entry>
 
         <entry id="Class:PersonalToken/Attribute:user_id" _delta="define"><![CDATA[User]]></entry>
         <entry id="Class:PersonalToken/Attribute:application" _delta="define"><![CDATA[Application]]></entry>
@@ -265,6 +266,7 @@
       <entries>
         <entry id="Class:User/Attribute:tokens_list" _delta="define"><![CDATA[Tokens]]></entry>
         <entry id="Menu:SearchPersonalTokens" _delta="define"><![CDATA[Tokens personels]]></entry>
+        <entry id="Menu:SearchPersonalTokens+" _delta="define"><![CDATA[Tokens personels]]></entry>
 
         <entry id="Class:PersonalToken/Attribute:user_id" _delta="define"><![CDATA[Utilisateur]]></entry>
         <entry id="Class:PersonalToken/Attribute:application" _delta="define"><![CDATA[Application]]></entry>

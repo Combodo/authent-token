@@ -6,7 +6,7 @@
  */
 
 Dict::Add('FR FR', 'French', 'Français', [
-	'AuthentToken:CopyToken' => 'Les identifiants que vous aurez à fournir sont :<p>auth_token=%1$s</p>Notez les maintenant, vous ne pourrez plus les afficher ensuite !',
+	'AuthentToken:CopyToken' => 'Les identifiants que vous aurez à fournir sont :<p>auth_token=<a>%1$s</a></p>Notez les maintenant, vous ne pourrez plus les afficher ensuite !',
 	'AuthentToken:RebuildToken' => 'Regénérer le jeton',
 	'AuthentToken:RebuildToken+' => 'Le jeton d\'authentification sera regénéré, ATTENTION le précédent sera perdu et ne pourra plus être utilisé',
 
@@ -29,7 +29,7 @@ Dict::Add('FR FR', 'French', 'Français', [
 	'UI:Links:ActionRow:SaveToken' => 'Sauver le token',
 
 	'AuthentToken:Title:DeleteTokenConfirmation' => 'Confirmation',
-	'AuthentToken:Message:DeleteTokenConfirmation' => 'Voulez-vous supprimer le token (%1$s)?',
+	'AuthentToken:Message:DeleteTokenConfirmation' => 'Voulez-vous supprimer le token <a>%1$s</a>?',
 
 ]);
 

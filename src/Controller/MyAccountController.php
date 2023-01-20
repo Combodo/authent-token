@@ -11,8 +11,8 @@ use Combodo\iTop\Application\UI\Base\Component\DataTable\StaticTable\FormTableRo
 use Combodo\iTop\Application\UI\Base\Component\DataTable\tTableRowActions;
 use Combodo\iTop\Application\UI\Base\Component\Panel\Panel;
 use Combodo\iTop\Application\UI\Base\Component\Template\TemplateUIBlockFactory;
+use Combodo\iTop\Application\UI\Base\Component\Toolbar\Toolbar;
 use Combodo\iTop\Application\UI\Base\Component\Toolbar\ToolbarUIBlockFactory;
-use Combodo\iTop\Application\UI\Base\iUIBlock;
 use Combodo\iTop\Application\UI\Base\Layout\Object\ObjectDetails;
 use Combodo\iTop\Application\UI\Base\Layout\TabContainer\TabContainer;
 use Combodo\iTop\Application\UI\Base\UIBlock;
@@ -258,6 +258,10 @@ class MyAccountController extends Controller{
 		$oToken->Set('user_id', $oUser->GetKey());
 		$oToken->AllowWrite();
 		$oToken->DBWrite();
+
+		/*$oRow = $this->BuildFormTableRow($oToken, 'tokens');
+		$oBlockRenderer = new BlockRenderer($oRow);
+		$this->DisplayJSONPage(['result' => 'ok', 'html' => $oBlockRenderer->RenderHtml() ], 200);*/
 	}
 
 	private function FetchToken(\User $oUser, string $sTokenId) : ?\DbObject
@@ -272,7 +276,7 @@ class MyAccountController extends Controller{
 		$oTokens = new DBObjectSet($oSearch);
 		$oToken = $oTokens->Fetch();
 		if (null === $oToken){
-			IssueLog::error(sprintf('Cannot find token with id %s and user_id %s', $sTokenId, ));
+			IssueLog::error(sprintf('Cannot find token with id %s and user_id %s', $sTokenId, $sUserId));
 			throw new \Exception('Cannot find token');
 		}
 		return $oToken;
@@ -351,54 +355,28 @@ class MyAccountController extends Controller{
 		}
 	}
 
-	public function ProvideHtmlTokenInfo(\User $oUser, &$aParams){
-		$aFields = ["application", "scope", "expiration_date", "use_count", "last_use_date"];
+	private function GetFields(){
+		return ["application", "scope", "expiration_date", "use_count", "last_use_date"];
+	}
 
+	public function ProvideHtmlTokenInfo(\User $oUser, &$aParams){
 		$aColumns=[];
-		foreach ($aFields as $sField){
+		foreach ($this->GetFields() as $sField){
 			$aColumns[] = ['label' => MetaModel::GetLabel(\PersonalToken::class, $sField)];
 		}
-
-		$aDataValues=[];
 
 		$sOql = sprintf("SELECT PersonalToken WHERE user_id = %s", $oUser->GetKey());
 		$oFilter = DBObjectSearch::FromOQL($sOql, []);
 		$oSet = new DBObjectSet($oFilter);
 
-		$aTokenIds = [];
-		$aTokenNames = [];
+		$aToken=[];
 		if ($oSet->Count() > 0){
 			while($oToken=$oSet->Fetch()){
-				$aCurrentTokenData=[];
-				foreach ($aFields as $sField) {
-					$aCurrentTokenData[] = $oToken->GetAsHTML($sField);
-				}
-				$aDataValues[]=$aCurrentTokenData;
-				$aTokenIds[] = $oToken->GetKey();
-				$aTokenNames[] = $oToken->Get('application');
+				$aToken[] = $oToken;
 			}
 		}
 
-		$aRowActions = [
-			[
-				'tooltip'       => 'UI:Links:ActionRow:EditToken',
-				'icon_classes'  => 'fas fa-pen',
-				'action-class' => "token-edit-button",
-			],
-			[
-				'tooltip'       => 'AuthentToken:RebuildToken+',
-				'icon_classes'  => 'fas fa-sync-alt',
-				'action-class' => "token-refresh-button",
-			],
-			[
-				'tooltip'         => 'UI:Links:ActionRow:DeleteToken',
-				'icon_classes'  => 'fas fa-trash',
-				'action-class' => "token-delete-button",
-				'color' => Button::ENUM_COLOR_SCHEME_DESTRUCTIVE,
-			]
-		];
-
-		$oDatatableBlock = $this->BuildDatatable('tokens', $aColumns, $aDataValues, '', $aRowActions, $aTokenIds, $aTokenNames);
+		$oDatatableBlock = $this->BuildDatatable('tokens', $aColumns, $aToken);
 		$aParams['personaltoken'] = [
 			'oDatatable' => $oDatatableBlock,
 			'refresh_token_url' => utils::GetAbsoluteUrlModulePage(self::EXTENSION_NAME, 'ajax.php', ['operation' => 'RefreshToken', 'rebuild_Token' => 1]),
@@ -424,41 +402,68 @@ class MyAccountController extends Controller{
 	 * @throws \Twig\Error\RuntimeError
 	 * @throws \Twig\Error\SyntaxError
 	 */
-	private function BuildDatatable(string $sRef, array $aColumns, array $aData, string $sFilter, array $aRowActions, array $aTokenIds, array $aTokenNames) : FormTable
+	private function BuildDatatable(string $sTableRef, array $aColumns, array $aToken) : FormTable
 	{
-		$oTable = new FormTable("datatable_".$sRef);
-		$oTable->SetRef($sRef);
+		$oTable = new FormTable("datatable_".$sTableRef);
+		$oTable->SetRef($sTableRef);
 		$aColumns[] = [
 			'label'       => Dict::S('UI:Datatables:Column:RowActions:Label'),
 			'description' => Dict::S('UI:Datatables:Column:RowActions:Description'),
 		];
 		$oTable->SetColumns($aColumns);
-		$oTable->SetFilter($sFilter);
+		$oTable->SetFilter('');
 
-		foreach ($aData as $iRowId => $aRow) {
-			$sTokenId = $aTokenIds[$iRowId];
-
-			$oToolbar = self::MakeActionRowToolbarTemplate($oTable, $aRowActions, $sTokenId);
-
-			$oBlockRenderer = new BlockRenderer($oToolbar);
-
-			//add toolbar html code as last row field
-			$sTokenName = $aTokenNames[$iRowId];
-			$sDeletionLabel = Dict::Format("AuthentToken:Message:DeleteTokenConfirmation", $sTokenName);
-			$sRowHtml = str_replace('data-role="ibo-button"',
-				sprintf('data-role="ibo-button" data-token-id="%s" data-deletion-label="%s"', $sTokenId, $sDeletionLabel),
-				$oBlockRenderer->RenderHtml()
-			);
-			$aRow[]= $sRowHtml;
-			$oRow = new FormTableRow($sRef, $aColumns, $aRow, $sTokenId);
+		foreach ($aToken as $oToken) {
+			$oRow = $this->BuildFormTableRow($oToken, $sTableRef, $aColumns);
 			$oTable->AddRow($oRow);
 		}
 
 		return $oTable;
 	}
 
-	public static function MakeActionRowToolbarTemplate(iUIBlock $oTable, array $aRowActions, string $sTokenId)
+	private function BuildFormTableRow($oToken, string $sTableRef) : FormTableRow{
+		$aFields = $this->GetFields();
+		$aTokenRowData=[];
+		foreach ($aFields as $sField) {
+			$aTokenRowData[] = $oToken->GetAsHTML($sField);
+		}
+
+		$oToolbar = self::MakeActionRowToolbarTemplate($sTableRef);
+
+		$oBlockRenderer = new BlockRenderer($oToolbar);
+
+		$sDeletionLabel = Dict::Format("AuthentToken:Message:DeleteTokenConfirmation", $oToken->Get('application'));
+		$sTokenId = $oToken->GetKey();
+		$sRowHtml = str_replace('data-role="ibo-button"',
+			sprintf('data-role="ibo-button" data-token-id="%s" data-deletion-label="%s"', $sTokenId, $sDeletionLabel),
+			$oBlockRenderer->RenderHtml()
+		);
+		//add toolbar html code as last row field
+		$aTokenRowData[]= $sRowHtml;
+		return new FormTableRow($sTableRef, $aColumns, $aTokenRowData, $sTokenId);
+	}
+
+	public static function MakeActionRowToolbarTemplate(string $sTableId) : Toolbar
 	{
+		$aRowActions = [
+			[
+				'tooltip'       => 'UI:Links:ActionRow:EditToken',
+				'icon_classes'  => 'fas fa-pen',
+				'action-class' => "token-edit-button",
+			],
+			[
+				'tooltip'       => 'AuthentToken:RebuildToken+',
+				'icon_classes'  => 'fas fa-sync-alt',
+				'action-class' => "token-refresh-button",
+			],
+			[
+				'tooltip'         => 'UI:Links:ActionRow:DeleteToken',
+				'icon_classes'  => 'fas fa-trash',
+				'action-class' => "token-delete-button",
+				'color' => Button::ENUM_COLOR_SCHEME_DESTRUCTIVE,
+			]
+		];
+
 		// row actions toolbar container
 		$oToolbar = ToolbarUIBlockFactory::MakeStandard();
 		$oToolbar->AddCSSClass('ibo-datatable--row-actions-toolbar');
@@ -468,14 +473,13 @@ class MyAccountController extends Controller{
 			$oButton = ButtonUIBlockFactory::MakeAlternativeNeutral('', $aAction['tooltip']);
 			$oButton->SetIconClass($aAction['icon_classes'])
 				->SetTooltip(Dict::S($aAction['tooltip']))
-				//->AddDataAttribute("token-id", $sTokenId)
 				->AddCSSClasses([$aAction['action-class'], 'ibo-action-button', 'ibo-regular-action-button']);
 
 			if (array_key_exists('color', $aAction)){
 				$oButton->SetColor($aAction['color']);
 			}
 
-			$oButton->SetDataAttributes(['label' => Dict::S($aAction['tooltip']), 'action-id' => $iKey, 'table-id' => $oTable->GetId()]);
+			$oButton->SetDataAttributes(['label' => Dict::S($aAction['tooltip']), 'action-id' => $iKey, 'table-id' => $sTableId]);
 			$oToolbar->AddSubBlock($oButton);
 		}
 

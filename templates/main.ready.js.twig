@@ -64,9 +64,7 @@ $datatableTokens.on('click', '.token-delete-button', function(){
 				id: "close_button",
 				text: "{{ 'UI:Button:Cancel'|dict_s }}",
 				click: function() {
-					//deletion_popup.dialog('close');
-
-					DisplayFailureAlert('#deletion_popup');
+					deletion_popup.dialog('close');
 				}
 			}
 			,{
@@ -92,11 +90,10 @@ function DeleteToken(button, token_id){
 			url: delete_token_url
 		})
 		.done(function (data) {
-			$('#deletion_popup').dialog('close');
-
 			if (data.result == 'ok')
 			{
 				$('#tokens_row_' + token_id).remove();
+				$('#deletion_popup').dialog('close');
 			}
 			else
 			{

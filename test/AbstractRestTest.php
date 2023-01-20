@@ -42,9 +42,7 @@ abstract class AbstractRestTest extends ItopDataTestCase
 	    }
 
 		$sConfigFile = utils::GetConfig()->GetLoadedFile();
-		@chmod($sConfigFile, 0770);
 		$this->sUrl = MetaModel::GetConfig()->Get('app_root_url');
-		@chmod($sConfigFile, 0444); // Read-only
 
 	    $this->sConfigTmpBackupFile = tempnam(sys_get_temp_dir(), "config_");
 	    MetaModel::GetConfig()->WriteToFile($this->sConfigTmpBackupFile);

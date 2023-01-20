@@ -44,7 +44,9 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 	    @chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
 
 	    $oConfigurationManagerProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'Configuration Manager'), true);
-	    $this->oUser = $this->CreateContactlessUser($this->sLogin, $oConfigurationManagerProfile->GetKey(), $this->sPassword);
+
+	    $this->sLogin = $this->sLogin . "-ConfigurationManager";
+		$this->oUser = $this->CreateContactlessUser($this->sLogin, $oConfigurationManagerProfile->GetKey(), $this->sPassword);
 
 	    $this->CreatePersonalToken("RESTTEST");
 	}

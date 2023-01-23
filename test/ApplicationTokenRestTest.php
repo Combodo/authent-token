@@ -76,7 +76,7 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
 	    $this->sToken = $oProperty->getValue($this->oApplicationToken);
 	}
 
-	protected function GetAuthToken(){
+	protected function GetAuthToken($sContext=null){
 		return $this->sToken;
 	}
 

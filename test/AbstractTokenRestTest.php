@@ -52,28 +52,28 @@ abstract class AbstractTokenRestTest extends AbstractRestTest
 		];
 	}
 
-	abstract protected function GetAuthToken();
+	abstract protected function GetAuthToken($sContext=null);
 
-	protected function GetPostParameters(){
+	protected function GetPostParameters($sContext=null){
 		$aParams = [
 			'version' => '1.3',
 		];
 
 		if ($this->bTokenInPost) {
-			$aParams ['auth_token'] = $this->GetAuthToken();
+			$aParams ['auth_token'] = $this->GetAuthToken($sContext);
 		}
 
 		return $aParams;
 	}
 
-	protected function GetHeadersParam(){
+	protected function GetHeadersParam($sContext=null){
 		if ($this->bTokenInPost) {
 			return [];
 		}
 
 		return [
 			//'Content-Type: application/x-www-form-urlencoded',
-			"Auth-Token: " . $this->GetAuthToken(),
+			"Auth-Token: " . $this->GetAuthToken($sContext),
 		];
 	}
 

@@ -25,6 +25,7 @@ use PersonalToken;
 class PersonalTokenRestTest extends AbstractTokenRestTest
 {
 	protected $oPersonalToken;
+	protected $oAdminToken;
 
 	/**
      * @throws Exception
@@ -38,31 +39,38 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 
 	    MetaModel::GetConfig()->Set('secure_rest_services', true, 'auth-token');
 	    MetaModel::GetConfig()->Set('allow_rest_services_via_tokens', true, 'auth-token');
-	    MetaModel::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Service Desk Agent']);
+	    MetaModel::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Administrator', 'Service Desk Agent']);
 
 	    MetaModel::GetConfig()->WriteToFile();
 	    @chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
 
-	    $oProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'Service Desk Agent'), true);
+		//create admin only to read cmdbchangop
+	    $oAdminProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'Administrator'), true);
+	    $sLogin = $this->sLogin . "-Admin";
+	    $oAdminUser = $this->CreateContactlessUser($sLogin, $oAdminProfile->GetKey(), $this->sPassword);
+	    $this->oAdminToken = $this->CreatePersonalToken($oAdminUser, "ADMINACCESS");
 
+	    $oProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'Service Desk Agent'), true);
 	    $this->sLogin = $this->sLogin . "-ServiceDeskAgent";
 		$this->oUser = $this->CreateContactlessUser($this->sLogin, $oProfile->GetKey(), $this->sPassword);
-
-	    $this->CreatePersonalToken("RESTTEST");
+	    $this->oPersonalToken = $this->CreatePersonalToken($this->oUser, "RESTTEST");
 	}
 
-	public function CreatePersonalToken(string $sApplication, $sScope=null){
+	public function CreatePersonalToken(\User $oUser, string $sApplication, $sScope=null) : PersonalToken{
     	if (is_null($sScope)) {
-		    $this->oPersonalToken = $this->createObject(PersonalToken::class, [
-			    'user_id' => $this->oUser->GetKey(),
+			/** PersonalToken $oPersonalToken */
+		    $oPersonalToken = $this->createObject(PersonalToken::class, [
+			    'user_id' => $oUser->GetKey(),
 			    'application' => $sApplication,
 			    'scope' => 'REST/JSON'
 		    ]);
+			return $oPersonalToken;
 	    }
+		throw \Exception("not implemented nor used yet");
 	}
 
-	private function CheckToken($sNow, $iExpectedUsedCount){
-		$oLastPersonalToken = MetaModel::GetObject(PersonalToken::class, $this->oPersonalToken->GetKey());
+	private function CheckToken($oToken, $sNow, $iExpectedUsedCount){
+		$oLastPersonalToken = MetaModel::GetObject(PersonalToken::class, $oToken->GetKey());
 		$this->assertEquals($iExpectedUsedCount, $oLastPersonalToken->Get('use_count'));
 
 		$sLastUseDate = $oLastPersonalToken->Get('last_use_date');
@@ -75,13 +83,20 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 		}
 	}
 
-	protected function GetAuthToken(){
+	protected function GetAuthToken($sContext=null){
 		$oReflectionClass = new \ReflectionClass(AbstractPersonalToken::class);
 		$oProperty = $oReflectionClass->getProperty('sToken');
 		$oProperty->setAccessible(true);
 
-		var_dump(['sToken' => $oProperty->getValue($this->oPersonalToken)]);
-		return $oProperty->getValue($this->oPersonalToken);
+		if ('CMDBChangeOp' === $sContext || 'delete' === $sContext){
+			//only admin can see CMDBChangeOp or delete UR
+			$sTokenCredential = $oProperty->getValue($this->oAdminToken);
+		} else {
+			$sTokenCredential = $oProperty->getValue($this->oPersonalToken);
+		}
+
+		var_dump(['context' => $sContext, 'sToken' => $sTokenCredential]);
+		return $sTokenCredential;
 	}
 
 	/**
@@ -90,7 +105,8 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 	public function testCreateApiViaToken($iJsonDataMode, $bTokenInPost)
 	{
 		parent::testCreateApiViaToken($iJsonDataMode, $bTokenInPost);
-		$this->CheckToken(time(), 4);
+		$this->CheckToken($this->oPersonalToken, time(), 2);
+		$this->CheckToken($this->oAdminToken, time(), 2);
 	}
 
 	/**
@@ -99,7 +115,8 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 	public function testUpdateApiViaToken($iJsonDataMode, $bTokenInPost)
 	{
 		parent::testUpdateApiViaToken($iJsonDataMode, $bTokenInPost);
-		$this->CheckToken(time(), 4);
+		$this->CheckToken($this->oPersonalToken, time(), 2);
+		$this->CheckToken($this->oAdminToken, time(), 2);
 	}
 
 	/**
@@ -108,7 +125,8 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 	public function testDeleteApiViaToken($iJsonDataMode, $bTokenInPost)
 	{
 		parent::testDeleteApiViaToken($iJsonDataMode, $bTokenInPost);
-		$this->CheckToken(time(), 3);
+		$this->CheckToken($this->oPersonalToken, time(), 2);
+		$this->CheckToken($this->oAdminToken, time(), 1);
 	}
 
 	/**

@@ -76,15 +76,15 @@ abstract class AbstractRestTest extends ItopDataTestCase
 		}
 	}
 
-	abstract protected function GetPostParameters();
+	abstract protected function GetPostParameters($sContext=null);
 
-	protected function GetHeadersParam(){
+	protected function GetHeadersParam($sContext=null){
 		return [];
 	}
 
-	protected function CallRestApi($sJsonDataContent){
+	protected function CallRestApi($sJsonDataContent, $sContext=null){
 		$ch = curl_init();
-		$aPostFields = $this->GetPostParameters();
+		$aPostFields = $this->GetPostParameters($sContext);
 		var_dump($aPostFields);
 
 		if ($this->iJsonDataMode === self::MODE['JSONDATA_AS_STRING']){
@@ -99,7 +99,7 @@ abstract class AbstractRestTest extends ItopDataTestCase
 
 		curl_setopt($ch, CURLOPT_COOKIE, "XDEBUG_SESSION=phpstorm");
 
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $this->GetHeadersParam());
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $this->GetHeadersParam($sContext));
 		curl_setopt($ch, CURLOPT_URL, "$this->sUrl/webservices/rest.php");
 		curl_setopt($ch, CURLOPT_POST, 1);// set post data to true
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $aPostFields);
@@ -140,15 +140,15 @@ abstract class AbstractRestTest extends ItopDataTestCase
 		}
 
 		if ($this->iJsonDataMode === self::MODE['NO_JSONDATA']){
-			$this->assertContains("3", "".$aJson['code'], $sOuputJson);
-			$this->assertContains("Error: Missing parameter 'json_data'", "".$aJson['message'], $sOuputJson);
+			$this->assertStringContainsString("3", "".$aJson['code'], $sOuputJson);
+			$this->assertStringContainsString("Error: Missing parameter 'json_data'", "".$aJson['message'], $sOuputJson);
 			return;
 		}
 
 		$this->assertEquals("0", "".$aJson['code'], $sOuputJson);
 		$this->assertTrue(array_key_exists('objects', $aJson), $sOuputJson);
 		$sUserRequestKey = $this->array_key_first($aJson['objects']);
-		$this->assertContains('UserRequest::', $sUserRequestKey);
+		$this->assertStringContainsString('UserRequest::', $sUserRequestKey);
 		$iId = $aJson['objects'][$sUserRequestKey]['key'];
 		$sExpectedJsonOuput=<<<JSON
 {"objects":{"UserRequest::$iId":{"code":0,"message":"created","class":"UserRequest","key":"$iId","fields":{"id":"$iId"}}},"code":0,"message":null}
@@ -183,15 +183,15 @@ JSON;
 		}
 
 		if ($this->iJsonDataMode === self::MODE['NO_JSONDATA']){
-			$this->assertContains("3", "".$aJson['code'], $sOuputJson);
-			$this->assertContains("Error: Missing parameter 'json_data'", "".$aJson['message'], $sOuputJson);
+			$this->assertStringContainsString("3", "".$aJson['code'], $sOuputJson);
+			$this->assertStringContainsString("Error: Missing parameter 'json_data'", "".$aJson['message'], $sOuputJson);
 			return;
 		}
 
 		$this->assertEquals("0", "".$aJson['code'], $sOuputJson);
 		$this->assertTrue(array_key_exists('objects', $aJson), $sOuputJson);
 		$sUserRequestKey = $this->array_key_first($aJson['objects']);
-		$this->assertContains('UserRequest::', $sUserRequestKey);
+		$this->assertStringContainsString('UserRequest::', $sUserRequestKey);
 		$iId = $aJson['objects'][$sUserRequestKey]['key'];
 
 		//update ticket
@@ -225,22 +225,22 @@ JSON;
 		}
 
 		if ($this->iJsonDataMode === self::MODE['NO_JSONDATA']){
-			$this->assertContains("3", "".$aJson['code'], $sOuputJson);
-			$this->assertContains("Error: Missing parameter 'json_data'", "".$aJson['message'], $sOuputJson);
+			$this->assertStringContainsString("3", "".$aJson['code'], $sOuputJson);
+			$this->assertStringContainsString("Error: Missing parameter 'json_data'", "".$aJson['message'], $sOuputJson);
 			return;
 		}
 
 		$this->assertEquals("0", "".$aJson['code'], $sOuputJson);
 		$this->assertTrue(array_key_exists('objects', $aJson), $sOuputJson);
 		$sUserRequestKey = $this->array_key_first($aJson['objects']);
-		$this->assertContains('UserRequest::', $sUserRequestKey);
+		$this->assertStringContainsString('UserRequest::', $sUserRequestKey);
 		$iId = $aJson['objects'][$sUserRequestKey]['key'];
 
 		//delete ticket
 		$sExpectedJsonOuput=<<<JSON
 {"objects":{"UserRequest::$iId"
 JSON;
-		$this->assertContains($sExpectedJsonOuput, $this->DeleteTicketFromApi($iId));
+		$this->assertStringContainsString($sExpectedJsonOuput, $this->DeleteTicketFromApi($iId));
 
 		$sExpectedJsonOuput=<<<JSON
 {"objects":null,"code":0,"message":"Found: 0"}
@@ -299,7 +299,7 @@ JSON;
    "simulate": false
 }
 JSON;
-		return $this->CallRestApi($sJson);
+		return $this->CallRestApi($sJson, 'delete');
 
 	}
 
@@ -319,8 +319,9 @@ JSON;
 JSON;
 
 		$aUserInfo = [];
-		$sOutput = $this->CallRestApi($sJsonGetContent);
+		$sOutput = $this->CallRestApi($sJsonGetContent, 'CMDBChangeOp');
 		$aJson = json_decode($sOutput, true);
+		var_dump($aJson);
 		if (is_array($aJson) && array_key_exists('objects', $aJson)){
 			$aObjects = $aJson['objects'];
 			if (!empty($aObjects)){

@@ -183,7 +183,9 @@ JSON;
 		$this->iJsonDataMode = $iJsonDataMode;
 
 		MetaModel::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Configuration Manager']);
+		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
 		MetaModel::GetConfig()->WriteToFile();
+		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
 
 		//create ticket
 		$description = date('dmY H:i:s');

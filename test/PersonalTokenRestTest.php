@@ -62,7 +62,7 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 		    $oPersonalToken = $this->createObject(PersonalToken::class, [
 			    'user_id' => $oUser->GetKey(),
 			    'application' => $sApplication,
-			    'scope' => 'REST/JSON'
+			    'scope' => \ContextTag::TAG_REST
 		    ]);
 			return $oPersonalToken;
 	    }
@@ -132,12 +132,29 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 	/**
 	 * @dataProvider BasicTokenProvider
 	 */
+	public function testApiWithExpirationTimeIntheFuture($iJsonDataMode, $bTokenInPost)
+	{
+		$iUnixSeconds = time() + 20;
+		$sDateTime = AttributeDateTime::GetFormat()->Format($iUnixSeconds);
+		$this->oPersonalToken->Set('expiration_date', $sDateTime);
+		$this->oPersonalToken->DBWrite();
+
+		parent::testCreateApiViaToken($iJsonDataMode, $bTokenInPost);
+		$this->CheckToken($this->oPersonalToken, time(), 2);
+		$this->CheckToken($this->oAdminToken, time(), 2);
+	}
+
+	/**
+	 * @dataProvider BasicTokenProvider
+	 */
 	public function testApiWithExpiredToken($iJsonDataMode, $bTokenInPost)
 	{
 		$this->bTokenInPost = $bTokenInPost;
 		$this->iJsonDataMode = $iJsonDataMode;
 
-		$this->oPersonalToken->Set('expiration_date', time() - 1);
+		$iUnixSeconds = time() - 20;
+		$sDateTime = AttributeDateTime::GetFormat()->Format($iUnixSeconds);
+		$this->oPersonalToken->Set('expiration_date', $sDateTime);
 		$this->oPersonalToken->DBWrite();
 
 		//create ticket
@@ -196,5 +213,111 @@ JSON;
 
 		$sOuputJson = $this->CreateTicketViaApi($description);
 		$this->assertEquals($sExpectedOutput, $sOuputJson, "should be html login form instead of any json : " .  $sOuputJson);
+	}
+
+	public function SynchroProvider(){
+		$sSynchroExecAuthenticationOkNeedle = <<<HTML
+The parameter 'data_sources' is mandatory
+HTML;
+		$sSynchroImportAuthenticationOkNeedle = <<<HTML
+Missing argument 'data_source_id'
+HTML;
+		$sLoginFormNeedle = <<<HTML
+<div id="login-body">
+HTML;
+
+		return [
+			'synchro_exec.php / no login_form / authentication OK' => [
+				'sUri' => 'synchro/synchro_exec.php',
+				'sLoginform' => null,
+				'sNeedle' => $sSynchroExecAuthenticationOkNeedle,
+				'bSetSynchroScope' => true,
+				'bAuthenticationSuccess' => true,
+			],
+			'synchro_exec.php / token login_form / authentication OK' => [
+				'sUri' => 'synchro/synchro_exec.php',
+				'sLoginform' => 'token',
+				'sNeedle' => $sSynchroExecAuthenticationOkNeedle,
+				'bSetSynchroScope' => true,
+				'bAuthenticationSuccess' => true,
+			],
+			'synchro_exec.php / rest-token login_form / authentication OK' => [
+				'sUri' => 'synchro/synchro_exec.php',
+				'sLoginform' => 'rest-token',
+				'sNeedle' => $sSynchroExecAuthenticationOkNeedle,
+				'bSetSynchroScope' => true,
+				'bAuthenticationSuccess' => true,
+			],
+			'synchro_exec.php / no login form / authentication KO (json scope)' => [
+				'sUri' => 'synchro/synchro_exec.php',
+				'sLoginform' => null,
+				'sNeedle' => $sLoginFormNeedle,
+				'bSetSynchroScope' => false,
+				'bAuthenticationSuccess' => false,
+			],/*
+			'synchro_exec.php / form login_form / authentication KO ' => [
+				'sUri' => 'synchro/synchro_exec.php',
+				'sLoginform' => 'form',
+				'sNeedle' => $sLoginFormNeedle,
+				'bSetSynchroScope' => true,
+				'bAuthenticationSuccess' => false,
+			],*/
+			'synchro_import.php / no login_form / authentication OK' => [
+				'sUri' => 'synchro/synchro_import.php',
+				'sLoginform' => null,
+				'sNeedle' => $sSynchroImportAuthenticationOkNeedle,
+				'bSetSynchroScope' => true,
+				'bAuthenticationSuccess' => true,
+			],
+			'synchro_import.php / token login_form / authentication OK' => [
+				'sUri' => 'synchro/synchro_import.php',
+				'sLoginform' => 'token',
+				'sNeedle' => $sSynchroImportAuthenticationOkNeedle,
+				'bSetSynchroScope' => true,
+				'bAuthenticationSuccess' => true,
+			],
+			'synchro_import.php / rest-token login_form / authentication OK' => [
+				'sUri' => 'synchro/synchro_import.php',
+				'sLoginform' => 'rest-token',
+				'sNeedle' => $sSynchroImportAuthenticationOkNeedle,
+				'bSetSynchroScope' => true,
+				'bAuthenticationSuccess' => true,
+			],
+			'synchro_import.php / no login form / authentication KO (json scope)' => [
+				'sUri' => 'synchro/synchro_import.php',
+				'sLoginform' => null,
+				'sNeedle' => $sLoginFormNeedle,
+				'bSetSynchroScope' => false,
+				'bAuthenticationSuccess' => false,
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider SynchroProvider
+	 */
+	public function testSynchroScript($sUri, $sLoginform, $sNeedle, $bSetSynchroScope, $bAuthenticationSuccess) {
+		$this->bTokenInPost = true;
+		$this->iJsonDataMode = self::MODE['JSONDATA_AS_STRING'];
+
+		if($bSetSynchroScope){
+			$this->oPersonalToken->Set('scope', \ContextTag::TAG_SYNCHRO);
+			$this->oPersonalToken->DBWrite();
+		}
+
+		if (is_null($sLoginform)){
+			$sUrl = $sUri;
+		} else {
+			$sUrl = "$sUri?login_form=$sLoginform";
+		}
+		$sOutput =  $this->CallRestApi(json_encode(["fake symport"]), null, $sUrl);
+
+		$this->assertTrue(false !== strpos($sOutput, $sNeedle), $sOutput);
+
+		if($bAuthenticationSuccess){
+			$this->CheckToken($this->oPersonalToken, time(), 1);
+		} else {
+			$this->CheckToken($this->oPersonalToken, null, 0);
+		}
 	}
 }

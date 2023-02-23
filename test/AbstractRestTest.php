@@ -5,7 +5,6 @@ use Combodo\iTop\Test\UnitTest\ItopDataTestCase;
 use Config;
 use Exception;
 use MetaModel;
-use utils;
 
 
 abstract class AbstractRestTest extends ItopDataTestCase
@@ -82,7 +81,7 @@ abstract class AbstractRestTest extends ItopDataTestCase
 		return [];
 	}
 
-	protected function CallRestApi($sJsonDataContent, $sContext=null){
+	protected function CallRestApi($sJsonDataContent, $sContext=null, $sUri='webservices/rest.php'){
 		$ch = curl_init();
 		$aPostFields = $this->GetPostParameters($sContext);
 		var_dump($aPostFields);
@@ -100,7 +99,7 @@ abstract class AbstractRestTest extends ItopDataTestCase
 		curl_setopt($ch, CURLOPT_COOKIE, "XDEBUG_SESSION=phpstorm");
 
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $this->GetHeadersParam($sContext));
-		curl_setopt($ch, CURLOPT_URL, "$this->sUrl/webservices/rest.php");
+		curl_setopt($ch, CURLOPT_URL, "$this->sUrl/$sUri");
 		curl_setopt($ch, CURLOPT_POST, 1);// set post data to true
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $aPostFields);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);

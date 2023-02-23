@@ -137,10 +137,16 @@ HTML;
 			throw new TokenAuthException('Invalid token');
 		}
 
-		$oTokenValidity = $this->Get('expiration_date');
-		if (! is_null($oTokenValidity) && time() > $oTokenValidity) {
-			// Not valid anymore
-			throw new TokenAuthException('Invalid token validity');
+		$sTokenValidity = $this->Get('expiration_date');
+		if (! is_null($sTokenValidity)) {
+			$oNowDateTime = new DateTime();
+			$iNowUnixSeconds = $oNowDateTime->format('U');
+			$iExpirationUnixSeconds = AttributeDateTime::GetAsUnixSeconds($sTokenValidity);
+
+			if ($iNowUnixSeconds > $iExpirationUnixSeconds) {
+				// Not valid anymore
+				throw new TokenAuthException('Invalid token validity');
+			}
 		}
 
 		$this->CheckScopes();
@@ -179,13 +185,17 @@ HTML;
 	{
 		$iUseCount = $this->Get('use_count') + 1;
 		$this->Set('use_count', $iUseCount);
-		$this->Set('last_use_date', time());
+
+		$sDateTime = AttributeDateTime::GetFormat()->Format(time());
+		$this->Set('last_use_date', $sDateTime);
 		$this->AllowWrite();
 		$this->DBUpdate();
 		CMDBObject::SetCurrentChange(null);
 
 		if (MetaModel::GetConfig()->Get('allow_rest_services_via_tokens')
-			&& \ContextTag::Check(\ContextTag::TAG_REST)){
+			&&
+			(ContextTag::Check(ContextTag::TAG_REST) || ContextTag::Check(ContextTag::TAG_SYNCHRO)))
+		{
 			//let user do rest calls even without rest profiles
 			MetaModel::GetConfig()->Set('secure_rest_services', false, 'auth-token');
 		}

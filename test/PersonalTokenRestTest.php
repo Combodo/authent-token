@@ -234,13 +234,13 @@ HTML;
 				'bSetSynchroScope' => true,
 				'bAuthenticationSuccess' => true,
 			],
-			/*'synchro_exec.php / token login_mode / authentication OK' => [
+			'synchro_exec.php / token login_mode / authentication OK' => [
 				'sUri' => 'synchro/synchro_exec.php',
 				'sLoginMode' => 'token',
 				'sNeedle' => $sSynchroExecAuthenticationOkNeedle,
 				'bSetSynchroScope' => true,
 				'bAuthenticationSuccess' => true,
-			],*/
+			],
 			'synchro_exec.php / rest-token login_mode / authentication OK' => [
 				'sUri' => 'synchro/synchro_exec.php',
 				'sLoginMode' => 'rest-token',

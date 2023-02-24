@@ -222,71 +222,71 @@ HTML;
 		$sSynchroImportAuthenticationOkNeedle = <<<HTML
 Missing argument 'data_source_id'
 HTML;
-		$sLoginFormNeedle = <<<HTML
+		$sLoginModeNeedle = <<<HTML
 <div id="login-body">
 HTML;
 
 		return [
-			'synchro_exec.php / no login_form / authentication OK' => [
+			'synchro_exec.php / no login_mode / authentication OK' => [
 				'sUri' => 'synchro/synchro_exec.php',
-				'sLoginform' => null,
+				'sLoginMode' => null,
 				'sNeedle' => $sSynchroExecAuthenticationOkNeedle,
 				'bSetSynchroScope' => true,
 				'bAuthenticationSuccess' => true,
 			],
-			'synchro_exec.php / token login_form / authentication OK' => [
+			'synchro_exec.php / token login_mode / authentication OK' => [
 				'sUri' => 'synchro/synchro_exec.php',
-				'sLoginform' => 'token',
+				'sLoginMode' => 'token',
 				'sNeedle' => $sSynchroExecAuthenticationOkNeedle,
 				'bSetSynchroScope' => true,
 				'bAuthenticationSuccess' => true,
 			],
-			'synchro_exec.php / rest-token login_form / authentication OK' => [
+			'synchro_exec.php / rest-token login_mode / authentication OK' => [
 				'sUri' => 'synchro/synchro_exec.php',
-				'sLoginform' => 'rest-token',
+				'sLoginMode' => 'rest-token',
 				'sNeedle' => $sSynchroExecAuthenticationOkNeedle,
 				'bSetSynchroScope' => true,
 				'bAuthenticationSuccess' => true,
 			],
-			'synchro_exec.php / no login form / authentication KO (json scope)' => [
+			'synchro_exec.php / no login_mode / authentication KO (json scope)' => [
 				'sUri' => 'synchro/synchro_exec.php',
-				'sLoginform' => null,
-				'sNeedle' => $sLoginFormNeedle,
+				'sLoginMode' => null,
+				'sNeedle' => $sLoginModeNeedle,
 				'bSetSynchroScope' => false,
 				'bAuthenticationSuccess' => false,
-			],/*
-			'synchro_exec.php / form login_form / authentication KO ' => [
+			],
+			/*'synchro_exec.php / form login_mode / authentication KO ' => [
 				'sUri' => 'synchro/synchro_exec.php',
-				'sLoginform' => 'form',
-				'sNeedle' => $sLoginFormNeedle,
+				'sLoginMode' => 'form',
+				'sNeedle' => $sLoginModeNeedle,
 				'bSetSynchroScope' => true,
 				'bAuthenticationSuccess' => false,
 			],*/
-			'synchro_import.php / no login_form / authentication OK' => [
+			'synchro_import.php / no login_mode / authentication OK' => [
 				'sUri' => 'synchro/synchro_import.php',
-				'sLoginform' => null,
+				'sLoginMode' => null,
 				'sNeedle' => $sSynchroImportAuthenticationOkNeedle,
 				'bSetSynchroScope' => true,
 				'bAuthenticationSuccess' => true,
 			],
-			'synchro_import.php / token login_form / authentication OK' => [
+			'synchro_import.php / token login_mode / authentication OK' => [
 				'sUri' => 'synchro/synchro_import.php',
-				'sLoginform' => 'token',
+				'sLoginMode' => 'token',
 				'sNeedle' => $sSynchroImportAuthenticationOkNeedle,
 				'bSetSynchroScope' => true,
 				'bAuthenticationSuccess' => true,
 			],
-			'synchro_import.php / rest-token login_form / authentication OK' => [
+			'synchro_import.php / rest-token login_mode / authentication OK' => [
 				'sUri' => 'synchro/synchro_import.php',
-				'sLoginform' => 'rest-token',
+				'sLoginMode' => 'rest-token',
 				'sNeedle' => $sSynchroImportAuthenticationOkNeedle,
 				'bSetSynchroScope' => true,
 				'bAuthenticationSuccess' => true,
 			],
-			'synchro_import.php / no login form / authentication KO (json scope)' => [
+			'synchro_import.php / no login_mode / authentication KO (json scope)' => [
 				'sUri' => 'synchro/synchro_import.php',
-				'sLoginform' => null,
-				'sNeedle' => $sLoginFormNeedle,
+				'sLoginMode' => null,
+				'sNeedle' => $sLoginModeNeedle,
 				'bSetSynchroScope' => false,
 				'bAuthenticationSuccess' => false,
 			],
@@ -296,7 +296,7 @@ HTML;
 	/**
 	 * @dataProvider SynchroProvider
 	 */
-	public function testSynchroScript($sUri, $sLoginform, $sNeedle, $bSetSynchroScope, $bAuthenticationSuccess) {
+	public function testSynchroScript($sUri, $sLoginMode, $sNeedle, $bSetSynchroScope, $bAuthenticationSuccess) {
 		$this->bTokenInPost = true;
 		$this->iJsonDataMode = self::MODE['JSONDATA_AS_STRING'];
 
@@ -305,10 +305,10 @@ HTML;
 			$this->oPersonalToken->DBWrite();
 		}
 
-		if (is_null($sLoginform)){
+		if (is_null($sLoginMode)){
 			$sUrl = $sUri;
 		} else {
-			$sUrl = "$sUri?login_form=$sLoginform";
+			$sUrl = "$sUri?login_mode=$sLoginMode";
 		}
 		$sOutput =  $this->CallRestApi(json_encode(["fake symport"]), null, $sUrl);
 

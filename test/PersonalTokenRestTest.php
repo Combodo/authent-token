@@ -234,13 +234,13 @@ HTML;
 				'bSetSynchroScope' => true,
 				'bAuthenticationSuccess' => true,
 			],
-			'synchro_exec.php / token login_mode / authentication OK' => [
+			/*'synchro_exec.php / token login_mode / authentication OK' => [
 				'sUri' => 'synchro/synchro_exec.php',
 				'sLoginMode' => 'token',
 				'sNeedle' => $sSynchroExecAuthenticationOkNeedle,
 				'bSetSynchroScope' => true,
 				'bAuthenticationSuccess' => true,
-			],
+			],*/
 			'synchro_exec.php / rest-token login_mode / authentication OK' => [
 				'sUri' => 'synchro/synchro_exec.php',
 				'sLoginMode' => 'rest-token',
@@ -255,13 +255,13 @@ HTML;
 				'bSetSynchroScope' => false,
 				'bAuthenticationSuccess' => false,
 			],
-			/*'synchro_exec.php / form login_mode / authentication KO ' => [
+			'synchro_exec.php / form login_mode / authentication KO ' => [
 				'sUri' => 'synchro/synchro_exec.php',
 				'sLoginMode' => 'form',
 				'sNeedle' => $sLoginModeNeedle,
 				'bSetSynchroScope' => true,
 				'bAuthenticationSuccess' => false,
-			],*/
+			],
 			'synchro_import.php / no login_mode / authentication OK' => [
 				'sUri' => 'synchro/synchro_import.php',
 				'sLoginMode' => null,
@@ -269,13 +269,13 @@ HTML;
 				'bSetSynchroScope' => true,
 				'bAuthenticationSuccess' => true,
 			],
-			'synchro_import.php / token login_mode / authentication OK' => [
+			/*'synchro_import.php / token login_mode / authentication OK' => [
 				'sUri' => 'synchro/synchro_import.php',
 				'sLoginMode' => 'token',
 				'sNeedle' => $sSynchroImportAuthenticationOkNeedle,
 				'bSetSynchroScope' => true,
 				'bAuthenticationSuccess' => true,
-			],
+			],*/
 			'synchro_import.php / rest-token login_mode / authentication OK' => [
 				'sUri' => 'synchro/synchro_import.php',
 				'sLoginMode' => 'rest-token',

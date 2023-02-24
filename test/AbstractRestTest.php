@@ -96,7 +96,7 @@ abstract class AbstractRestTest extends ItopDataTestCase
 			$aPostFields['json_data'] = $sJsonDataContent;
 		}
 
-		curl_setopt($ch, CURLOPT_COOKIE, "XDEBUG_SESSION=phpstorm");
+		//curl_setopt($ch, CURLOPT_COOKIE, "XDEBUG_SESSION=phpstorm");
 
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $this->GetHeadersParam($sContext));
 		curl_setopt($ch, CURLOPT_URL, "$this->sUrl/$sUri");

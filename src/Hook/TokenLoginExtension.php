@@ -57,29 +57,58 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 
 	protected function OnModeDetection(&$iErrorCode)
 	{
-		if (!Session::IsSet('login_mode') && !$this->bErrorOccurred)
+		if ($this->bErrorOccurred){
+			return LoginWebPage::LOGIN_FSM_CONTINUE;
+		}
+
+		if (isset($_SERVER['HTTP_AUTH_TOKEN'])) {
+			$sAuthToken = $_SERVER['HTTP_AUTH_TOKEN'];
+		} else {
+			$sAuthToken = utils::ReadParam('auth_token', null, false, 'raw_data');
+		}
+
+		$sSessionLoginMode = Session::Get('login_mode');
+		if (empty($sAuthToken))
 		{
-			if (isset($_SERVER['HTTP_AUTH_TOKEN'])) {
-				$sAuthToken = $_SERVER['HTTP_AUTH_TOKEN'];
-			} else {
-				$sAuthToken = utils::ReadParam('auth_token', null, false, 'raw_data');
+			if ($this->IsLoginModeSupported($sSessionLoginMode)){
+				//login_mode forced and no token. exit to stop login automata
+				throw new \Exception("auhtent-token login_mode forced without any token passed");
 			}
-			if (!empty($sAuthToken))
+
+			//let other login modes try to handle authentication
+			return LoginWebPage::LOGIN_FSM_CONTINUE;
+		}
+
+		if (is_null($sSessionLoginMode))
+		{
+			$aAllowedModes = MetaModel::GetConfig()->GetAllowedLoginTypes();
+			foreach ($aAllowedModes as $sLoginMode)
 			{
-				Session::Start();
-				$aAllowedModes = MetaModel::GetConfig()->GetAllowedLoginTypes();
-				foreach ($aAllowedModes as $sLoginMode)
+				if ($this->IsLoginModeSupported($sLoginMode))
 				{
-					if ($this->IsLoginModeSupported($sLoginMode))
-					{
-						Session::Set('login_mode', $sLoginMode);
-						break;
-					}
+					Session::Start();
+					Session::Set('login_mode', $sLoginMode);
+					Session::Set('login_temp_auth_token', $sAuthToken);
+					Session::WriteClose();
+					return LoginWebPage::LOGIN_FSM_CONTINUE;
 				}
-				Session::Set('login_temp_auth_token', $sAuthToken);
-				Session::WriteClose();
 			}
 		}
+
+		if ($this->IsLoginModeSupported($sSessionLoginMode))
+		{
+			$aAllowedModes = MetaModel::GetConfig()->GetAllowedLoginTypes();
+			if (in_array($sSessionLoginMode, $aAllowedModes))
+			{
+					Session::Start();
+					Session::Set('login_temp_auth_token', $sAuthToken);
+					Session::WriteClose();
+					return LoginWebPage::LOGIN_FSM_CONTINUE;
+			}
+
+			throw new \Exception("login_mode $sSessionLoginMode not configured");
+		}
+
 		return LoginWebPage::LOGIN_FSM_CONTINUE;
 	}
 

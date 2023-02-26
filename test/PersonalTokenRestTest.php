@@ -371,7 +371,9 @@ HTML;
 			var_dump($aNewAllowedLoginTypes);
 			if ($bConfigToUpdate){
 				MetaModel::GetConfig()->SetAllowedLoginTypes($aNewAllowedLoginTypes);
+				@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
 				MetaModel::GetConfig()->WriteToFile();
+				@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
 			}
 		}
 

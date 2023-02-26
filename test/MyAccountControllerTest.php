@@ -7,10 +7,21 @@ use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
 use Combodo\iTop\Test\UnitTest\ItopDataTestCase;
 use MetaModel;
 
+/**
+ * @myaccount
+ * @runTestsInSeparateProcesses
+ * @preserveGlobalState disabled
+ * @backupGlobals disabled
+ */
 class MyAccountControllerTest  extends ItopDataTestCase {
 	protected function setUp(): void {
 		parent::setUp();
 		@require_once(APPROOT.'env-production/authent-token/vendor/autoload.php');
+	}
+
+	protected function tearDown(): void {
+		parent::tearDown();
+		$_SESSION = [];
 	}
 
 	protected function CreateContactlessUserWithProfileName($sProfileName) : \UserLocal {

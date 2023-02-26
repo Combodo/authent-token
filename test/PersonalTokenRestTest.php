@@ -26,46 +26,47 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 {
 	protected $oPersonalToken;
 	protected $oAdminToken;
+	protected $bEmptyToken = false;
 
 	/**
-     * @throws Exception
-     */
-    protected function setUp(): void
-    {
-	    parent::setUp();
+	 * @throws Exception
+	 */
+	protected function setUp(): void
+	{
+		parent::setUp();
 
-	    @chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
-	    $this->InitLoginMode(TokenLoginExtension::LOGIN_TYPE);
+		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
+		$this->InitLoginMode(TokenLoginExtension::LOGIN_TYPE);
 
-	    MetaModel::GetConfig()->Set('secure_rest_services', true, 'auth-token');
-	    MetaModel::GetConfig()->Set('allow_rest_services_via_tokens', true, 'auth-token');
-	    MetaModel::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Administrator', 'Service Desk Agent']);
+		MetaModel::GetConfig()->Set('secure_rest_services', true, 'auth-token');
+		MetaModel::GetConfig()->Set('allow_rest_services_via_tokens', true, 'auth-token');
+		MetaModel::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Administrator', 'Service Desk Agent']);
 
-	    MetaModel::GetConfig()->WriteToFile();
-	    @chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
+		MetaModel::GetConfig()->WriteToFile();
+		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
 
 		//create admin only to read cmdbchangop
-	    $oAdminProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'Administrator'), true);
-	    $sLogin = $this->sLogin . "-Admin";
-	    $oAdminUser = $this->CreateContactlessUser($sLogin, $oAdminProfile->GetKey(), $this->sPassword);
-	    $this->oAdminToken = $this->CreatePersonalToken($oAdminUser, "ADMINACCESS");
+		$oAdminProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'Administrator'), true);
+		$sLogin = $this->sLogin . "-Admin";
+		$oAdminUser = $this->CreateContactlessUser($sLogin, $oAdminProfile->GetKey(), $this->sPassword);
+		$this->oAdminToken = $this->CreatePersonalToken($oAdminUser, "ADMINACCESS");
 
-	    $oProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'Service Desk Agent'), true);
-	    $this->sLogin = $this->sLogin . "-ServiceDeskAgent";
+		$oProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'Service Desk Agent'), true);
+		$this->sLogin = $this->sLogin . "-ServiceDeskAgent";
 		$this->oUser = $this->CreateContactlessUser($this->sLogin, $oProfile->GetKey(), $this->sPassword);
-	    $this->oPersonalToken = $this->CreatePersonalToken($this->oUser, "RESTTEST");
+		$this->oPersonalToken = $this->CreatePersonalToken($this->oUser, "RESTTEST");
 	}
 
 	public function CreatePersonalToken(\User $oUser, string $sApplication, $sScope=null) : PersonalToken{
-    	if (is_null($sScope)) {
+		if (is_null($sScope)) {
 			/** PersonalToken $oPersonalToken */
-		    $oPersonalToken = $this->createObject(PersonalToken::class, [
-			    'user_id' => $oUser->GetKey(),
-			    'application' => $sApplication,
-			    'scope' => \ContextTag::TAG_REST
-		    ]);
+			$oPersonalToken = $this->createObject(PersonalToken::class, [
+				'user_id' => $oUser->GetKey(),
+				'application' => $sApplication,
+				'scope' => \ContextTag::TAG_REST
+			]);
 			return $oPersonalToken;
-	    }
+		}
 		throw \Exception("not implemented nor used yet");
 	}
 
@@ -84,6 +85,10 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 	}
 
 	protected function GetAuthToken($sContext=null){
+		if ($this->bEmptyToken){
+			return '';
+		}
+
 		$oReflectionClass = new \ReflectionClass(AbstractPersonalToken::class);
 		$oProperty = $oReflectionClass->getProperty('sToken');
 		$oProperty->setAccessible(true);
@@ -227,65 +232,26 @@ HTML;
 HTML;
 
 		return [
-			'synchro_exec.php / no login_mode / authentication OK' => [
+			'synchro_exec.php / authentication OK' => [
 				'sUri' => 'synchro/synchro_exec.php',
-				'sLoginMode' => null,
 				'sNeedle' => $sSynchroExecAuthenticationOkNeedle,
 				'bSetSynchroScope' => true,
 				'bAuthenticationSuccess' => true,
 			],
-			'synchro_exec.php / token login_mode / authentication OK' => [
+			'synchro_exec.php / authentication KO (json scope)' => [
 				'sUri' => 'synchro/synchro_exec.php',
-				'sLoginMode' => 'token',
-				'sNeedle' => $sSynchroExecAuthenticationOkNeedle,
-				'bSetSynchroScope' => true,
-				'bAuthenticationSuccess' => true,
-			],
-			'synchro_exec.php / rest-token login_mode / authentication OK' => [
-				'sUri' => 'synchro/synchro_exec.php',
-				'sLoginMode' => 'rest-token',
-				'sNeedle' => $sSynchroExecAuthenticationOkNeedle,
-				'bSetSynchroScope' => true,
-				'bAuthenticationSuccess' => true,
-			],
-			'synchro_exec.php / no login_mode / authentication KO (json scope)' => [
-				'sUri' => 'synchro/synchro_exec.php',
-				'sLoginMode' => null,
 				'sNeedle' => $sLoginModeNeedle,
 				'bSetSynchroScope' => false,
 				'bAuthenticationSuccess' => false,
 			],
-			'synchro_exec.php / form login_mode / authentication KO ' => [
-				'sUri' => 'synchro/synchro_exec.php',
-				'sLoginMode' => 'form',
-				'sNeedle' => $sLoginModeNeedle,
-				'bSetSynchroScope' => true,
-				'bAuthenticationSuccess' => false,
-			],
-			'synchro_import.php / no login_mode / authentication OK' => [
+			'synchro_import.php / authentication OK' => [
 				'sUri' => 'synchro/synchro_import.php',
-				'sLoginMode' => null,
 				'sNeedle' => $sSynchroImportAuthenticationOkNeedle,
 				'bSetSynchroScope' => true,
 				'bAuthenticationSuccess' => true,
 			],
-			/*'synchro_import.php / token login_mode / authentication OK' => [
+			'synchro_import.php / authentication KO (json scope)' => [
 				'sUri' => 'synchro/synchro_import.php',
-				'sLoginMode' => 'token',
-				'sNeedle' => $sSynchroImportAuthenticationOkNeedle,
-				'bSetSynchroScope' => true,
-				'bAuthenticationSuccess' => true,
-			],*/
-			'synchro_import.php / rest-token login_mode / authentication OK' => [
-				'sUri' => 'synchro/synchro_import.php',
-				'sLoginMode' => 'rest-token',
-				'sNeedle' => $sSynchroImportAuthenticationOkNeedle,
-				'bSetSynchroScope' => true,
-				'bAuthenticationSuccess' => true,
-			],
-			'synchro_import.php / no login_mode / authentication KO (json scope)' => [
-				'sUri' => 'synchro/synchro_import.php',
-				'sLoginMode' => null,
 				'sNeedle' => $sLoginModeNeedle,
 				'bSetSynchroScope' => false,
 				'bAuthenticationSuccess' => false,
@@ -296,7 +262,7 @@ HTML;
 	/**
 	 * @dataProvider SynchroProvider
 	 */
-	public function testSynchroScript($sUri, $sLoginMode, $sNeedle, $bSetSynchroScope, $bAuthenticationSuccess) {
+	public function testSynchroScript($sUri, $sNeedle, $bSetSynchroScope, $bAuthenticationSuccess) {
 		$this->bTokenInPost = true;
 		$this->iJsonDataMode = self::MODE['JSONDATA_AS_STRING'];
 
@@ -305,12 +271,116 @@ HTML;
 			$this->oPersonalToken->DBWrite();
 		}
 
-		if (is_null($sLoginMode)){
-			$sUrl = $sUri;
+		$sOutput =  $this->CallRestApi(json_encode(["fake symport"]), null, $sUri);
+
+		$this->assertTrue(false !== strpos($sOutput, $sNeedle), $sOutput);
+
+		if($bAuthenticationSuccess){
+			$this->CheckToken($this->oPersonalToken, time(), 1);
 		} else {
-			$sUrl = "$sUri?login_mode=$sLoginMode";
+			$this->CheckToken($this->oPersonalToken, null, 0);
+		}
+	}
+
+	public function TokenLoginExtensionProvider(){
+		$sRestOkNeedle = <<<HTML
+{"code":100,"message":"Error: Missing parameter 'operation'"}
+HTML;
+		$sLoginModeNeedle = <<<HTML
+<div id="login-body">
+HTML;
+
+		return [
+			'rest.php / token login_mode forced and empty token / exception raised' => [
+				'sLoginMode' => 'token',
+				'sNeedle' => "login_mode 'token' forced without any token passed",
+				'bAuthenticationSuccess' => false,
+				'empty token' => true,
+				'bTokenLoginModesNotConfigured' => false
+			],
+			'rest.php / no login_mode and empty token / login page returned for other login modes trials' => [
+				'sLoginMode' => null,
+				'sNeedle' => $sLoginModeNeedle,
+				'bAuthenticationSuccess' => false,
+				'empty token' => true,
+				'bTokenLoginModesNotConfigured' => false
+			],
+			'rest.php / no login_mode passed / authentication OK' => [
+				'sLoginMode' => null,
+				'sNeedle' => $sRestOkNeedle,
+				'bAuthenticationSuccess' => true,
+				'empty token' => false,
+				'bTokenLoginModesNotConfigured' => false
+			],
+			'rest.php / token login_mode forced / authentication OK' => [
+				'sLoginMode' => 'token',
+				'sNeedle' => $sRestOkNeedle,
+				'bAuthenticationSuccess' => true,
+				'empty token' => false,
+				'bTokenLoginModesNotConfigured' => false
+			],
+			'rest.php / rest-token login_mode forced / authentication OK' => [
+				'sLoginMode' => 'rest-token',
+				'sNeedle' => $sRestOkNeedle,
+				'bAuthenticationSuccess' => true,
+				'empty token' => false,
+				'bTokenLoginModesNotConfigured' => false
+			],
+			'rest.php / login_mode passed / token passed but login_modes not configured' => [
+				'sLoginMode' => 'token',
+				'sNeedle' => $sLoginModeNeedle,
+				'bAuthenticationSuccess' => false,
+				'empty token' => false,
+				'bTokenLoginModesNotConfigured' => true
+			],
+			'rest.php / no login_mode / token passed but login_modes not configured / login page to let other login mode authenticate' => [
+				'sLoginMode' => null,
+				'sNeedle' => $sLoginModeNeedle,
+				'bAuthenticationSuccess' => false,
+				'empty token' => false,
+				'bTokenLoginModesNotConfigured' => true
+			],
+
+		];
+	}
+
+	/**
+	 * @dataProvider TokenLoginExtensionProvider
+	 */
+	public function testTokenLoginExtension($sLoginMode, $sNeedle, $bAuthenticationSuccess, $bEmptyToken, $bTokenLoginModesNotConfigured) {
+		$this->bTokenInPost = true;
+		$this->iJsonDataMode = self::MODE['JSONDATA_AS_STRING'];
+
+		if ($bEmptyToken){
+			$this->bEmptyToken = true;
+		}
+
+		if ($bTokenLoginModesNotConfigured) {
+			$aAllowedLoginTypes = MetaModel::GetConfig()->GetAllowedLoginTypes();
+			$aNewAllowedLoginTypes = [];
+			$bConfigToUpdate = false;
+			$oTokenLoginExtension = new TokenLoginExtension();
+			foreach ($aAllowedLoginTypes as $sConfiguredLoginMode) {
+				if ($oTokenLoginExtension->IsLoginModeSupported($sConfiguredLoginMode)) {
+					$bConfigToUpdate=true;
+				} else {
+					$aNewAllowedLoginTypes []= $sConfiguredLoginMode;
+				}
+			}
+
+			var_dump($aNewAllowedLoginTypes);
+			if ($bConfigToUpdate){
+				MetaModel::GetConfig()->SetAllowedLoginTypes($aNewAllowedLoginTypes);
+				MetaModel::GetConfig()->WriteToFile();
+			}
+		}
+
+		$sUrl = "webservices/rest.php";
+		if (! is_null($sLoginMode)){
+			$sUrl = "$sUrl?login_mode=$sLoginMode";
 		}
 		$sOutput =  $this->CallRestApi(json_encode(["fake symport"]), null, $sUrl);
+		var_dump($sOutput);
 
 		$this->assertTrue(false !== strpos($sOutput, $sNeedle), $sOutput);
 

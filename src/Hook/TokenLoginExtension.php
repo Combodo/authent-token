@@ -68,11 +68,11 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 		}
 
 		$sSessionLoginMode = Session::Get('login_mode');
-		if (empty($sAuthToken))
+		if (strlen($sAuthToken) === 0)
 		{
 			if ($this->IsLoginModeSupported($sSessionLoginMode)){
 				//login_mode forced and no token. exit to stop login automata
-				throw new \Exception("auhtent-token login_mode forced without any token passed");
+				throw new \Exception("login_mode '$sSessionLoginMode' forced without any token passed");
 			}
 
 			//let other login modes try to handle authentication
@@ -105,8 +105,6 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 					Session::WriteClose();
 					return LoginWebPage::LOGIN_FSM_CONTINUE;
 			}
-
-			throw new \Exception("login_mode $sSessionLoginMode not configured");
 		}
 
 		return LoginWebPage::LOGIN_FSM_CONTINUE;

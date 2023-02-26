@@ -43,7 +43,7 @@ abstract class AbstractRestTest extends ItopDataTestCase
 	    $this->sOrgName = "Org-$sUid";
 	    $this->CreateOrganization($this->sOrgName);
 
-	    if (!empty($this->sTmpFile)) {
+	    if (0 !== strlen($this->sTmpFile)) {
 		    unlink($this->sTmpFile);
 	    }
 

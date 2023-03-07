@@ -21,12 +21,18 @@
             <attribute id="application"/>
           </attributes>
         </naming>
+        <reconciliation>
+          <attributes>
+            <attribute id="application"/>
+            <attribute id="user_id"/>
+          </attributes>
+        </reconciliation>
       </properties>
       <fields>
         <field id="user_id" xsi:type="AttributeExternalKey" _delta="define">
           <sql>user_id</sql>
           <dependencies/>
-          <is_null_allowed>true</is_null_allowed>
+          <is_null_allowed>false</is_null_allowed>
           <allow_target_creation>false</allow_target_creation>
           <display_style>list</display_style>
           <target_class>User</target_class>

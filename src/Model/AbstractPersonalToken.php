@@ -141,7 +141,11 @@ HTML;
 		if (! is_null($sTokenValidity)) {
 			$oNowDateTime = new DateTime();
 			$iNowUnixSeconds = $oNowDateTime->format('U');
-			$iExpirationUnixSeconds = AttributeDateTime::GetAsUnixSeconds($sTokenValidity);
+
+
+			$oDateTimeFormat = new \DateTimeFormat('Y-m-d H:i:s');
+			$oLastUseDateTime = $oDateTimeFormat->Parse($sTokenValidity);
+			$iExpirationUnixSeconds = $oLastUseDateTime->format('U');
 
 			if ($iNowUnixSeconds > $iExpirationUnixSeconds) {
 				// Not valid anymore
@@ -186,7 +190,7 @@ HTML;
 		$iUseCount = $this->Get('use_count') + 1;
 		$this->Set('use_count', $iUseCount);
 
-		$sDateTime = AttributeDateTime::GetFormat()->Format(time());
+		$sDateTime = date('Y-m-d H:i:s', time());
 		$this->Set('last_use_date', $sDateTime);
 		$this->AllowWrite();
 		$this->DBUpdate();

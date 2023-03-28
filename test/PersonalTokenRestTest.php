@@ -5,7 +5,6 @@ require_once __DIR__.'/AbstractRestTest.php';
 require_once __DIR__.'/AbstractTokenRestTest.php';
 
 use AbstractPersonalToken;
-use AttributeDateTime;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
 use Combodo\iTop\AuthentToken\Hook\TokenLoginExtension;
 use Exception;
@@ -78,7 +77,10 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 		if (is_null($sNow)){
 			$this->assertEquals(null, $sLastUseDate);
 		} else{
-			$iRefreshExpiration = AttributeDateTime::GetAsUnixSeconds($sLastUseDate);
+			$oDateTimeFormat = new \DateTimeFormat('Y-m-d H:i:s');
+			$oLastUseDateTime = $oDateTimeFormat->Parse($sLastUseDate);
+			$iRefreshExpiration = $oLastUseDateTime->format('U');
+
 			$iNowMinusXseconds = $sNow - 60;
 			$this->assertTrue(($iNowMinusXseconds < $iRefreshExpiration), "$sLastUseDate ($iRefreshExpiration) should be newer than last 60s timestamp ($iNowMinusXseconds)");
 		}
@@ -140,7 +142,7 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 	public function testApiWithExpirationTimeIntheFuture($iJsonDataMode, $bTokenInPost)
 	{
 		$iUnixSeconds = time() + 20;
-		$sDateTime = AttributeDateTime::GetFormat()->Format($iUnixSeconds);
+		$sDateTime = date('Y-m-d H:i:s', $iUnixSeconds);
 		$this->oPersonalToken->Set('expiration_date', $sDateTime);
 		$this->oPersonalToken->DBWrite();
 
@@ -158,7 +160,7 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 		$this->iJsonDataMode = $iJsonDataMode;
 
 		$iUnixSeconds = time() - 20;
-		$sDateTime = AttributeDateTime::GetFormat()->Format($iUnixSeconds);
+		$sDateTime = date('Y-m-d H:i:s', $iUnixSeconds);
 		$this->oPersonalToken->Set('expiration_date', $sDateTime);
 		$this->oPersonalToken->DBWrite();
 

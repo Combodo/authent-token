@@ -286,10 +286,15 @@ class MyAccountController extends Controller{
 		return $oToken;
 	}
 
-	private function GetEditLink(DBObject $oObject) : string
+	private function GetEditLink(DBObject $oObject) : ?string
 	{
+		$sClass = get_class($oObject);
+		if (\UserRights::IsActionAllowed($sClass, UR_ACTION_MODIFY, \DBObjectSet::FromObject($oObject)) != UR_ALLOWED_YES){
+			return false;
+		}
+
 		return sprintf("%spages/UI.php?operation=modify&class=%s&id=%s",
-			utils::GetAbsoluteUrlAppRoot(), get_class($oObject), $oObject->GetKey());
+			utils::GetAbsoluteUrlAppRoot(), $sClass, $oObject->GetKey());
 	}
 
 	public function ProvideHtmlUserInfo(\User $oUser, &$aParams): void{

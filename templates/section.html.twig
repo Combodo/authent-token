@@ -17,12 +17,14 @@ ibo-is-opened" data-role="ibo-panel">
 				<div class="ibo-panel--title" data-role="ibo-panel--title">{{ title }}</div>
 			</div>
 		</div>
+		{% if edit_link %}
 		<div class="ibo-panel--header-right" data-role="ibo-panel--header-right">
 			{% UIToolbar ForButton {} %}
 			{% UIButton IconLink {sIconClasses:'fas fa-pen', sTooltipText:'UI:Links:ActionRow:Edit'|dict_s , sURL:edit_link,
 				sTarget:'_blank', sId:'value'} %}
 			{% EndUIToolbar %}
 		</div>
+		{% endif %}
 	</div>
 	<div class="ibo-panel--body" data-role="ibo-panel--body">
 		{% for label, value in Infos %}

@@ -15,7 +15,7 @@ SetupWebPage::AddModule(
 		// Setup
 		//
 		'dependencies' => array(
-
+			'itop-welcome-itil/2.7.0||itop-structure/3.0.0'
 		),
 		'mandatory' => true,
 		'visible' => false,

@@ -505,10 +505,13 @@ class MyAccountController extends Controller{
 		return $oToolbar;
 	}
 
-
 	public static function IsMenuAllowed($oUser) : bool
 	{
 		if (is_null($oUser)){
+			return false;
+		}
+
+		if (defined(ITOP_VERSION) && version_compare(ITOP_VERSION, '3.0') < 0){
 			return false;
 		}
 

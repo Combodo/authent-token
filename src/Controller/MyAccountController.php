@@ -34,8 +34,6 @@ use utils;
  * creation / modification / refresh / deletion
  */
 class MyAccountController extends Controller{
-	const EXTENSION_NAME = "authent-token";
-
 	public function OperationMainPage()
 	{
 		$aParams = [];
@@ -398,10 +396,10 @@ class MyAccountController extends Controller{
 			'token_name' => $sTokenName,
 			'token_value' => $sTokenValue,
 			'oDatatable' => $oDatatableBlock,
-			'refresh_token_url' => utils::GetAbsoluteUrlModulePage(self::EXTENSION_NAME, 'ajax.php', ['operation' => 'RefreshToken', 'rebuild_Token' => 1]),
-			'edit_token_url' => utils::GetAbsoluteUrlModulePage(self::EXTENSION_NAME, 'ajax.php', ['operation' => 'EditToken']),
-			'delete_token_url' => utils::GetAbsoluteUrlModulePage(self::EXTENSION_NAME, 'ajax.php', ['operation' => 'DeleteToken']),
-			'save_token_link' => utils::GetAbsoluteUrlModulePage(self::EXTENSION_NAME, 'ajax.php', ['operation' => 'SaveToken']),
+			'refresh_token_url' => utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'ajax.php', ['operation' => 'RefreshToken', 'rebuild_Token' => 1]),
+			'edit_token_url' => utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'ajax.php', ['operation' => 'EditToken']),
+			'delete_token_url' => utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'ajax.php', ['operation' => 'DeleteToken']),
+			'save_token_link' => utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'ajax.php', ['operation' => 'SaveToken']),
 		];
 	}
 

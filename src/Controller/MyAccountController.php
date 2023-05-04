@@ -193,6 +193,10 @@ class MyAccountController extends Controller{
 		}
 	}
 
+	/**
+	 * @return void
+	 * Operation name is compliant with iTop form (edition mode)
+	 */
 	public function Operationapply_modify() {
 		try {
 			/** @var \User $oUser */
@@ -214,6 +218,10 @@ class MyAccountController extends Controller{
 		}
 	}
 
+	/**
+	 * @return void
+	 * Operation name is compliant with iTop form (creation mode)
+	 */
 	public function Operationapply_new() {
 		try {
 			/** @var \User $oUser */
@@ -514,7 +522,7 @@ class MyAccountController extends Controller{
 			return false;
 		}
 
-		if (defined(ITOP_VERSION) && version_compare(ITOP_VERSION, '3.0') < 0){
+		if (defined(ITOP_DESIGN_LATEST_VERSION) && version_compare(ITOP_DESIGN_LATEST_VERSION, '3.0') < 0){
 			return false;
 		}
 

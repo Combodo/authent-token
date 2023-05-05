@@ -84,6 +84,10 @@ class MyAccountController extends Controller{
 		$this->DisplayPage(['Params' => $aParams ], 'main');
 	}
 
+	/**
+	 * Called after clicking on refresh token button
+	 * @return void
+	 */
 	public function OperationRefreshToken()
 	{
 		/** @var \User $oUser */
@@ -118,6 +122,10 @@ class MyAccountController extends Controller{
 		}
 	}
 
+	/**
+	 * Called after clicking on delete token button
+	 * @return void
+	 */
 	public function OperationDeleteToken()
 	{
 		/** @var \User $oUser */
@@ -151,7 +159,7 @@ class MyAccountController extends Controller{
 	}
 
 	/**
-	 * We cannot rely on apply_new persistence mecanism
+	 * Called after clicking on edit token button
 	 * PersonalToken objects are protected and writable only as Administrator
 	 * As a workaround we bypass the rights in this controller to let user handle his own tokens only.
 	 * @return void
@@ -194,6 +202,7 @@ class MyAccountController extends Controller{
 	}
 
 	/**
+	 * Called after validating token modification form (core dependant)
 	 * @return void
 	 * Operation name is compliant with iTop form (edition mode)
 	 */
@@ -211,7 +220,7 @@ class MyAccountController extends Controller{
 			}
 
 			$oToken = $this->FetchToken($oUser, $sTokenId);
-			$this->OperationSaveToken($oUser, $oToken);
+			$this->SaveToken($oUser, $oToken);
 		} catch (\Exception $e){
 			IssueLog::error("Cannot modify token: " + $e->getMessage());
 			$this->DisplayJSONPage(['result' => 'error'], 200);
@@ -219,6 +228,7 @@ class MyAccountController extends Controller{
 	}
 
 	/**
+	 * Called after validating token creation form (core dependant)
 	 * @return void
 	 * Operation name is compliant with iTop form (creation mode)
 	 */
@@ -230,7 +240,7 @@ class MyAccountController extends Controller{
 			$oToken = new \PersonalToken();
 			$oToken->Set('user_id', $oUser->GetKey());
 
-			$this->OperationSaveToken($oUser, $oToken);
+			$this->SaveToken($oUser, $oToken);
 
 			//pass token to display after page reload
 			$sMessage = Dict::Format('AuthentToken:CopyToken', $oToken->getToken());
@@ -246,7 +256,7 @@ class MyAccountController extends Controller{
 		}
 	}
 
-	private function OperationSaveToken(\User $oUser, \PersonalToken $oToken)
+	private function SaveToken(\User $oUser, \PersonalToken $oToken)
 	{
 		if (! self::IsPersonalTokenManagementAllowed($oUser)){
 			//in case someone not allowed try to type full URL...
@@ -257,7 +267,7 @@ class MyAccountController extends Controller{
 		$sTransactionId = utils::ReadPostedParam('transaction_id', '', 'transaction_id');
 		if (!utils::IsTransactionValid($sTransactionId, false))
 		{
-			IssueLog::Error(sprintf("OperationSaveToken : invalid transaction_id ! data: user='%s'", $oUser->Get('login')));
+			IssueLog::Error(sprintf("SaveToken : invalid transaction_id ! data: user='%s'", $oUser->Get('login')));
 			throw new \Exception(Dict::S('UI:Error:ObjectAlreadyCreated'));
 		}
 
@@ -266,7 +276,7 @@ class MyAccountController extends Controller{
 		if (!empty($aErrors))
 		{
 			$sErrors = implode(',', $aErrors);
-			IssueLog::Error(sprintf("OperationSaveToken :  user='%s' errors:", $oUser->Get('login'), $sErrors));
+			IssueLog::Error(sprintf("SaveToken :  user='%s' errors:", $oUser->Get('login'), $sErrors));
 			throw new \CoreCannotSaveObjectException(['issues' => $aErrors, 'id' => $oToken->GetKey(), 'class' => \PersonalToken::class ]);
 		}
 
@@ -410,9 +420,14 @@ class MyAccountController extends Controller{
 			'token_value' => $sTokenValue,
 			'oDatatable' => $oDatatableBlock,
 			'refresh_token_url' => utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'ajax.php', ['operation' => 'RefreshToken', 'rebuild_Token' => 1]),
+
+			//link to get data before displaying apply_modify form
 			'edit_token_url' => utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'ajax.php', ['operation' => 'EditToken']),
+
 			'delete_token_url' => utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'ajax.php', ['operation' => 'DeleteToken']),
-			'save_token_link' => utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'ajax.php', ['operation' => 'SaveToken']),
+
+			//link used after validating either create or modify popup form: it will reach either Operationapply_new or Operationapply_modify endpoint
+			'save_token_link' => utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'ajax.php', []),
 		];
 	}
 

@@ -43,7 +43,7 @@
           <default_value/>
           <is_null_allowed>false</is_null_allowed>
         </field>
-        <field id="application" xsi:type="AttributeString" _delta="define">
+        <field id="application" xsi:type="AttributeString">
           <sql>application</sql>
           <default_value/>
           <is_null_allowed>false</is_null_allowed>

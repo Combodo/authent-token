@@ -1,0 +1,41 @@
+<BR/>
+
+{% if null != Infos.token_value %}
+	{% UIAlert ForInformation {sTitle:Infos.token_name, sContent:'', sId:'refresh_token_alert_ok', IsHidden:false, IsCollapsible:true,
+		IsClosable:false, AddHtml: Infos.token_value} %}
+	{% EndUIAlert %}
+{% else %}
+	{% UIAlert ForInformation {sTitle:'fake title', sContent:'', sId:'refresh_token_alert_ok', IsHidden:true, IsCollapsible:true,
+	IsClosable:false} %}
+fake message
+	{% EndUIAlert %}
+{% endif %}
+
+	{% UIAlert ForFailure {sTitle:'', sContent:'', sId:'operation_fail_alert', IsHidden:true, IsCollapsible:true, IsClosable:false} %}
+Operation failed
+	{% EndUIAlert %}
+<BR/>
+
+<div id="deletion_popup">
+</div>
+
+<div id="ibo-panel-ez-token" class="ibo-panel ibo-content-block ibo-block  ibo-is-neutral ibo-is-opened" data-role="ibo-panel">
+	<div class="ibo-panel--header" data-role="ibo-panel--header">
+		<div class="ibo-panel--header-left" data-role="ibo-panel--header-left">
+			<div class="ibo-panel--titles" data-role="ibo-panel--titles">
+				<div class="ibo-panel--title" data-role="ibo-panel--title">{{ title }}</div>
+			</div>
+		</div>
+		<div class="ibo-panel--header-right" data-role="ibo-panel--header-right">
+			{% UIToolbar ForButton {} %}
+
+				{% UIButton IconAction {sIconClasses:'fas fa-plus', CSSClasses:['.ibo-quick-create--icon token-edit-button'],
+				sTooltipText:'UI:Links:ActionRow:AddToken'|dict_s,
+					sTarget:'TokenAdd', sId:'TokenAdd', DataAttributes:{'token-id':'0'} } %}
+			{% EndUIToolbar %}
+		</div>
+	</div>
+	<div class="ibo-panel--body" data-role="ibo-panel--body">
+		{{render_block(Infos.oDatatable)}}
+	</div>
+</div>

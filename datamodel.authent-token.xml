@@ -3,10 +3,183 @@
   <constants>
   </constants>
   <classes>
+    <class id="PersonalToken" _delta="define">
+      <parent>cmdbAbstractObject</parent>
+      <php_parent>
+        <name>AbstractPersonalToken</name>
+      </php_parent>
+      <properties>
+        <category>addon/authentication,grant_by_profile</category>
+        <abstract>false</abstract>
+        <key_type>autoincrement</key_type>
+        <db_table>priv_personal_token</db_table>
+        <db_key_field>id</db_key_field>
+        <db_final_class_field/>
+        <icon/>
+        <naming>
+          <attributes>
+            <attribute id="application"/>
+          </attributes>
+        </naming>
+        <reconciliation>
+          <attributes>
+            <attribute id="application"/>
+            <attribute id="user_id"/>
+          </attributes>
+        </reconciliation>
+      </properties>
+      <fields>
+        <field id="user_id" xsi:type="AttributeExternalKey">
+          <sql>user_id</sql>
+          <dependencies/>
+          <is_null_allowed>false</is_null_allowed>
+          <allow_target_creation>false</allow_target_creation>
+          <display_style>list</display_style>
+          <target_class>User</target_class>
+          <on_target_delete>DEL_AUTO</on_target_delete>
+        </field>
+        <field id="auth_token" xsi:type="AttributeOneWayPassword">
+          <sql>auth_token</sql>
+          <default_value/>
+          <is_null_allowed>false</is_null_allowed>
+        </field>
+        <field id="application" xsi:type="AttributeString">
+          <sql>application</sql>
+          <default_value/>
+          <is_null_allowed>false</is_null_allowed>
+        </field>
+        <field id="scope" xsi:type="AttributeEnumSet">
+          <values>
+            <value id="WebService">
+              <code>REST/JSON</code>
+            </value>
+            <value id="Synchro">
+              <code>Synchro</code>
+            </value>
+          </values>
+          <sql>scope</sql>
+          <default_value>WebService</default_value>
+          <is_null_allowed>true</is_null_allowed>
+        </field>
+        <field id="expiration_date" xsi:type="AttributeDateTime" _delta="define">
+          <sql>expiration_date</sql>
+          <default_value/>
+          <tracking_level>none</tracking_level>
+          <is_null_allowed>true</is_null_allowed>
+        </field>
+        <field id="use_count" xsi:type="AttributeInteger" _delta="define">
+          <sql>use_count</sql>
+          <default_value>0</default_value>
+          <tracking_level>none</tracking_level>
+          <is_null_allowed>true</is_null_allowed>
+        </field>
+        <field id="last_use_date" xsi:type="AttributeDateTime" _delta="define">
+          <sql>last_use_date</sql>
+          <default_value/>
+          <is_null_allowed>true</is_null_allowed>
+        </field>
+      </fields>
+      <methods>
+        <method id="GetAttributeFlags">
+          <comment></comment>
+          <static>false</static>
+          <access>public </access>
+          <code><![CDATA[   	public function GetAttributeFlags($sAttCode, &$aReasons = array(), $sTargetState = '')
+	{
+		// This function is invoked when the object is EDITED on the Console
+		// It is called for each and every field of the object,
+		// but we just want to change the behavior for a single field
+		if ($sAttCode == 'use_count' || $sAttCode == 'last_use_date')
+		{
+			// Combine the new Flag with those impose by a parent class
+			return(OPT_ATT_READONLY | parent::GetAttributeFlags($sAttCode, $aReasons, $sTargetState));
+		}
+		return parent::GetAttributeFlags($sAttCode, $aReasons, $sTargetState);
+	}]]></code>
+        </method>
+        <method id="GetInitialStateAttributeFlags">
+          <comment></comment>
+          <static>false</static>
+          <access>public </access>
+          <code><![CDATA[   	public function GetInitialStateAttributeFlags($sAttCode, &$aReasons = array())
+{
+    // This function is invoked when the object is CREATED on the Console
+    // It is called for each and every field of the object,
+    // but we just want to change the behavior for a single field
+		if ($sAttCode == 'use_count' || $sAttCode == 'last_use_date')
+    {
+        // Combine the new Flag with those imposed by a parent class
+        return(OPT_ATT_READONLY | parent::GetInitialStateAttributeFlags($sAttCode, $aReasons));
+    }
+    // For other fields ask the parent class to do the job
+    return parent::GetInitialStateAttributeFlags($sAttCode, $aReasons);
+}]]></code>
+        </method>
+      </methods>
+      <presentation>
+        <details _delta="redefine">
+          <items>
+            <item id="user_id">
+              <rank>10</rank>
+            </item>
+            <item id="application">
+              <rank>20</rank>
+            </item>
+            <item id="scope">
+              <rank>30</rank>
+            </item>
+            <item id="expiration_date">
+              <rank>40</rank>
+            </item>
+            <item id="auth_token">
+              <rank>50</rank>
+            </item>
+            <item id="use_count">
+              <rank>60</rank>
+            </item>
+            <item id="last_use_date">
+              <rank>70</rank>
+            </item>
+          </items>
+        </details>
+        <list _delta="redefine">
+          <items>
+            <item id="user_id">
+              <rank>10</rank>
+            </item>
+            <item id="application">
+              <rank>20</rank>
+            </item>
+            <item id="scope">
+              <rank>30</rank>
+            </item>
+            <item id="expiration_date">
+              <rank>40</rank>
+            </item>
+          </items>
+        </list>
+        <search _delta="redefine">
+          <items>
+            <item id="user_id">
+              <rank>10</rank>
+            </item>
+            <item id="application">
+              <rank>20</rank>
+            </item>
+            <item id="scope">
+              <rank>30</rank>
+            </item>
+            <item id="expiration_date">
+              <rank>40</rank>
+            </item>
+          </items>
+        </search>
+      </presentation>
+    </class>
     <class id="UserToken" _delta="define">
       <parent>cmdbAbstractObject</parent>
       <php_parent>
-        <name>_UserToken</name>
+        <name>AbstractApplicationToken</name>
       </php_parent>
       <properties>
         <category>addon/authentication,grant_by_profile</category>
@@ -75,12 +248,63 @@
       </presentation>
     </class>
   </classes>
+  <dictionaries>
+    <dictionary id="EN US" _delta="must_exist">
+      <entries>
+        <entry id="Class:User/Attribute:tokens_list" _delta="define"><![CDATA[Tokens]]></entry>
+        <entry id="Menu:SearchPersonalTokens" _delta="define"><![CDATA[Personal Tokens]]></entry>
+        <entry id="Menu:SearchPersonalTokens+" _delta="define"><![CDATA[Personal Tokens]]></entry>
+
+        <entry id="Class:PersonalToken/Attribute:user_id" _delta="define"><![CDATA[User]]></entry>
+        <entry id="Class:PersonalToken/Attribute:application" _delta="define"><![CDATA[Application]]></entry>
+        <entry id="Class:PersonalToken/Attribute:scope" _delta="define"><![CDATA[Scope]]></entry>
+        <entry id="Class:PersonalToken/Attribute:auth_token" _delta="define"><![CDATA[Token]]></entry>
+        <entry id="Class:PersonalToken/Attribute:expiration_date" _delta="define"><![CDATA[Expiration date]]></entry>
+        <entry id="Class:PersonalToken/Attribute:use_count" _delta="define"><![CDATA[Authentication count]]></entry>
+        <entry id="Class:PersonalToken/Attribute:use_count+" _delta="define"><![CDATA[Number of times token has been used for
+        authentication]]></entry>
+        <entry id="Class:PersonalToken/Attribute:last_use_date" _delta="define"><![CDATA[Last use date]]></entry>
+        <entry id="Class:PersonalToken/Attribute:last_use_date+" _delta="define"><![CDATA[Last date token has been used for
+        authentication]]></entry>
+      </entries>
+    </dictionary>
+    <dictionary id="FR FR" _delta="must_exist">
+      <entries>
+        <entry id="Class:User/Attribute:tokens_list" _delta="define"><![CDATA[Tokens]]></entry>
+        <entry id="Menu:SearchPersonalTokens" _delta="define"><![CDATA[Tokens personels]]></entry>
+        <entry id="Menu:SearchPersonalTokens+" _delta="define"><![CDATA[Tokens personels]]></entry>
+
+        <entry id="Class:PersonalToken/Attribute:user_id" _delta="define"><![CDATA[Utilisateur]]></entry>
+        <entry id="Class:PersonalToken/Attribute:application" _delta="define"><![CDATA[Application]]></entry>
+        <entry id="Class:PersonalToken/Attribute:scope" _delta="define"><![CDATA[Contexte]]></entry>
+        <entry id="Class:PersonalToken/Attribute:auth_token" _delta="define"><![CDATA[Token]]></entry>
+        <entry id="Class:PersonalToken/Attribute:expiration_date" _delta="define"><![CDATA[Date d'expiration]]></entry>
+        <entry id="Class:PersonalToken/Attribute:use_count" _delta="define"><![CDATA[Décompte d'authentification]]></entry>
+        <entry id="Class:PersonalToken/Attribute:use_count+"
+               _delta="define"><![CDATA[Nombre de fois où le token a servi à s'authentifier]]></entry>
+        <entry id="Class:PersonalToken/Attribute:last_use_date" _delta="define"><![CDATA[Dernière date d'authentification]]></entry>
+        <entry id="Class:PersonalToken/Attribute:last_use_date+"
+               _delta="define"><![CDATA[Date de la dernière fois où le token a  servi à s'authentifier]]></entry>
+      </entries>
+    </dictionary>
+  </dictionaries>
   <menus>
+    <menu xsi:type="OQLMenuNode" id="SearchPersonalTokens" _delta="define">
+      <parent>UserManagement</parent>
+      <rank>30</rank>
+      <oql>SELECT PersonalToken</oql>
+      <enable_admin_only>1</enable_admin_only>
+      <do_search>1</do_search>
+    </menu>
   </menus>
   <user_rights>
     <groups>
+      <group id="PersonalToken" _delta="define">
+        <classes>
+          <class id="PersonalToken"></class>
+        </classes>
+      </group>
     </groups>
-    <profiles>
-    </profiles>
+    <profiles/>
   </user_rights>
 </itop_design>

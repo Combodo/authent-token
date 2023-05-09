@@ -1,0 +1,28 @@
+{% apply spaceless %}
+
+{% UIMultiColumn Standard {} %}
+	{% if null != Params.user %}
+	{% UIColumn Standard {} %}
+		{% set title = 'MyAccount:SubTitle:user' | dict_s %}
+		{% set Infos = Params.user %}
+		{% set edit_link = Params.user_link %}
+		{% include 'section.html.twig' %}
+	{% EndUIColumn %}
+	{% endif %}
+	{% if null != Params.contact %}
+		{% UIColumn Standard {} %}
+			{% set title = 'MyAccount:SubTitle:contact' | dict_s %}
+			{% set Infos = Params.contact %}
+			{% set edit_link = Params.contact_link %}
+			{% include 'section.html.twig' %}
+		{% EndUIColumn %}
+	{% endif %}
+{% EndUIMultiColumn %}
+
+{% if null != Params.personaltoken %}
+	{% set title = 'MyAccount:SubTitle:personaltokens' | dict_s %}
+	{% set Infos = Params.personaltoken %}
+	{% include 'personaltokens.html.twig' %}
+{% endif %}
+
+{% endapply %}

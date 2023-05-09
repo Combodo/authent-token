@@ -6,5 +6,21 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Combodo\\iTop\\AuthentToken\\Controller\\MyAccountController' => $baseDir . '/src/Controller/MyAccountController.php',
+    'Combodo\\iTop\\AuthentToken\\Exception\\TokenAuthException' => $baseDir . '/src/Exception/TokenAuthException.php',
+    'Combodo\\iTop\\AuthentToken\\Helper\\TokenAuthHelper' => $baseDir . '/src/Helper/TokenAuthHelper.php',
+    'Combodo\\iTop\\AuthentToken\\Helper\\TokenAuthLog' => $baseDir . '/src/Helper/TokenAuthLog.php',
+    'Combodo\\iTop\\AuthentToken\\Hook\\LegacyTokenLoginExtension' => $baseDir . '/src/Hook/LegacyTokenLoginExtension.php',
+    'Combodo\\iTop\\AuthentToken\\Hook\\MyAccountPopupMenuExtension' => $baseDir . '/src/Hook/MyAccountPopupMenuExtension.php',
+    'Combodo\\iTop\\AuthentToken\\Hook\\TokenLoginExtension' => $baseDir . '/src/Hook/TokenLoginExtension.php',
+    'Combodo\\iTop\\AuthentToken\\Model\\iToken' => $baseDir . '/src/Model/iToken.php',
+    'Combodo\\iTop\\AuthentToken\\Service\\AuthentTokenService' => $baseDir . '/src/Service/AuthentTokenService.php',
+    'Combodo\\iTop\\AuthentToken\\Test\\AbstractRestTest' => $baseDir . '/test/AbstractRestTest.php',
+    'Combodo\\iTop\\AuthentToken\\Test\\AbstractTokenRestTest' => $baseDir . '/test/AbstractTokenRestTest.php',
+    'Combodo\\iTop\\AuthentToken\\Test\\ApplicationTokenRestTest' => $baseDir . '/test/ApplicationTokenRestTest.php',
+    'Combodo\\iTop\\AuthentToken\\Test\\AuthentTokenServiceTest' => $baseDir . '/test/AuthentTokenServiceTest.php',
+    'Combodo\\iTop\\AuthentToken\\Test\\MyAccountControllerTest' => $baseDir . '/test/MyAccountControllerTest.php',
+    'Combodo\\iTop\\AuthentToken\\Test\\PersonalTokenRestTest' => $baseDir . '/test/PersonalTokenRestTest.php',
+    'Combodo\\iTop\\AuthentToken\\Test\\RestTest' => $baseDir . '/test/RestTest.php',
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
 );

@@ -1,0 +1,37 @@
+{% if Infos.picture %}
+<div id="ibo-panel-ez-{{ index}}" class="ibo-panel ibo-content-block ibo-block  ibo-has-icon ibo-has-medallion-icon  ibo-is-neutral
+ibo-is-opened" data-role="ibo-panel">
+	<div class="ibo-panel--header" data-role="ibo-panel--header">
+		<div class="ibo-panel--header-left" data-role="ibo-panel--header-left">
+			<div class="ibo-panel--icon" data-role="ibo-panel--icon">
+				<div class="ibo-panel--icon-background ibo-panel--icon-background--must-cover" data-role="ibo-panel--icon-background"
+				     style="background-image: url('{{ Infos.picture }}');"></div>
+			</div>
+{% else %}
+<div id="ibo-panel-ez-{{ index}}" class="ibo-panel ibo-content-block ibo-block  ibo-is-neutral ibo-is-opened" data-role="ibo-panel">
+	<div class="ibo-panel--header" data-role="ibo-panel--header">
+		<div class="ibo-panel--header-left" data-role="ibo-panel--header-left">
+{% endif %}
+
+			<div class="ibo-panel--titles" data-role="ibo-panel--titles">
+				<div class="ibo-panel--title" data-role="ibo-panel--title">{{ title }}</div>
+			</div>
+		</div>
+		{% if edit_link %}
+		<div class="ibo-panel--header-right" data-role="ibo-panel--header-right">
+			{% UIToolbar ForButton {} %}
+			{% UIButton IconLink {sIconClasses:'fas fa-pen', sTooltipText:'UI:Links:ActionRow:Edit'|dict_s , sURL:edit_link,
+				sTarget:'_blank', sId:'value'} %}
+			{% EndUIToolbar %}
+		</div>
+		{% endif %}
+	</div>
+	<div class="ibo-panel--body" data-role="ibo-panel--body">
+		{% for label, value in Infos %}
+			{% if 'picture' != label %}
+			{% UIField Small {sLabel: label, sValueHtml:value} %}
+			{% EndUIField %}
+			{% endif %}
+		{% endfor %}
+	</div>
+</div>

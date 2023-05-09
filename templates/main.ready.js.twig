@@ -1,0 +1,202 @@
+
+{% if null != Params.personaltoken %}
+{% set Infos = Params.personaltoken %}
+
+var $datatableTokens = $('#datatable_tokens');
+
+$datatableTokens.on('click', '.token-refresh-button', function(){
+	var button = $(this);
+	$(button).prop('disabled', true);
+
+	var token_id = $(this).attr('data-token-id');
+
+	var refresh_url = '{{Infos.refresh_token_url|raw}}&token_id=' + token_id;
+	$.ajax({
+			type: "POST",
+			url: refresh_url
+		})
+		.done(function (data) {
+			$(button).prop('disabled', false);
+			var refresh_alert_ok = $('#refresh_token_alert_ok');
+			var refresh_alert_fail = $('#operation_fail_alert');
+			if (data.result == 'ok')
+			{
+				refresh_alert_fail.addClass('ibo-is-hidden');
+				refresh_alert_ok.find('.ibo-alert--body').html(data.message);
+				refresh_alert_ok.find('.ibo-alert--title').html(data.title);
+
+				refresh_alert_ok.removeClass('ibo-is-hidden');
+			}
+			else
+			{
+				refresh_alert_ok.addClass('ibo-is-hidden');
+				refresh_alert_fail.removeClass('ibo-is-hidden');
+			}
+		})
+		.fail(function (data) {
+			$(button).prop('disabled', false);
+			refresh_alert_ok.addClass('ibo-is-hidden');
+			refresh_alert_fail.removeClass('ibo-is-hidden');
+		});
+});
+
+function DisplayFailureAlert(popup_selector){
+	$(popup_selector).find('#operation_fail_alert').removeClass('ibo-is-hidden');
+}
+
+$datatableTokens.on('click', '.token-delete-button', function(){
+	var button = $(this);
+	$(button).prop('disabled', true);
+
+	var token_id = $(this).attr('data-token-id');
+	var deletion_label = $(this).attr('data-deletion-label');
+
+	var deletion_popup = $('#deletion_popup');
+	var cloned_alert = $('#operation_fail_alert').clone();
+	cloned_alert.addClass('ibo-is-hidden');
+
+	deletion_popup.html(cloned_alert);
+	deletion_popup.append(deletion_label);
+
+	deletion_popup.dialog( { width:'auto', height: 'auto', title: "{{ 'AuthentToken:Title:DeleteTokenConfirmation' | dict_s }}",
+		closeOnEscape: true, autoOpen:
+			true, modal:true,
+		buttons: [
+			{
+				id: "close_button",
+				text: "{{ 'UI:Button:Cancel'|dict_s }}",
+				click: function() {
+					deletion_popup.dialog('close');
+				}
+			}
+			,{
+				id: "confirm_deletion_button",
+				text: "{{ 'UI:Links:ActionRow:DeleteToken'|dict_s }}",
+				click: function() {
+					DeleteToken(button, token_id);
+				}
+			}
+		],
+	});
+
+	$(button).prop('disabled', false);
+	var confirm_deletion_button = $('#confirm_deletion_button');
+	confirm_deletion_button.focus();
+	confirm_deletion_button.addClass("ibo-is-primary");
+});
+
+function DeleteToken(button, token_id){
+	var delete_token_url = '{{Infos.delete_token_url|raw}}&token_id=' + token_id;
+	$.ajax({
+			type: "POST",
+			url: delete_token_url
+		})
+		.done(function (data) {
+			if (data.result == 'ok')
+			{
+				$('#tokens_row_' + token_id).remove();
+				$('#deletion_popup').dialog('close');
+			}
+			else
+			{
+				DisplayFailureAlert('#deletion_popup');
+			}
+		})
+		.fail(function (data) {
+			DisplayFailureAlert('#deletion_popup');
+		});
+}
+
+$('#ibo-panel-ez-token').on('click', '.token-edit-button', function(){
+	var button = $(this);
+	$(button).prop('disabled', true);
+
+	var token_id = $(this).attr('data-token-id');
+
+	var edit_token_url = '{{Infos.edit_token_url|raw}}&token_id=' + token_id ;
+
+	$.ajax({
+			type: "POST",
+			url: edit_token_url
+		})
+		.done(function (data) {
+			DisplayEditionPopup(data, token_id);
+		})
+		.fail(function (data) {
+		}
+	);
+
+	$(button).prop('disabled', false);
+});
+
+function DisplayEditionPopup(html, token_id){
+	this.dlg = $('<div id="modify_dialog" class="dialog"></div>');
+	var modifyDialog = this.dlg;
+
+	var cloned_alert = $('#operation_fail_alert').clone();
+	cloned_alert.addClass('ibo-is-hidden');
+
+	modifyDialog.html(cloned_alert);
+	modifyDialog.append(html);
+
+	modifyDialog.find('.cancel').remove();
+	modifyDialog.find('.action[type=submit]').remove();
+
+	var save_token_url = '{{Infos.save_token_link|raw}}';
+	current_form = modifyDialog.find('form');
+	current_form.on('submit',function(event){
+		/* stop form from submitting normally */
+		event.preventDefault();
+		/* get the action attribute from the <form action=""> element */
+		var $form = $(this);
+
+		if(CheckFields($form.attr('id'), false))
+		{
+			var posting = $.post( save_token_url, $form.serialize());
+
+			/* Alerts the results */
+			posting.done(function( data ) {
+				location.reload(true);
+			});
+
+			posting.fail(function( data ) {
+				DisplayFailureAlert('#modify_dialog');
+			});
+		}
+	});
+
+	modifyDialog.dialog( { width:'auto', height: 'auto', title: '', closeOnEscape: true, modal:true,
+		close: function () {
+			modifyDialog.remove();
+		},
+		buttons: [
+			{
+				id: "close_button",
+				text: "{{ 'UI:Button:Cancel'|dict_s }}",
+				click: function() {
+					window.bInSubmit = true;
+					modifyDialog.dialog('close');
+				}
+			}
+			,{
+				id: "save_button",
+				text: "{{ 'UI:Links:ActionRow:SaveToken'|dict_s }}",
+				class: "ibo-is-primary",
+				click: function() {
+					window.bInSubmit = true;
+					current_form.submit();
+				}
+			}
+		],
+	});
+
+	//hide datamodel tab
+	modifyDialog.find('.ibo-tab-container--tab-header').each(function(){
+		if ($(this).attr('data-tab-id') === "tab_DataModel")
+		{
+			$(this).hide();
+		}
+	});
+}
+
+{% endif %}

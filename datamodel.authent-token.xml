@@ -38,7 +38,7 @@
           <target_class>User</target_class>
           <on_target_delete>DEL_AUTO</on_target_delete>
         </field>
-        <field id="auth_token" xsi:type="AttributeOneWayPassword" _delta="define">
+        <field id="auth_token" xsi:type="AttributeOneWayPassword">
           <sql>auth_token</sql>
           <default_value/>
           <is_null_allowed>false</is_null_allowed>

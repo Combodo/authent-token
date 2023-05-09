@@ -29,7 +29,7 @@
         </reconciliation>
       </properties>
       <fields>
-        <field id="user_id" xsi:type="AttributeExternalKey" _delta="define">
+        <field id="user_id" xsi:type="AttributeExternalKey">
           <sql>user_id</sql>
           <dependencies/>
           <is_null_allowed>false</is_null_allowed>

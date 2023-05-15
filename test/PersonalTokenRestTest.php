@@ -264,12 +264,13 @@ HTML;
 	/**
 	 * @dataProvider SynchroProvider
 	 */
-	public function testSynchroScript($sUri, $sNeedle, $bSetSynchroScope, $bAuthenticationSuccess) {
+	public function testSynchroScript($sUri, $sNeedle, $bSetSynchroScope, $bAuthenticationSuccess, $sScope=null) {
+		$sScope = (is_null($sScope)) ? \ContextTag::TAG_SYNCHRO : $sScope;
 		$this->bTokenInPost = true;
 		$this->iJsonDataMode = self::MODE['JSONDATA_AS_STRING'];
 
 		if($bSetSynchroScope){
-			$this->oPersonalToken->Set('scope', \ContextTag::TAG_SYNCHRO);
+			$this->oPersonalToken->Set('scope', $sScope);
 			$this->oPersonalToken->DBWrite();
 		}
 
@@ -282,6 +283,82 @@ HTML;
 		} else {
 			$this->CheckToken($this->oPersonalToken, null, 0);
 		}
+	}
+
+	public function ImportProvider(){
+		$sImportAuthenticationOkNeedle = <<<HTML
+ERROR: Missing argument 'class'
+HTML;
+		$sLoginModeNeedle = <<<HTML
+<div id="login-body">
+HTML;
+
+		return [
+			'import.php / authentication OK' => [
+				'sUri' => 'webservices/import.php',
+				'sNeedle' => $sImportAuthenticationOkNeedle,
+				'bSetSynchroScope' => true,
+				'bAuthenticationSuccess' => true,
+			],
+			'import.php / authentication KO (json scope)' => [
+				'sUri' => 'webservices/import.php',
+				'sNeedle' => $sLoginModeNeedle,
+				'bSetSynchroScope' => false,
+				'bAuthenticationSuccess' => false,
+			],
+		];
+	}
+	/**
+	 * @dataProvider ImportProvider
+	 */
+	public function testImportScript($sUri, $sNeedle, $bSetSynchroScope, $bAuthenticationSuccess) {
+		$this->testSynchroScript($sUri, $sNeedle, $bSetSynchroScope, $bAuthenticationSuccess, \ContextTag::TAG_IMPORT);
+	}
+
+	public function ExportProvider(){
+		$sExportv2AuthenticationOkNeedle = <<<HTML
+<p>ERROR: Missing parameter. The parameter 'expression' or 'query' must be specified.</p>
+HTML;
+
+		$sExportAuthenticationOkNeedle = <<<HTML
+<p>General purpose export page.</p><p>Parameters:</p><p> * expression: an OQL expression (URL encoded if needed)</p>
+HTML;
+		$sLoginModeNeedle = <<<HTML
+<div id="login-body">
+HTML;
+
+		return [
+			'export.php / authentication OK' => [
+				'sUri' => 'webservices/export.php',
+				'sNeedle' => $sExportAuthenticationOkNeedle,
+				'bSetSynchroScope' => true,
+				'bAuthenticationSuccess' => true,
+			],
+			'export.php / authentication KO (json scope)' => [
+				'sUri' => 'webservices/export.php',
+				'sNeedle' => $sLoginModeNeedle,
+				'bSetSynchroScope' => false,
+				'bAuthenticationSuccess' => false,
+			],
+			'export-v2.php / authentication OK' => [
+				'sUri' => 'webservices/export-v2.php',
+				'sNeedle' => $sExportv2AuthenticationOkNeedle,
+				'bSetSynchroScope' => true,
+				'bAuthenticationSuccess' => true,
+			],
+			'export-v2.php / authentication KO (json scope)' => [
+				'sUri' => 'webservices/export-v2.php',
+				'sNeedle' => $sLoginModeNeedle,
+				'bSetSynchroScope' => false,
+				'bAuthenticationSuccess' => false,
+			],
+		];
+	}
+	/**
+	 * @dataProvider ExportProvider
+	 */
+	public function testExportScript($sUri, $sNeedle, $bSetSynchroScope, $bAuthenticationSuccess) {
+		$this->testSynchroScript($sUri, $sNeedle, $bSetSynchroScope, $bAuthenticationSuccess, \ContextTag::TAG_EXPORT);
 	}
 
 	public function TokenLoginExtensionProvider(){

@@ -56,6 +56,12 @@
             <value id="Synchro">
               <code>Synchro</code>
             </value>
+            <value id="Import">
+              <code>Import</code>
+            </value>
+            <value id="Export">
+              <code>Export</code>
+            </value>
           </values>
           <sql>scope</sql>
           <default_value>WebService</default_value>

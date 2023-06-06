@@ -12,6 +12,10 @@ use LoginWebPage;
 use MetaModel;
 use utils;
 
+// iTop 2.7 compatibility
+if (!class_exists('Combodo\iTop\Application\Helper\Session')) {
+	require_once '../../legacy/Helper/Session.php';
+}
 
 /**
  * Class TokenLoginExtension
@@ -25,6 +29,8 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 	const LOGIN_TYPE = 'token';
 	const LEGACY_LOGIN_TYPE = 'rest-token';
 	const SUPPORTED_LOGIN_MODES = [ self::LOGIN_TYPE , self::LEGACY_LOGIN_TYPE ];
+	// Avoid saving token into the session, keep it in memory
+	private static $sAuthToken = '';
 
 	public function __construct()
 	{
@@ -41,7 +47,8 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 	 *
 	 * @return array of supported login modes
 	 */
-	public function ListSupportedLoginModes(){
+	public function ListSupportedLoginModes()
+	{
 		return [self::LOGIN_TYPE];
 	}
 
@@ -62,13 +69,13 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 		}
 
 		if (isset($_SERVER['HTTP_AUTH_TOKEN'])) {
-			$sAuthToken = $_SERVER['HTTP_AUTH_TOKEN'];
+			self::$sAuthToken = $_SERVER['HTTP_AUTH_TOKEN'];
 		} else {
-			$sAuthToken = utils::ReadParam('auth_token', null, false, 'raw_data');
+			self::$sAuthToken = utils::ReadParam('auth_token', null, false, 'raw_data');
 		}
 
 		$sSessionLoginMode = Session::Get('login_mode');
-		if (strlen($sAuthToken) === 0)
+		if (strlen(self::$sAuthToken) === 0)
 		{
 			if ($this->IsLoginModeSupported($sSessionLoginMode)){
 				//login_mode forced and no token. exit to stop login automata
@@ -88,22 +95,9 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 				{
 					Session::Start();
 					Session::Set('login_mode', $sLoginMode);
-					Session::Set('login_temp_auth_token', $sAuthToken);
 					Session::WriteClose();
 					return LoginWebPage::LOGIN_FSM_CONTINUE;
 				}
-			}
-		}
-
-		if ($this->IsLoginModeSupported($sSessionLoginMode))
-		{
-			$aAllowedModes = MetaModel::GetConfig()->GetAllowedLoginTypes();
-			if (in_array($sSessionLoginMode, $aAllowedModes))
-			{
-					Session::Start();
-					Session::Set('login_temp_auth_token', $sAuthToken);
-					Session::WriteClose();
-					return LoginWebPage::LOGIN_FSM_CONTINUE;
 			}
 		}
 
@@ -114,9 +108,8 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 	{
 		if ($this->IsLoginModeSupported(Session::Get('login_mode')))
 		{
-			$sAuthToken = Session::Get('login_temp_auth_token');
 			try{
-				$oToken = self::GetToken($sAuthToken);
+				$oToken = self::GetToken(self::$sAuthToken);
 			}
 			catch(\Exception $e)
 			{
@@ -128,6 +121,7 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 			Session::Set('token_id', $oToken->GetKey());
 			Session::Set('token_class', get_class($oToken));
 		}
+		Session::Unset('login_temp_auth_token');
 		return LoginWebPage::LOGIN_FSM_CONTINUE;
 	}
 
@@ -185,7 +179,10 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 	/**
 	 * @param $sToken
 	 *
-	 * @return array
+	 * @return \Combodo\iTop\AuthentToken\Model\iToken
+	 * @throws \Combodo\iTop\AuthentToken\Exception\TokenAuthException
+	 * @throws \CoreException
+	 * @throws \MySQLException
 	 */
 	public static function GetToken($sToken) : iToken
 	{

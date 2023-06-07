@@ -294,20 +294,11 @@
       </entries>
     </dictionary>
   </dictionaries>
-  <menus>
-    <menu xsi:type="OQLMenuNode" id="SearchPersonalTokens" _delta="define">
-      <parent>UserManagement</parent>
-      <rank>30</rank>
-      <oql>SELECT PersonalToken</oql>
-      <enable_admin_only>1</enable_admin_only>
-      <do_search>1</do_search>
-    </menu>
-  </menus>
   <user_rights>
     <groups>
       <group id="PersonalToken" _delta="define">
         <classes>
-          <class id="PersonalToken"></class>
+          <class id="PersonalToken"/>
         </classes>
       </group>
     </groups>

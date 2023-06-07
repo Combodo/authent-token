@@ -24,6 +24,7 @@ SetupWebPage::AddModule(
 		//
 		'datamodel' => array(
 			'vendor/autoload.php',
+			'src/Model/PersonalTokenMenu.php',
 			'src/Model/AbstractPersonalToken.php',
 			'src/Hook/TokenLoginExtension.php',
 			'src/Hook/LegacyTokenLoginExtension.php',

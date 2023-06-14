@@ -4,27 +4,28 @@
  *
  * @copyright   Copyright (C) 2022 Combodo SARL
  */
-Dict::Add('FR FR', 'French', 'Français', [
-	'AuthentToken:CopyToken' => 'Les identifiants que vous aurez à fournir sont :<p>auth_token=<a>%1$s</a></p>Notez les maintenant, vous ne pourrez plus les afficher ensuite !',
-	'AuthentToken:RebuildToken' => 'Regénérer le jeton',
-	'AuthentToken:RebuildToken+' => 'Le jeton d\'authentification sera regénéré, ATTENTION le précédent sera perdu et ne pourra plus être utilisé',
-	'Class:UserToken' => 'Utilisateur basé sur un jeton',
-	'Class:UserToken/Attribute:login' => 'Application distante',
-	'Class:UserToken/Attribute:login+' => 'Chaîne d\'identification de l\'application distante',
-	'UI:MyAccount' => 'Mon compte',
-	'authent-token/Operation:MainPage/Title' => 'Mon compte',
-	'MyAccount:SubTitle:user' => 'Mon utilisateur',
-	'MyAccount:SubTitle:contact' => 'Mon contact',
-	'MyAccount:SubTitle:personaltokens' => 'Mes Tokens',
-	'UI:Datatables:Column:RowActions:Label' => '',
-	'UI:Datatables:Column:RowActions:Description' => '',
-	'UI:Links:ActionRow:DeleteToken' => "Supprimer le token",
-	'UI:Links:ActionRow:AddToken' => 'Ajouter un token',
-	'UI:Links:ActionRow:EditToken' => "Modifier le token",
-	'UI:Links:ActionRow:Edit' => 'Modifier',
-	'UI:Links:ActionRow:SaveToken' => 'Sauver le token',
-	'AuthentToken:Title:DeleteTokenConfirmation' => 'Confirmation',
-	'AuthentToken:Message:DeleteTokenConfirmation' => 'Voulez-vous supprimer le token <a>%1$s</a>?',
+
+Dict::Add('NL NL', 'Dutch', 'Nederlands', [
+	'AuthentToken:CopyToken' => 'The credentials you have to provide are:<p>auth_token=<a>%1$s</a></p>Copy them now, you won\'t be able to get them later!~~',
+	'AuthentToken:RebuildToken' => 'Rebuild token~~',
+	'AuthentToken:RebuildToken+' => 'The authentification token will be recreated, BEWARE the previous one will be lost~~',
+	'Class:UserToken' => 'Token based user~~',
+	'Class:UserToken/Attribute:login' => 'Remote application~~',
+	'Class:UserToken/Attribute:login+' => 'Remote application identification string~~',
+	'UI:MyAccount' => 'My Account~~',
+	'authent-token/Operation:MainPage/Title' => 'My Account~~',
+	'MyAccount:SubTitle:user' => 'My user~~',
+	'MyAccount:SubTitle:contact' => 'My contact~~',
+	'MyAccount:SubTitle:personaltokens' => 'My personal tokens~~',
+	'UI:Datatables:Column:RowActions:Label' => '~~',
+	'UI:Datatables:Column:RowActions:Description' => '~~',
+	'UI:Links:ActionRow:DeleteToken' => 'Delete token~~',
+	'UI:Links:ActionRow:AddToken' => 'Add a new token~~',
+	'UI:Links:ActionRow:EditToken' => 'Edit token~~',
+	'UI:Links:ActionRow:Edit' => 'Edit~~',
+	'UI:Links:ActionRow:SaveToken' => 'Save token~~',
+	'AuthentToken:Title:DeleteTokenConfirmation' => 'Confirmation~~',
+	'AuthentToken:Message:DeleteTokenConfirmation' => 'Do you want to delete the token <a>%1$s</a>?~~',
 ]);
 
 
@@ -32,7 +33,7 @@ Dict::Add('FR FR', 'French', 'Français', [
 // Class: PersonalToken
 //
 
-Dict::Add('FR FR', 'French', 'Français', array(
+Dict::Add('NL NL', 'Dutch', 'Nederlands', array(
 	'Class:PersonalToken' => 'PersonalToken~~',
 	'Class:PersonalToken+' => '~~',
 	'Class:PersonalToken/Attribute:user_id' => 'User id~~',
@@ -63,7 +64,7 @@ Dict::Add('FR FR', 'French', 'Français', array(
 // Class: UserToken
 //
 
-Dict::Add('FR FR', 'French', 'Français', array(
+Dict::Add('NL NL', 'Dutch', 'Nederlands', array(
 	'Class:UserToken/Attribute:auth_token' => 'Auth token~~',
 	'Class:UserToken/Attribute:auth_token+' => '~~',
 ));

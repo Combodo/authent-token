@@ -4,7 +4,6 @@
  *
  * @copyright   Copyright (C) 2022 Combodo SARL
  */
-
 Dict::Add('TR TR', 'Turkish', 'Türkçe', [
 	'AuthentToken:CopyToken' => 'The credentials you have to provide are:<p>auth_token=<a>%1$s</a></p>Copy them now, you won\'t be able to get them later!~~',
 	'AuthentToken:RebuildToken' => 'Rebuild token~~',

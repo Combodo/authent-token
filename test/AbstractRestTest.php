@@ -152,12 +152,13 @@ abstract class AbstractRestTest extends ItopDataTestCase
 		$sExpectedJsonOuput=<<<JSON
 {"objects":{"UserRequest::$iId":{"code":0,"message":"created","class":"UserRequest","key":$iId,"fields":{"id":$iId}}},"code":0,"message":null}
 JSON;
-		$this->assertEquals($sExpectedJsonOuput, $sOuputJson);
+
+		$this->ValidateJsonAreTheSameEvenInOtherOrders($sExpectedJsonOuput, $sOuputJson);
 
 		$sExpectedJsonOuput=<<<JSON
 {"objects":{"UserRequest::$iId":{"code":0,"message":"","class":"UserRequest","key":"$iId","fields":{"id":"$iId","description":"<p>$description<\/p>"}}},"code":0,"message":"Found: 1"}
 JSON;
-		$this->assertEquals($sExpectedJsonOuput, $this->GetTicketViaRest($iId));
+		$this->ValidateJsonAreTheSameEvenInOtherOrders($sExpectedJsonOuput, $this->GetTicketViaRest($iId));
 
 		$aCmdbChangeUserInfo = $this->GetCmdbChangeUserInfo($iId);
 		var_dump($aCmdbChangeUserInfo);
@@ -167,6 +168,16 @@ JSON;
 		$this->DeleteTicketFromApi($iId);
 	}
 
+	protected function ReOrderJsonFields(string $sJson) : string {
+		$aJson = json_decode($sJson, true);
+		ksort($aJson);
+		return json_encode($aJson);
+	}
+	
+	protected function ValidateJsonAreTheSameEvenInOtherOrders(string $sExpectedJson, string $sJson){
+		$this->assertEquals($this->ReOrderJsonFields($sExpectedJson), $this->ReOrderJsonFields($sJson));
+	}
+	
 	public function UpdateApiTest($iJsonDataMode)
 	{
 		$this->iJsonDataMode = $iJsonDataMode;
@@ -198,7 +209,7 @@ JSON;
 		$sExpectedJsonOuput=<<<JSON
 {"objects":{"UserRequest::$iId":{"code":0,"message":"updated","class":"UserRequest","key":"$iId","fields":{"description":"<p>$description<\/p>"}}},"code":0,"message":null}
 JSON;
-		$this->assertEquals($sExpectedJsonOuput, $this->UpdateTicketViaApi($iId, $description));
+		$this->ValidateJsonAreTheSameEvenInOtherOrders($sExpectedJsonOuput, $this->UpdateTicketViaApi($iId, $description));
 
 		$aCmdbChangeUserInfo = $this->GetCmdbChangeUserInfo($iId);
 		var_dump($aCmdbChangeUserInfo);
@@ -244,7 +255,7 @@ JSON;
 		$sExpectedJsonOuput=<<<JSON
 {"objects":null,"code":0,"message":"Found: 0"}
 JSON;
-		$this->assertEquals($sExpectedJsonOuput, $this->GetTicketViaRest($iId));
+		$this->ValidateJsonAreTheSameEvenInOtherOrders($sExpectedJsonOuput, $this->GetTicketViaRest($iId));
 	}
 
 	private function GetTicketViaRest($iId){

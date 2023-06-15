@@ -81,6 +81,29 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
 	}
 
 	/**
+	 * @param \DBObject $oUser
+	 * @param int $iProfileId
+	 *
+	 * @return \DBObject
+	 * @throws Exception
+	 */
+	protected function AddProfileToUser($oUser, $iProfileId)
+	{
+		$oUserProfile = new \URP_UserProfile();
+		$oUserProfile->Set('profileid', $iProfileId);
+		$oUserProfile->Set('reason', 'UNIT Tests');
+		/** @var \ormLinkSet $oSet */
+		$oSet = $oUser->Get('profile_list');
+		$oSet->AddItem($oUserProfile);
+		$oUser = $this->updateObject(\User::class, $oUser->GetKey(), array(
+			'profile_list' => $oSet,
+		));
+		$this->debug("Updated {$oUser->GetName()} ({$oUser->GetKey()})");
+
+		return $oUser;
+	}
+
+	/**
 	 * @dataProvider BasicTokenProvider
 	 */
 	public function testApiViaLegacyToken($iJsonDataMode, $bTokenInPost)

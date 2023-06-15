@@ -230,7 +230,7 @@ HTML;
 Missing argument 'data_source_id'
 HTML;
 		$sLoginModeNeedle = <<<HTML
-<div id="login-body">
+<p>Invalid login</p>
 HTML;
 
 		return [
@@ -290,7 +290,7 @@ HTML;
 ERROR: Missing argument 'class'
 HTML;
 		$sLoginModeNeedle = <<<HTML
-<div id="login-body">
+<p>Invalid login</p>
 HTML;
 
 		return [
@@ -365,8 +365,8 @@ HTML;
 		$sRestOkNeedle = <<<HTML
 {"code":100,"message":"Error: Missing parameter 'operation'"}
 HTML;
-		$sLoginModeNeedle = <<<HTML
-<div id="login-body">
+		$sInvalidLoginNeedle = <<<HTML
+{"code":1,"message":"Error: Invalid login"}
 HTML;
 
 		return [
@@ -379,7 +379,7 @@ HTML;
 			],
 			'rest.php / no login_mode and empty token / login page returned for other login modes trials' => [
 				'sLoginMode' => null,
-				'sNeedle' => $sLoginModeNeedle,
+				'sNeedle' => $sInvalidLoginNeedle,
 				'bAuthenticationSuccess' => false,
 				'empty token' => true,
 				'bTokenLoginModesNotConfigured' => false
@@ -407,14 +407,14 @@ HTML;
 			],
 			'rest.php / login_mode passed / token passed but login_modes not configured' => [
 				'sLoginMode' => 'token',
-				'sNeedle' => $sLoginModeNeedle,
+				'sNeedle' => $sInvalidLoginNeedle,
 				'bAuthenticationSuccess' => false,
 				'empty token' => false,
 				'bTokenLoginModesNotConfigured' => true
 			],
 			'rest.php / no login_mode / token passed but login_modes not configured / login page to let other login mode authenticate' => [
 				'sLoginMode' => null,
-				'sNeedle' => $sLoginModeNeedle,
+				'sNeedle' => $sInvalidLoginNeedle,
 				'bAuthenticationSuccess' => false,
 				'empty token' => false,
 				'bTokenLoginModesNotConfigured' => true

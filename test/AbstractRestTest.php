@@ -248,7 +248,7 @@ JSON;
 
 		//delete ticket
 		$sExpectedJsonOuput=<<<JSON
-{"objects":{"UserRequest::$iId"
+"objects":{"UserRequest::$iId"
 JSON;
 		$this->assertStringContainsString($sExpectedJsonOuput, $this->DeleteTicketFromApi($iId));
 

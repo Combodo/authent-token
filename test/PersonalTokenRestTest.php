@@ -290,7 +290,7 @@ HTML;
 ERROR: Missing argument 'class'
 HTML;
 		$sLoginModeNeedle = <<<HTML
-<p>Invalid login</p>
+Invalid login
 HTML;
 
 		return [

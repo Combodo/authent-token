@@ -38,6 +38,10 @@
           <target_class>User</target_class>
           <on_target_delete>DEL_AUTO</on_target_delete>
         </field>
+        <field id="org_id" xsi:type="AttributeExternalField">
+          <extkey_attcode>user_id</extkey_attcode>
+          <target_attcode>org_id</target_attcode>
+        </field>
         <field id="auth_token" xsi:type="AttributeOneWayPassword">
           <sql>auth_token</sql>
           <default_value/>
@@ -123,21 +127,21 @@
         </method>
       </methods>
       <presentation>
-        <details _delta="redefine">
+        <details>
           <items>
             <item id="user_id">
               <rank>10</rank>
             </item>
-            <item id="application">
+            <item id="org_id">
               <rank>20</rank>
             </item>
-            <item id="scope">
+            <item id="application">
               <rank>30</rank>
             </item>
-            <item id="expiration_date">
+            <item id="scope">
               <rank>40</rank>
             </item>
-            <item id="auth_token">
+            <item id="expiration_date">
               <rank>50</rank>
             </item>
             <item id="use_count">
@@ -148,7 +152,7 @@
             </item>
           </items>
         </details>
-        <list _delta="redefine">
+        <list>
           <items>
             <item id="user_id">
               <rank>10</rank>
@@ -164,7 +168,7 @@
             </item>
           </items>
         </list>
-        <search _delta="redefine">
+        <search>
           <items>
             <item id="user_id">
               <rank>10</rank>
@@ -180,6 +184,22 @@
             </item>
           </items>
         </search>
+        <default_search>
+          <items>
+            <item id="application">
+              <rank>10</rank>
+            </item>
+            <item id="user_id">
+              <rank>20</rank>
+            </item>
+            <item id="org_id">
+              <rank>30</rank>
+            </item>
+            <item id="expiration_date">
+              <rank>40</rank>
+            </item>
+          </items>
+        </default_search>
       </presentation>
     </class>
     <class id="UserToken" _delta="define">
@@ -212,28 +232,51 @@
       <presentation>
         <details>
           <items>
-            <item id="contactid">
+            <item id="col:col1">
               <rank>10</rank>
+              <items>
+                <item id="fieldset:User:info">
+                  <rank>10</rank>
+                  <items>
+                    <item id="contactid">
+                      <rank>10</rank>
+                    </item>
+                    <item id="org_id">
+                      <rank>20</rank>
+                    </item>
+                    <item id="email">
+                      <rank>30</rank>
+                    </item>
+                    <item id="login">
+                      <rank>40</rank>
+                    </item>
+                    <item id="language">
+                      <rank>50</rank>
+                    </item>
+                    <item id="status">
+                      <rank>60</rank>
+                    </item>
+                  </items>
+                </item>
+              </items>
             </item>
-            <item id="org_id">
+            <item id="col:col2">
               <rank>20</rank>
-            </item>
-            <item id="email">
-              <rank>30</rank>
-            </item>
-            <item id="login">
-              <rank>40</rank>
-            </item>
-            <item id="status">
-              <rank>60</rank>
-            </item>
-            <item id="language">
-              <rank>70</rank>
-            </item>
-            <item id="profile_list">
-              <rank>80</rank>
+              <items>
+                <item id="fieldset:User:profiles">
+                  <rank>10</rank>
+                  <items>
+                    <item id="profile_list">
+                      <rank>10</rank>
+                    </item>
+                  </items>
+                </item>
+              </items>
             </item>
             <item id="allowed_org_list">
+              <rank>80</rank>
+            </item>
+            <item id="log">
               <rank>90</rank>
             </item>
           </items>
@@ -249,50 +292,15 @@
             <item id="email">
               <rank>30</rank>
             </item>
+            <item id="status">
+              <rank>40</rank>
+            </item>
           </items>
         </list>
       </presentation>
     </class>
   </classes>
   <dictionaries>
-    <dictionary id="EN US" _delta="must_exist">
-      <entries>
-        <entry id="Class:User/Attribute:tokens_list" _delta="define"><![CDATA[Tokens]]></entry>
-        <entry id="Menu:SearchPersonalTokens" _delta="define"><![CDATA[Personal Tokens]]></entry>
-        <entry id="Menu:SearchPersonalTokens+" _delta="define"><![CDATA[Personal Tokens]]></entry>
-
-        <entry id="Class:PersonalToken/Attribute:user_id" _delta="define"><![CDATA[User]]></entry>
-        <entry id="Class:PersonalToken/Attribute:application" _delta="define"><![CDATA[Application]]></entry>
-        <entry id="Class:PersonalToken/Attribute:scope" _delta="define"><![CDATA[Scope]]></entry>
-        <entry id="Class:PersonalToken/Attribute:auth_token" _delta="define"><![CDATA[Token]]></entry>
-        <entry id="Class:PersonalToken/Attribute:expiration_date" _delta="define"><![CDATA[Expiration date]]></entry>
-        <entry id="Class:PersonalToken/Attribute:use_count" _delta="define"><![CDATA[Authentication count]]></entry>
-        <entry id="Class:PersonalToken/Attribute:use_count+" _delta="define"><![CDATA[Number of times token has been used for
-        authentication]]></entry>
-        <entry id="Class:PersonalToken/Attribute:last_use_date" _delta="define"><![CDATA[Last use date]]></entry>
-        <entry id="Class:PersonalToken/Attribute:last_use_date+" _delta="define"><![CDATA[Last date token has been used for
-        authentication]]></entry>
-      </entries>
-    </dictionary>
-    <dictionary id="FR FR" _delta="must_exist">
-      <entries>
-        <entry id="Class:User/Attribute:tokens_list" _delta="define"><![CDATA[Tokens]]></entry>
-        <entry id="Menu:SearchPersonalTokens" _delta="define"><![CDATA[Tokens personels]]></entry>
-        <entry id="Menu:SearchPersonalTokens+" _delta="define"><![CDATA[Tokens personels]]></entry>
-
-        <entry id="Class:PersonalToken/Attribute:user_id" _delta="define"><![CDATA[Utilisateur]]></entry>
-        <entry id="Class:PersonalToken/Attribute:application" _delta="define"><![CDATA[Application]]></entry>
-        <entry id="Class:PersonalToken/Attribute:scope" _delta="define"><![CDATA[Contexte]]></entry>
-        <entry id="Class:PersonalToken/Attribute:auth_token" _delta="define"><![CDATA[Token]]></entry>
-        <entry id="Class:PersonalToken/Attribute:expiration_date" _delta="define"><![CDATA[Date d'expiration]]></entry>
-        <entry id="Class:PersonalToken/Attribute:use_count" _delta="define"><![CDATA[Décompte d'authentification]]></entry>
-        <entry id="Class:PersonalToken/Attribute:use_count+"
-               _delta="define"><![CDATA[Nombre de fois où le token a servi à s'authentifier]]></entry>
-        <entry id="Class:PersonalToken/Attribute:last_use_date" _delta="define"><![CDATA[Dernière date d'authentification]]></entry>
-        <entry id="Class:PersonalToken/Attribute:last_use_date+"
-               _delta="define"><![CDATA[Date de la dernière fois où le token a  servi à s'authentifier]]></entry>
-      </entries>
-    </dictionary>
   </dictionaries>
   <user_rights>
     <groups>

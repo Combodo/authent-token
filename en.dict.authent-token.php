@@ -10,10 +10,6 @@ Dict::Add('EN US', 'English', 'English', [
 	'AuthentToken:RebuildToken' => 'Rebuild token',
 	'AuthentToken:RebuildToken+' => 'The authentification token will be recreated, BEWARE the previous one will be lost',
 
-	'Class:UserToken' => 'Token based user',
-	'Class:UserToken/Attribute:login' => 'Remote application',
-	'Class:UserToken/Attribute:login+' => 'Remote application identification string',
-
 	'UI:MyAccount' => 'My Account',
 	'authent-token/Operation:MainPage/Title' => 'My Account',
 	'MyAccount:SubTitle:user' => 'My user',
@@ -38,30 +34,30 @@ Dict::Add('EN US', 'English', 'English', [
 //
 
 Dict::Add('EN US', 'English', 'English', array(
-	'Class:PersonalToken' => 'PersonalToken',
-	'Class:PersonalToken+' => '',
+	'Class:PersonalToken' => 'Personal Token',
+	'Class:PersonalToken+' => 'Authentication mean for persons accessing '.ITOP_APPLICATION_SHORT.' webservices',
 	'Class:PersonalToken/Attribute:user_id' => 'User id',
-	'Class:PersonalToken/Attribute:user_id+' => '',
+	'Class:PersonalToken/Attribute:user_id+' => 'The user from which access rights will be inherited',
 	'Class:PersonalToken/Attribute:auth_token' => 'Auth token',
-	'Class:PersonalToken/Attribute:auth_token+' => '',
+	'Class:PersonalToken/Attribute:auth_token+' => 'Readable only at generation time',
 	'Class:PersonalToken/Attribute:application' => 'Application',
-	'Class:PersonalToken/Attribute:application+' => '',
+	'Class:PersonalToken/Attribute:application+' => 'Helper to remember why you have created this token',
 	'Class:PersonalToken/Attribute:scope' => 'Scope',
-	'Class:PersonalToken/Attribute:scope+' => '',
+	'Class:PersonalToken/Attribute:scope+' => 'In which context(s), this token is allowed to be used',
 	'Class:PersonalToken/Attribute:scope/Value:REST/JSON' => 'REST/JSON',
-	'Class:PersonalToken/Attribute:scope/Value:REST/JSON+' => '',
+	'Class:PersonalToken/Attribute:scope/Value:REST/JSON+' => '/webservices/rest.php',
 	'Class:PersonalToken/Attribute:scope/Value:Synchro' => 'Synchro',
-	'Class:PersonalToken/Attribute:scope/Value:Synchro+' => '',
+	'Class:PersonalToken/Attribute:scope/Value:Synchro+' => '/synchro/synchro_import.php and /synchro/synchro_exec.php',
 	'Class:PersonalToken/Attribute:scope/Value:Import' => 'Import',
-	'Class:PersonalToken/Attribute:scope/Value:Import+' => '',
+	'Class:PersonalToken/Attribute:scope/Value:Import+' => '/webservices/import.php',
 	'Class:PersonalToken/Attribute:scope/Value:Export' => 'Export',
-	'Class:PersonalToken/Attribute:scope/Value:Export+' => '',
+	'Class:PersonalToken/Attribute:scope/Value:Export+' => '/webservices/export-v2.php',
 	'Class:PersonalToken/Attribute:expiration_date' => 'Expiration date',
 	'Class:PersonalToken/Attribute:expiration_date+' => '',
 	'Class:PersonalToken/Attribute:use_count' => 'Use count',
-	'Class:PersonalToken/Attribute:use_count+' => '',
+	'Class:PersonalToken/Attribute:use_count+' => 'Number of time this token was used to connect',
 	'Class:PersonalToken/Attribute:last_use_date' => 'Last use date',
-	'Class:PersonalToken/Attribute:last_use_date+' => '',
+	'Class:PersonalToken/Attribute:last_use_date+' => 'Last time this token was used to connect',
 ));
 
 //
@@ -69,6 +65,10 @@ Dict::Add('EN US', 'English', 'English', array(
 //
 
 Dict::Add('EN US', 'English', 'English', array(
-	'Class:UserToken/Attribute:auth_token' => 'Auth token',
-	'Class:UserToken/Attribute:auth_token+' => '',
+    'Class:UserToken' => 'Application Token',
+    'Class:UserToken+' => 'User for remote applications accessing '.ITOP_APPLICATION_SHORT.' webservices',
+    'Class:UserToken/Attribute:login' => 'Remote application',
+    'Class:UserToken/Attribute:login+' => 'Remote application identification string',
+    'Class:UserToken/Attribute:auth_token' => 'Auth token',
+	'Class:UserToken/Attribute:auth_token+' => 'Readable only at generation time',
 ));

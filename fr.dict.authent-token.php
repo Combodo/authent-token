@@ -4,7 +4,7 @@
  *
  * @copyright   Copyright (C) 2022 Combodo SARL
  */
-Dict::Add('FR FR', 'French', 'Français', [
+Dict::Add('FR FR', 'French', 'Français', array(
 	'AuthentToken:CopyToken' => 'Les identifiants que vous aurez à fournir sont :<p>auth_token=<a>%1$s</a></p>Notez les maintenant, vous ne pourrez plus les afficher ensuite !',
 	'AuthentToken:RebuildToken' => 'Regénérer le jeton',
 	'AuthentToken:RebuildToken+' => 'Le jeton d\'authentification sera regénéré, ATTENTION le précédent sera perdu et ne pourra plus être utilisé',
@@ -22,7 +22,12 @@ Dict::Add('FR FR', 'French', 'Français', [
 	'UI:Links:ActionRow:SaveToken' => 'Sauver le jeton',
 	'AuthentToken:Title:DeleteTokenConfirmation' => 'Confirmation',
 	'AuthentToken:Message:DeleteTokenConfirmation' => 'Voulez-vous supprimer le jeton <a>%1$s</a>?',
-]);
+
+    'Class:User/Attribute:tokens_list' => 'Jetons de connexion',
+    'Menu:SearchPersonalTokens' => 'Jetons individuels de connexion',
+    'Menu:SearchPersonalTokens+' => 'Jetons individuels de connexion permettant à une personne d\'accéder aux webservices, import, export, rest et synchro',
+
+));
 
 
 //
@@ -34,10 +39,12 @@ Dict::Add('FR FR', 'French', 'Français', array(
 	'Class:PersonalToken+' => 'Jeton permettant à une personne d\'accéder aux webservices, rest et synchro',
 	'Class:PersonalToken/Attribute:user_id' => 'Utilisateur',
 	'Class:PersonalToken/Attribute:user_id+' => 'Utilisateur dont les droits sont utilisés lors d\'une connexion avec ce jeton',
-	'Class:PersonalToken/Attribute:auth_token' => 'Jeton d\'authentification',
+    'Class:PersonalToken/Attribute:org_id' => 'Organisation',
+    'Class:PersonalToken/Attribute:org_id+' => 'Organisation héritée de l\'utilisateur associé',
+    'Class:PersonalToken/Attribute:auth_token' => 'Jeton d\'authentification',
 	'Class:PersonalToken/Attribute:auth_token+' => 'Lisible uniquement à la génération',
 	'Class:PersonalToken/Attribute:application' => 'Application',
-	'Class:PersonalToken/Attribute:application+' => 'Pour mémoire, l\'application pour laquelle ce jeton a été généré',
+	'Class:PersonalToken/Attribute:application+' => 'Pour identifier ce jeton, indiquez l\'application pour laquelle il a été généré',
 	'Class:PersonalToken/Attribute:scope' => 'Périmètre',
 	'Class:PersonalToken/Attribute:scope+' => 'Les points d\'entrées autorisés à la connexion avec ce jeton',
 	'Class:PersonalToken/Attribute:scope/Value:REST/JSON' => 'REST/JSON',

@@ -5,7 +5,7 @@
  * @copyright   Copyright (C) 2022 Combodo SARL
  */
 
-Dict::Add('EN US', 'English', 'English', [
+Dict::Add('EN US', 'English', 'English', array(
 	'AuthentToken:CopyToken' => 'The credentials you have to provide are:<p>auth_token=<a>%1$s</a></p>Copy them now, you won\'t be able to get them later!',
 	'AuthentToken:RebuildToken' => 'Rebuild token',
 	'AuthentToken:RebuildToken+' => 'The authentification token will be recreated, BEWARE the previous one will be lost',
@@ -26,7 +26,12 @@ Dict::Add('EN US', 'English', 'English', [
 
 	'AuthentToken:Title:DeleteTokenConfirmation' => 'Confirmation',
 	'AuthentToken:Message:DeleteTokenConfirmation' => 'Do you want to delete the token <a>%1$s</a>?',
-]);
+
+    'Class:User/Attribute:tokens_list' => 'Personal tokens',
+    'Menu:SearchPersonalTokens' => 'Personal tokens',
+    'Menu:SearchPersonalTokens+' => 'Personal tokens, usable on webservices import, export, rest and datasynchro',
+
+));
 
 
 //
@@ -35,13 +40,15 @@ Dict::Add('EN US', 'English', 'English', [
 
 Dict::Add('EN US', 'English', 'English', array(
 	'Class:PersonalToken' => 'Personal Token',
-	'Class:PersonalToken+' => 'Authentication mean for persons accessing '.ITOP_APPLICATION_SHORT.' webservices',
+	'Class:PersonalToken+' => 'Personal token for accessing '.ITOP_APPLICATION_SHORT.' webservices, import, export, rest and data synchro',
 	'Class:PersonalToken/Attribute:user_id' => 'User id',
 	'Class:PersonalToken/Attribute:user_id+' => 'The user from which access rights will be inherited',
-	'Class:PersonalToken/Attribute:auth_token' => 'Auth token',
+    'Class:PersonalToken/Attribute:org_id' => 'Organization',
+    'Class:PersonalToken/Attribute:org_id+' => 'Organization inherited from the associated user',
+    'Class:PersonalToken/Attribute:auth_token' => 'Auth token',
 	'Class:PersonalToken/Attribute:auth_token+' => 'Readable only at generation time',
 	'Class:PersonalToken/Attribute:application' => 'Application',
-	'Class:PersonalToken/Attribute:application+' => 'Helper to remember why you have created this token',
+	'Class:PersonalToken/Attribute:application+' => 'Logical identifier to remember why you have created this token',
 	'Class:PersonalToken/Attribute:scope' => 'Scope',
 	'Class:PersonalToken/Attribute:scope+' => 'In which context(s), this token is allowed to be used',
 	'Class:PersonalToken/Attribute:scope/Value:REST/JSON' => 'REST/JSON',

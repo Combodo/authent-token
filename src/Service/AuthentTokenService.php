@@ -2,6 +2,7 @@
 
 namespace Combodo\iTop\AuthentToken\Service;
 
+use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Model\iToken;
 use DBObject;
 use DBProperty;
@@ -28,7 +29,13 @@ class AuthentTokenService {
 		$sPrivateKey = $this->GetPrivateKey();
 		$oCrypt = new SimpleCrypt();
 
-		return json_decode($oCrypt->Decrypt($sPrivateKey, hex2bin($sToken)), true);
+		$sJson = $oCrypt->Decrypt($sPrivateKey, hex2bin($sToken));
+		$aTokenData = json_decode($sJson, true);
+		if (! is_array($aTokenData)){
+			TokenAuthLog::Error(sprintf("Cannot decrypt json token structure (%s)", $aTokenData));
+		}
+
+		return $aTokenData;
 	}
 
 	public function GetToken(array $aTokenFields) : iToken

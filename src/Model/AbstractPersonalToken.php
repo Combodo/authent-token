@@ -17,6 +17,7 @@ abstract class AbstractPersonalToken extends cmdbAbstractObject  implements iTok
 {
 	protected $sToken;
 	protected $bCanEditUserId = true;
+	private $aContext;
 
 	private function InitPrivateKey()
 	{
@@ -122,18 +123,52 @@ HTML;
 
 	public function GetUser() : \User
 	{
-		return MetaModel::GetObject(\User::class, $this->Get('user_id'));
+		$oUser = MetaModel::GetObject(\User::class, $this->Get('user_id'));
+		$this->aContext = [
+			'token' => get_class($this),
+			'token_id' => $this->GetKey($oUser),
+			'class' => get_class($oUser),
+			'user_id' => $oUser->GetKey(),
+			'login' => $oUser->Get('login'),
+		];
+
+		if (MetaModel::GetConfig()->Get('login_debug')) {
+			TokenAuthLog::Info("GetUser", null,
+				$this->aContext
+			);
+		}
+
+		return $oUser;
+	}
+
+	private function GetContextParams() : array {
+		if (is_null($this->aContext)){
+			$this->aContext = [
+				'token' => get_class($this),
+				'token_id' => $this->GetKey(),
+			];
+		}
+
+		return $this->aContext;
 	}
 
 	public function CheckValidity(string $sToken): void
 	{
 		$oUser = $this->GetUser();
 		if (! MyAccountController::IsPersonalTokenManagementAllowed($oUser)){
-			throw new TokenAuthException('Current user has not the Personal Token allowed profiles.');
+			if (MetaModel::GetConfig()->Get('login_debug')) {
+				$aProfiles = MyAccountController::GetAuthorizedProfiles();
+				$sMessage = sprintf('Current user has not the Personal Token allowed profiles (%s).', implode(',', $aProfiles));
+				TokenAuthLog::Info($sMessage, null, $this->GetContextParams());
+			}
+			throw new TokenAuthException("No personal token allowed profile");
 		}
 
 		$oPassword = $this->Get('auth_token');
 		if (! $oPassword->CheckPassword($sToken)) {
+			if (MetaModel::GetConfig()->Get('login_debug')) {
+				TokenAuthLog::Info("Invalid token", null, $this->GetContextParams());
+			}
 			throw new TokenAuthException('Invalid token');
 		}
 
@@ -149,6 +184,9 @@ HTML;
 
 			if ($iNowUnixSeconds > $iExpirationUnixSeconds) {
 				// Not valid anymore
+				if (MetaModel::GetConfig()->Get('login_debug')) {
+					TokenAuthLog::Info("Invalid token validity", null, $this->GetContextParams());
+				}
 				throw new TokenAuthException('Invalid token validity');
 			}
 		}
@@ -174,12 +212,16 @@ HTML;
 			}
 		}
 
-		TokenAuthLog::Error(sprintf(
+		if (MetaModel::GetConfig()->Get('login_debug')){
+			TokenAuthLog::Info(sprintf(
 				"Current context (%s) does not match current Token allowed scopes: %s",
 				implode(',', \ContextTag::GetStack()),
 				implode(",", $aScopeValues)
-			)
-		);
+			),
+				null,
+				$this->GetContextParams()
+			);
+		}
 
 		throw new TokenAuthException('Scope not authorized');
 	}
@@ -200,6 +242,13 @@ HTML;
 			&&
 			(ContextTag::Check(ContextTag::TAG_REST) || ContextTag::Check(ContextTag::TAG_SYNCHRO)))
 		{
+			if (MetaModel::GetConfig()->Get('login_debug')){
+				TokenAuthLog::Info("Rest profiles can be bypassed with 'allow_rest_services_via_tokens' enabled ('secure_rest_services' disabled once).",
+					null,
+					$this->GetContextParams()
+				);
+			}
+
 			//let user do rest calls even without rest profiles
 			MetaModel::GetConfig()->Set('secure_rest_services', false, 'auth-token');
 		}

@@ -23,6 +23,9 @@ use PersonalToken;
  */
 class PersonalTokenRestTest extends AbstractTokenRestTest
 {
+	const EXPORTV2_CLI = 'webservices/export-v2.php';
+	const EXPORT_CLI = 'webservices/export.php';
+
 	protected $oPersonalToken;
 	protected $oAdminToken;
 	protected $bEmptyToken = false;
@@ -59,6 +62,9 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 		$this->sLogin = $this->sLogin . "-ServiceDeskAgent";
 		$this->oUser = $this->CreateContactlessUser($this->sLogin, $oProfile->GetKey(), $this->sPassword);
 		$this->oPersonalToken = $this->CreatePersonalToken($this->oUser, "RESTTEST");
+
+		$this->bTokenInPost = true;
+		$this->iJsonDataMode = self::MODE['JSONDATA_AS_STRING'];
 	}
 
 	public function CreatePersonalToken(\User $oUser, string $sApplication, $sScope=null) : PersonalToken{
@@ -156,14 +162,8 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 		$this->CheckToken($this->oAdminToken, time(), 2);
 	}
 
-	/**
-	 * @dataProvider BasicTokenProvider
-	 */
-	public function testApiWithExpiredToken($iJsonDataMode, $bTokenInPost)
+	public function testApiWithExpiredToken()
 	{
-		$this->bTokenInPost = $bTokenInPost;
-		$this->iJsonDataMode = $iJsonDataMode;
-
 		$iUnixSeconds = time() - 20;
 		$sDateTime = date('Y-m-d H:i:s', $iUnixSeconds);
 		$this->oPersonalToken->Set('expiration_date', $sDateTime);
@@ -180,14 +180,8 @@ JSON;
 		$this->assertEquals($sExpectedOutput, $sOuputJson, "should be html login form instead of any json : " .  $sOuputJson);
 	}
 
-	/**
-	 * @dataProvider BasicTokenProvider
-	 */
-	public function testApiWithAnotherScope($iJsonDataMode, $bTokenInPost)
+	public function testApiWithAnotherScope()
 	{
-		$this->bTokenInPost = $bTokenInPost;
-		$this->iJsonDataMode = $iJsonDataMode;
-
 		$this->oPersonalToken->Set('scope', 'OTHERS');
 		$this->oPersonalToken->DBWrite();
 
@@ -203,13 +197,9 @@ JSON;
 		$this->assertEquals($sExpectedOutput, $sOuputJson, "should be html login form instead of any json : " .  $sOuputJson);
 	}
 
-	/**
-	 * @dataProvider BasicTokenProvider
-	 */
-	public function testApiShouldFailWithACorrectTokenAssociatedToAUserWithoutAuthorizedProfileInConf($iJsonDataMode, $bTokenInPost)
+	public function testApiShouldFailWithACorrectTokenAssociatedToAnAdminUserWithoutAuthorizedProfileInConf()
 	{
-		$this->bTokenInPost = $bTokenInPost;
-		$this->iJsonDataMode = $iJsonDataMode;
+		$this->oPersonalToken = $this->oAdminToken;
 
 		MetaModel::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Configuration Manager']);
 		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
@@ -221,6 +211,44 @@ JSON;
 
 		$sExpectedOutput = <<<JSON
 {"code":1,"message":"Error: Invalid login"}
+JSON;
+
+		$sOuputJson = $this->CreateTicketViaApi($description);
+		$this->assertEquals($sExpectedOutput, $sOuputJson, "should be html login form instead of any json : " .  $sOuputJson);
+	}
+
+	public function testApiShouldFailWithACorrectTokenAssociatedToAUserWithoutAuthorizedProfileInConf()
+	{
+		MetaModel::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Configuration Manager']);
+		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
+		MetaModel::GetConfig()->WriteToFile();
+		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
+
+		//create ticket
+		$description = date('dmY H:i:s');
+
+		$sExpectedOutput = <<<JSON
+{"code":1,"message":"Error: Invalid login"}
+JSON;
+
+		$sOuputJson = $this->CreateTicketViaApi($description);
+		$this->assertEquals($sExpectedOutput, $sOuputJson, "should be html login form instead of any json : " .  $sOuputJson);
+	}
+
+	public function testApiShouldFailWithoutConfToByPassRestProfile()
+	{
+		MetaModel::GetConfig()->Set('secure_rest_services', true, 'auth-token');
+		MetaModel::GetConfig()->Set('allow_rest_services_via_tokens', false, 'auth-token');
+
+		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
+		MetaModel::GetConfig()->WriteToFile();
+		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
+
+		//create ticket
+		$description = date('dmY H:i:s');
+
+		$sExpectedOutput = <<<JSON
+{"code":1,"message":"Error: This user is not authorized to use the web services. (The profile REST Services User is required to access the REST web services)"}
 JSON;
 
 		$sOuputJson = $this->CreateTicketViaApi($description);
@@ -242,25 +270,25 @@ HTML;
 			'synchro_exec.php / authentication OK' => [
 				'sUri' => 'synchro/synchro_exec.php',
 				'sNeedle' => $sSynchroExecAuthenticationOkNeedle,
-				'bSetSynchroScope' => true,
+				'bSetScope' => true,
 				'bAuthenticationSuccess' => true,
 			],
 			'synchro_exec.php / authentication KO (json scope)' => [
 				'sUri' => 'synchro/synchro_exec.php',
 				'sNeedle' => $sLoginModeNeedle,
-				'bSetSynchroScope' => false,
+				'bSetScope' => false,
 				'bAuthenticationSuccess' => false,
 			],
 			'synchro_import.php / authentication OK' => [
 				'sUri' => 'synchro/synchro_import.php',
 				'sNeedle' => $sSynchroImportAuthenticationOkNeedle,
-				'bSetSynchroScope' => true,
+				'bSetScope' => true,
 				'bAuthenticationSuccess' => true,
 			],
 			'synchro_import.php / authentication KO (json scope)' => [
 				'sUri' => 'synchro/synchro_import.php',
 				'sNeedle' => $sLoginModeNeedle,
-				'bSetSynchroScope' => false,
+				'bSetScope' => false,
 				'bAuthenticationSuccess' => false,
 			],
 		];
@@ -269,12 +297,10 @@ HTML;
 	/**
 	 * @dataProvider SynchroProvider
 	 */
-	public function testSynchroScript($sUri, $sNeedle, $bSetSynchroScope, $bAuthenticationSuccess, $sScope=null) {
+	public function testSynchroScript($sUri, $sNeedle, $bSetScope, $bAuthenticationSuccess, $sScope=null) {
 		$sScope = (is_null($sScope)) ? \ContextTag::TAG_SYNCHRO : $sScope;
-		$this->bTokenInPost = true;
-		$this->iJsonDataMode = self::MODE['JSONDATA_AS_STRING'];
 
-		if($bSetSynchroScope){
+		if($bSetScope){
 			$this->oPersonalToken->Set('scope', $sScope);
 			$this->oPersonalToken->DBWrite();
 		}
@@ -316,8 +342,8 @@ HTML;
 	/**
 	 * @dataProvider ImportProvider
 	 */
-	public function testImportScript($sUri, $sNeedle, $bSetSynchroScope, $bAuthenticationSuccess) {
-		$this->testSynchroScript($sUri, $sNeedle, $bSetSynchroScope, $bAuthenticationSuccess, \ContextTag::TAG_IMPORT);
+	public function testImportScript($sUri, $sNeedle, $bSetScope, $bAuthenticationSuccess) {
+		$this->testSynchroScript($sUri, $sNeedle, $bSetScope, $bAuthenticationSuccess, \ContextTag::TAG_IMPORT);
 	}
 
 	public function ExportProvider(){
@@ -334,27 +360,27 @@ HTML;
 
 		return [
 			'export.php / authentication OK' => [
-				'sUri' => 'webservices/export.php',
+				'sUri' => self::EXPORT_CLI,
 				'sNeedle' => $sExportAuthenticationOkNeedle,
-				'bSetSynchroScope' => true,
+				'bSetScope' => true,
 				'bAuthenticationSuccess' => true,
 			],
 			'export.php / authentication KO (json scope)' => [
-				'sUri' => 'webservices/export.php',
+				'sUri' => self::EXPORT_CLI,
 				'sNeedle' => $sLoginModeNeedle,
-				'bSetSynchroScope' => false,
+				'bSetScope' => false,
 				'bAuthenticationSuccess' => false,
 			],
 			'export-v2.php / authentication OK' => [
-				'sUri' => 'webservices/export-v2.php',
+				'sUri' => self::EXPORTV2_CLI,
 				'sNeedle' => $sExportv2AuthenticationOkNeedle,
-				'bSetSynchroScope' => true,
+				'bSetScope' => true,
 				'bAuthenticationSuccess' => true,
 			],
 			'export-v2.php / authentication KO (json scope)' => [
-				'sUri' => 'webservices/export-v2.php',
+				'sUri' => self::EXPORTV2_CLI,
 				'sNeedle' => $sLoginModeNeedle,
-				'bSetSynchroScope' => false,
+				'bSetScope' => false,
 				'bAuthenticationSuccess' => false,
 			],
 		];
@@ -362,8 +388,8 @@ HTML;
 	/**
 	 * @dataProvider ExportProvider
 	 */
-	public function testExportScript($sUri, $sNeedle, $bSetSynchroScope, $bAuthenticationSuccess) {
-		$this->testSynchroScript($sUri, $sNeedle, $bSetSynchroScope, $bAuthenticationSuccess, \ContextTag::TAG_EXPORT);
+	public function testExportScript($sUri, $sNeedle, $bSetScope, $bAuthenticationSuccess) {
+		$this->testSynchroScript($sUri, $sNeedle, $bSetScope, $bAuthenticationSuccess, \ContextTag::TAG_EXPORT);
 	}
 
 	public function TokenLoginExtensionProvider(){
@@ -432,9 +458,6 @@ HTML;
 	 * @dataProvider TokenLoginExtensionProvider
 	 */
 	public function testTokenLoginExtension($sLoginMode, $sNeedle, $bAuthenticationSuccess, $bEmptyToken, $bTokenLoginModesNotConfigured) {
-		$this->bTokenInPost = true;
-		$this->iJsonDataMode = self::MODE['JSONDATA_AS_STRING'];
-
 		if ($bEmptyToken){
 			$this->bEmptyToken = true;
 		}

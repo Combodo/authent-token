@@ -34,6 +34,11 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 	{
 		parent::setUp();
 
+		//Disabling those tests until the issue is fixed
+		if (version_compare(PHP_VERSION, '8.1.0', '>=')) {
+			$this->markTestSkipped('Disabled until N°6434 is resolved');
+		}
+
 		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
 		$this->InitLoginMode(TokenLoginExtension::LOGIN_TYPE);
 

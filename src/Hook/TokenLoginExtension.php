@@ -142,10 +142,15 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 
 	protected function OnError(&$iErrorCode)
 	{
+		if ($this->bErrorOccurred) {
+			//N°6443 - Loop when allowed profils missconfigured and token mode forced
+			TokenAuthLog::Error("Login via token may have been forced and failed. To avoid infinite loop, access is denied immediately.");
+			LoginWebPage::HTTP401Error();
+		}
+
 		if ($this->IsLoginModeSupported(Session::Get('login_mode')))
 		{
 			$this->bErrorOccurred = true;
-			Session::Unset('login_mode');
 		}
 		return LoginWebPage::LOGIN_FSM_CONTINUE;
 	}

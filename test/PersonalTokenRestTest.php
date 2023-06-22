@@ -235,8 +235,11 @@ JSON;
 		$this->assertEquals($sExpectedOutput, $sOuputJson, "should be html login form instead of any json : " .  $sOuputJson);
 	}
 
+	//N°6444 - parameter allow_rest_services_via_tokens not well managed
 	public function testApiShouldFailWithoutConfToByPassRestProfile()
 	{
+		$this->oPersonalToken = $this->oAdminToken;
+
 		MetaModel::GetConfig()->Set('secure_rest_services', true, 'auth-token');
 		MetaModel::GetConfig()->Set('allow_rest_services_via_tokens', false, 'auth-token');
 
@@ -252,7 +255,7 @@ JSON;
 JSON;
 
 		$sOuputJson = $this->CreateTicketViaApi($description);
-		$this->assertEquals($sExpectedOutput, $sOuputJson, "should be html login form instead of any json : " .  $sOuputJson);
+		$this->assertEquals($sExpectedOutput, $sOuputJson, "rest is called. authentification works but then Rest Profile should fail and stop with proper message");
 	}
 
 	public function SynchroProvider(){
@@ -385,6 +388,12 @@ HTML;
 			],
 		];
 	}
+
+	//N°6443 - Loop when allowed profils missconfigured
+	public function testInfiniteLoopViaExport() {
+		$this->testSynchroScript(self::EXPORTV2_CLI . '?login_mode=token', "iTop access to this page is restricted. Please, contact an iTop administrator", false, false, \ContextTag::TAG_EXPORT);
+	}
+
 	/**
 	 * @dataProvider ExportProvider
 	 */

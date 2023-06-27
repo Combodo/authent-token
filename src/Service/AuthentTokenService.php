@@ -27,7 +27,7 @@ class AuthentTokenService {
 	public function DecryptToken($sToken)
 	{
 		$sPrivateKey = $this->GetPrivateKey();
-		$oCrypt = new SimpleCrypt();
+		$oCrypt = $this->GetSimpleCryptObject();
 
 		$sJson = $oCrypt->Decrypt($sPrivateKey, hex2bin($sToken));
 		$aTokenData = json_decode($sJson, true);
@@ -36,6 +36,11 @@ class AuthentTokenService {
 		}
 
 		return $aTokenData;
+	}
+
+	private function GetSimpleCryptObject() : SimpleCrypt
+	{
+		return new SimpleCrypt(MetaModel::GetConfig()->GetEncryptionLibrary());
 	}
 
 	public function GetToken(array $aTokenFields) : iToken
@@ -54,7 +59,7 @@ class AuthentTokenService {
 		];
 
 		$sPPrivateKey = $this->GetPrivateKey();
-		$oCrypt = new SimpleCrypt();
+		$oCrypt = $this->GetSimpleCryptObject();
 		return bin2hex($oCrypt->Encrypt($sPPrivateKey, json_encode($aToken)));
 	}
 

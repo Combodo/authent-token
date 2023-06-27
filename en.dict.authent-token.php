@@ -41,7 +41,7 @@ Dict::Add('EN US', 'English', 'English', array(
 Dict::Add('EN US', 'English', 'English', array(
 	'Class:PersonalToken' => 'Personal Token',
 	'Class:PersonalToken+' => 'Personal token for accessing '.ITOP_APPLICATION_SHORT.' webservices, import, export, rest and data synchro',
-	'Class:PersonalToken/Attribute:user_id' => 'User id',
+	'Class:PersonalToken/Attribute:user_id' => 'User',
 	'Class:PersonalToken/Attribute:user_id+' => 'The user from which access rights will be inherited',
     'Class:PersonalToken/Attribute:org_id' => 'Organization',
     'Class:PersonalToken/Attribute:org_id+' => 'Organization inherited from the associated user',

@@ -2,6 +2,7 @@
 
 use Combodo\iTop\Application\UI\Base\Component\Button\ButtonUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\Component\Form\FormUIBlockFactory;
+use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Model\iToken;
 use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
 
@@ -134,6 +135,16 @@ HTML;
 
 	public function GetUser() : \User
 	{
+		if (MetaModel::GetConfig()->Get('login_debug')){
+			TokenAuthLog::Info("GetUser", null,
+				[
+					'class' => get_class($this),
+					'user_id' => $this->GetKey(),
+					'login' => $this->Get('login'),
+				]
+			);
+		}
+
 		return $this;
 	}
 

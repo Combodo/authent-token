@@ -142,6 +142,12 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 
 	protected function OnError(&$iErrorCode)
 	{
+		if ($this->bErrorOccurred) {
+			//N°6443 - Loop when allowed profils missconfigured and token mode forced
+			TokenAuthLog::Error("Login via token may have been forced and failed. To avoid infinite loop, access is denied immediately.");
+			LoginWebPage::HTTP401Error();
+		}
+
 		if ($this->IsLoginModeSupported(Session::Get('login_mode')))
 		{
 			$this->bErrorOccurred = true;
@@ -191,6 +197,9 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 		if (!is_array($aTokenFields)) {
 			$oToken = AbstractApplicationToken::GetUserLegacy($sToken);
 			if (! is_null($oToken)){
+				if (MetaModel::GetConfig()->Get('login_debug')){
+					TokenAuthLog::Info("GetToken (legacy)", null, ["sTokenId" => $oToken->GetKey(), "sTokenClass" => get_class($oToken)]);
+				}
 				return $oToken;
 			}
 
@@ -199,6 +208,9 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 		}
 
 		$oToken = $oService->GetToken($aTokenFields);
+		if (MetaModel::GetConfig()->Get('login_debug')){
+			TokenAuthLog::Info("GetToken", null, ["sTokenId" => $oToken->GetKey(), "sTokenClass" => get_class($oToken)]);
+		}
 
 		$oToken->CheckValidity($sToken);
 		return $oToken;

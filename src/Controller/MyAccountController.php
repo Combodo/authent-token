@@ -9,21 +9,19 @@ use Combodo\iTop\Application\UI\Base\Component\Button\Button;
 use Combodo\iTop\Application\UI\Base\Component\Button\ButtonUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\Component\DataTable\StaticTable\FormTable\FormTable;
 use Combodo\iTop\Application\UI\Base\Component\DataTable\StaticTable\FormTableRow\FormTableRow;
-use Combodo\iTop\Application\UI\Base\Component\DataTable\tTableRowActions;
 use Combodo\iTop\Application\UI\Base\Component\Panel\Panel;
-use Combodo\iTop\Application\UI\Base\Component\Template\TemplateUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\Component\Toolbar\Toolbar;
 use Combodo\iTop\Application\UI\Base\Component\Toolbar\ToolbarUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\Layout\Object\ObjectDetails;
 use Combodo\iTop\Application\UI\Base\Layout\TabContainer\TabContainer;
 use Combodo\iTop\Application\UI\Base\UIBlock;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
+use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\Renderer\BlockRenderer;
 use DBObject;
 use DBObjectSearch;
 use DBObjectSet;
 use Dict;
-use IssueLog;
 use MetaModel;
 use UserRights;
 use utils;
@@ -102,7 +100,7 @@ class MyAccountController extends Controller{
 		$sTokenId = utils::ReadParam('token_id', null);
 
 		if ($sTokenId===null){
-			IssueLog::error("Cannot refresh token without its id");
+			TokenAuthLog::Error("Cannot refresh token without its id");
 			$this->DisplayJSONPage(['result' => 'error'], 200);
 			return;
 		}
@@ -117,7 +115,7 @@ class MyAccountController extends Controller{
 			$sMessage = Dict::Format('AuthentToken:CopyToken', $oToken->GetToken());
 			$this->DisplayJSONPage(['result' => 'ok', 'message' => $sMessage, 'title' => $oToken->Get('application')], 200);
 		} catch (\Exception $e){
-			IssueLog::error("Cannot refresh token: " + $e->getMessage());
+			TokenAuthLog::Error("Cannot refresh token: " + $e->getMessage());
 			$this->DisplayJSONPage(['result' => 'error'], 200);
 		}
 	}
@@ -140,7 +138,7 @@ class MyAccountController extends Controller{
 		$sTokenId = utils::ReadParam('token_id', null);
 
 		if ($sTokenId===null){
-			IssueLog::error("Cannot delete token without its id");
+			TokenAuthLog::Error("Cannot delete token without its id");
 			$this->DisplayJSONPage(['result' => 'error'], 200);
 			return;
 		}
@@ -153,7 +151,7 @@ class MyAccountController extends Controller{
 
 			$this->DisplayJSONPage(['result' => 'ok'], 200);
 		} catch (\Exception $e){
-			IssueLog::error("Cannot delete token: " + $e->getMessage());
+			TokenAuthLog::Error("Cannot delete token: " + $e->getMessage());
 			$this->DisplayJSONPage(['result' => 'error'], 200);
 		}
 	}
@@ -178,7 +176,7 @@ class MyAccountController extends Controller{
 		$sTokenId = utils::ReadParam('token_id', null);
 
 		if ($sTokenId===null){
-			IssueLog::error("Missing token_id for token edition");
+			TokenAuthLog::Error("Missing token_id for token edition");
 			$this->DisplayJSONPage(['result' => 'error'], 200);
 			return;
 		}
@@ -196,7 +194,7 @@ class MyAccountController extends Controller{
 			$oToken->DisplayModifyForm($oPage);
 			$oPage->output();
 		} catch (\Exception $e){
-			IssueLog::error("Cannot edit token: " + $e->getMessage());
+			TokenAuthLog::Error("Cannot edit token: " + $e->getMessage());
 			$this->DisplayJSONPage(['result' => 'error'], 200);
 		}
 	}
@@ -214,7 +212,7 @@ class MyAccountController extends Controller{
 			$sTokenId = utils::ReadParam('id', null);
 
 			if ($sTokenId===null){
-				IssueLog::error("Missing token_id for token edition");
+				TokenAuthLog::Error("Missing token_id for token edition");
 				$this->DisplayJSONPage(['result' => 'error'], 200);
 				return;
 			}
@@ -222,7 +220,7 @@ class MyAccountController extends Controller{
 			$oToken = $this->FetchToken($oUser, $sTokenId);
 			$this->SaveToken($oUser, $oToken);
 		} catch (\Exception $e){
-			IssueLog::error("Cannot modify token: " + $e->getMessage());
+			TokenAuthLog::Error("Cannot modify token: " + $e->getMessage());
 			$this->DisplayJSONPage(['result' => 'error'], 200);
 		}
 	}
@@ -251,7 +249,7 @@ class MyAccountController extends Controller{
 				]
 			);
 		} catch (\Exception $e){
-			IssueLog::error("Cannot create token: " + $e->getMessage());
+			TokenAuthLog::Error("Cannot create token: " + $e->getMessage());
 			$this->DisplayJSONPage(['result' => 'error'], 200);
 		}
 	}
@@ -267,7 +265,7 @@ class MyAccountController extends Controller{
 		$sTransactionId = utils::ReadPostedParam('transaction_id', '', 'transaction_id');
 		if (!utils::IsTransactionValid($sTransactionId, false))
 		{
-			IssueLog::Error(sprintf("SaveToken : invalid transaction_id ! data: user='%s'", $oUser->Get('login')));
+			TokenAuthLog::Error(sprintf("SaveToken : invalid transaction_id ! data: user='%s'", $oUser->Get('login')));
 			throw new \Exception(Dict::S('UI:Error:ObjectAlreadyCreated'));
 		}
 
@@ -276,7 +274,7 @@ class MyAccountController extends Controller{
 		if (!empty($aErrors))
 		{
 			$sErrors = implode(',', $aErrors);
-			IssueLog::Error(sprintf("SaveToken :  user='%s' errors:", $oUser->Get('login'), $sErrors));
+			TokenAuthLog::Error(sprintf("SaveToken :  user='%s' errors:", $oUser->Get('login'), $sErrors));
 			throw new \CoreCannotSaveObjectException(['issues' => $aErrors, 'id' => $oToken->GetKey(), 'class' => \PersonalToken::class ]);
 		}
 
@@ -298,7 +296,7 @@ class MyAccountController extends Controller{
 		$oTokens = new DBObjectSet($oSearch);
 		$oToken = $oTokens->Fetch();
 		if (null === $oToken){
-			IssueLog::error(sprintf('Cannot find token with id %s and user_id %s', $sTokenId, $sUserId));
+			TokenAuthLog::Error(sprintf('Cannot find token with id %s and user_id %s', $sTokenId, $sUserId));
 			throw new \Exception('Cannot find token');
 		}
 		return $oToken;
@@ -562,16 +560,25 @@ class MyAccountController extends Controller{
 			return true;
 		}
 
-		$aProfiles = utils::GetConfig()->GetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', []);
-
-		foreach($aProfiles as $sProfile)
-		{
-			if (UserRights::HasProfile($sProfile, $oUser))
-			{
+		foreach (self::GetAuthorizedProfiles() as $sProfile) {
+			if (UserRights::HasProfile($sProfile, $oUser)) {
 				return true;
 			}
 		}
 
 		return false;
 	}
+
+	public static function GetAuthorizedProfiles() : array
+	{
+		$aProfiles = utils::GetConfig()->GetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', []);
+		if (is_array($aProfiles)) {
+			return $aProfiles;
+		}
+
+		$sType = gettype($aProfiles);
+		TokenAuthLog::Error("Itop configuration parameter 'personal_tokens_allowed_profiles' should be an array instead of $sType");
+		return [];
+	}
+
 }

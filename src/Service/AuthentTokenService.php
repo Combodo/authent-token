@@ -11,10 +11,11 @@ use ormPassword;
 use SimpleCrypt;
 
 class AuthentTokenService {
-	const TOKEN_APPLICATION_NAME     = 'a';
-	const TOKEN_ID     = 'i';
-	const TOKEN_CLASS     = 'c';
-	const TOKEN_SALT     = 's';
+	const LEGACY_TOKEN_CLASS     = 'c';
+	const LEGACY_TOKEN_ID     = 'i';
+	const TOKEN_ID     = 0;
+	const TOKEN_CLASS     = 1;
+	const TOKEN_SALT     = 2;
 	const PRIVATE_KEY    = 'authent-token-priv-key';
 
 	/**
@@ -45,8 +46,8 @@ class AuthentTokenService {
 
 	public function GetToken(array $aTokenFields) : iToken
 	{
-		$sClass = $aTokenFields[self::TOKEN_CLASS];
-		$sId = $aTokenFields[self::TOKEN_ID];
+		$sClass = (array_key_exists(self::LEGACY_TOKEN_CLASS, $aTokenFields)) ? $aTokenFields[self::LEGACY_TOKEN_CLASS] : $aTokenFields[self::TOKEN_CLASS];
+		$sId = (array_key_exists(self::LEGACY_TOKEN_ID, $aTokenFields)) ? $aTokenFields[self::LEGACY_TOKEN_ID] : $aTokenFields[self::TOKEN_ID];
 		return MetaModel::GetObject($sClass, $sId);
 	}
 
@@ -55,7 +56,7 @@ class AuthentTokenService {
 		$aToken = [
 			self::TOKEN_ID     => $oObject->GetKey(),
 			self::TOKEN_CLASS     => get_class($oObject),
-			self::TOKEN_SALT => bin2hex(random_bytes(8)),
+			self::TOKEN_SALT => random_int(0, 1000000),
 		];
 
 		$sPPrivateKey = $this->GetPrivateKey();

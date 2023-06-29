@@ -15,6 +15,7 @@ return array(
     'Combodo\\iTop\\AuthentToken\\Hook\\TokenLoginExtension' => $baseDir . '/src/Hook/TokenLoginExtension.php',
     'Combodo\\iTop\\AuthentToken\\Model\\iToken' => $baseDir . '/src/Model/iToken.php',
     'Combodo\\iTop\\AuthentToken\\Service\\AuthentTokenService' => $baseDir . '/src/Service/AuthentTokenService.php',
+    'Combodo\\iTop\\AuthentToken\\Service\\MetaModelService' => $baseDir . '/src/Service/MetaModelService.php',
     'Combodo\\iTop\\AuthentToken\\Test\\AbstractRestTest' => $baseDir . '/test/AbstractRestTest.php',
     'Combodo\\iTop\\AuthentToken\\Test\\AbstractTokenRestTest' => $baseDir . '/test/AbstractTokenRestTest.php',
     'Combodo\\iTop\\AuthentToken\\Test\\ApplicationTokenRestTest' => $baseDir . '/test/ApplicationTokenRestTest.php',

@@ -193,26 +193,27 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 	public static function GetToken($sToken) : iToken
 	{
 		$oService = new AuthentTokenService();
-		$aTokenFields = $oService->DecryptToken($sToken);
-		if (!is_array($aTokenFields)) {
-			$oToken = AbstractApplicationToken::GetUserLegacy($sToken);
-			if (! is_null($oToken)){
-				if (MetaModel::GetConfig()->Get('login_debug')){
-					TokenAuthLog::Info("GetToken (legacy)", null, ["sTokenId" => $oToken->GetKey(), "sTokenClass" => get_class($oToken)]);
-				}
-				return $oToken;
+		$oToken = $oService->DecryptToken($sToken);
+
+		if (! is_null($oToken)) {
+			if (MetaModel::GetConfig()->Get('login_debug')){
+				TokenAuthLog::Info("GetToken", null, ["sTokenId" => $oToken->GetKey(), "sTokenClass" => get_class($oToken)]);
 			}
 
-			// Not decrypted
-			throw new TokenAuthException('invalid_token');
+			$oToken->CheckValidity($sToken);
+			return $oToken;
 		}
 
-		$oToken = $oService->GetToken($aTokenFields);
-		if (MetaModel::GetConfig()->Get('login_debug')){
-			TokenAuthLog::Info("GetToken", null, ["sTokenId" => $oToken->GetKey(), "sTokenClass" => get_class($oToken)]);
+		$oToken = AbstractApplicationToken::GetUserLegacy($sToken);
+		if (! is_null($oToken)){
+			if (MetaModel::GetConfig()->Get('login_debug')){
+				TokenAuthLog::Info("GetToken (legacy)", null, ["sTokenId" => $oToken->GetKey(), "sTokenClass" => get_class($oToken)]);
+			}
+			$oToken->CheckValidity($sToken);
+			return $oToken;
 		}
 
-		$oToken->CheckValidity($sToken);
-		return $oToken;
+		// Not decrypted
+		throw new TokenAuthException('invalid_token');
 	}
 }

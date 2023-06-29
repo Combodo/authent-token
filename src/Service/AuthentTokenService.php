@@ -2,7 +2,6 @@
 
 namespace Combodo\iTop\AuthentToken\Service;
 
-use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Model\iToken;
 use DBObject;
 use DBProperty;
@@ -13,10 +12,16 @@ use SimpleCrypt;
 class AuthentTokenService {
 	const LEGACY_TOKEN_CLASS     = 'c';
 	const LEGACY_TOKEN_ID     = 'i';
-	const TOKEN_ID     = 0;
-	const TOKEN_CLASS     = 1;
-	const TOKEN_SALT     = 2;
+	const LEGACY_TOKEN_SALT     = 's';
 	const PRIVATE_KEY    = 'authent-token-priv-key';
+
+	/** @var \Combodo\iTop\AuthentToken\Service\MetaModelService $oMetaModelService */
+	private $oMetaModelService;
+
+	public function __construct(?MetaModelService $oMetaModelService=null)
+	{
+		$this->oMetaModelService = is_null($oMetaModelService) ? new MetaModelService() : $oMetaModelService;
+	}
 
 	/**
 	 * @param $sToken
@@ -25,18 +30,26 @@ class AuthentTokenService {
 	 * @throws \CoreException
 	 * @throws \MySQLException
 	 */
-	public function DecryptToken($sToken)
+	public function DecryptToken($sToken) : ?iToken
 	{
 		$sPrivateKey = $this->GetPrivateKey();
 		$oCrypt = $this->GetSimpleCryptObject();
 
-		$sJson = $oCrypt->Decrypt($sPrivateKey, hex2bin($sToken));
-		$aTokenData = json_decode($sJson, true);
-		if (! is_array($aTokenData)){
-			TokenAuthLog::Error(sprintf("Cannot decrypt json token structure (%s)", $aTokenData));
+		try{
+			$sDecryptedToken = $oCrypt->Decrypt($sPrivateKey, base64_decode($sToken, true));
+			$oToken = $this->GetToken($sDecryptedToken);
+			if (! is_null($oToken)){
+				return $oToken;
+			}
+		} catch(\Exception $e){}
+
+		$sDecryptedToken = $oCrypt->Decrypt($sPrivateKey, hex2bin($sToken));
+		$oToken = $this->GetLegacyToken($sDecryptedToken);
+		if (! is_null($oToken)){
+			return $oToken;
 		}
 
-		return $aTokenData;
+		return null;
 	}
 
 	private function GetSimpleCryptObject() : SimpleCrypt
@@ -44,19 +57,81 @@ class AuthentTokenService {
 		return new SimpleCrypt(MetaModel::GetConfig()->GetEncryptionLibrary());
 	}
 
-	public function GetToken(array $aTokenFields) : iToken
+	public function GetToken(string $sDecryptedToken) : ?iToken
 	{
-		$sClass = (array_key_exists(self::LEGACY_TOKEN_CLASS, $aTokenFields)) ? $aTokenFields[self::LEGACY_TOKEN_CLASS] : $aTokenFields[self::TOKEN_CLASS];
-		$sId = (array_key_exists(self::LEGACY_TOKEN_ID, $aTokenFields)) ? $aTokenFields[self::LEGACY_TOKEN_ID] : $aTokenFields[self::TOKEN_ID];
-		return MetaModel::GetObject($sClass, $sId);
+		$aFields = explode(':', $sDecryptedToken);
+		if (count($aFields) < 2){
+			return null;
+		}
+
+		$sId = $aFields[0];
+		$sClassName = $aFields[1];
+
+		if ( ! preg_match('/^\d+$/', $sId) ) {
+			return null;
+		}
+
+		try{
+			$oReflectionClass = new \ReflectionClass($sClassName);
+			if ($oReflectionClass->implementsInterface(iToken::class)){
+				return $this->oMetaModelService->GetObject($sClassName, $sId);
+			}
+		} catch(\ReflectionException $e){
+		}
+
+		return null;
+	}
+
+	public function GetLegacyToken(string $sDecryptedToken) : ?iToken
+	{
+		$aTokenData = json_decode($sDecryptedToken, true);
+		if (! is_array($aTokenData)){
+			return null;
+		}
+
+		$sClassName = (array_key_exists(self::LEGACY_TOKEN_CLASS, $aTokenData)) ? $aTokenData[self::LEGACY_TOKEN_CLASS] : null;
+		$sId = (array_key_exists(self::LEGACY_TOKEN_ID, $aTokenData)) ? $aTokenData[self::LEGACY_TOKEN_ID] : null;
+
+		if (is_null($sClassName) || is_null($sId)){
+			return null;
+		}
+
+		if ( ! preg_match('/^\d+$/', $sId) ) {
+			return null;
+		}
+
+		try {
+			$oReflectionClass = new \ReflectionClass($sClassName);
+			if ($oReflectionClass->implementsInterface(iToken::class)) {
+				return $this->oMetaModelService->GetObject($sClassName, $sId);
+			}
+		}catch(\Exception $e){
+
+		}
+
+		return null;
 	}
 
 	public function CreateNewToken(DBObject $oObject): string
 	{
+		$sTokenBeforeEncryption = sprintf("%s:%s:%s",
+			$oObject->GetKey(), get_class($oObject), random_bytes(8)
+		);
+
+		$sPPrivateKey = $this->GetPrivateKey();
+		$oCrypt = $this->GetSimpleCryptObject();
+		return base64_encode($oCrypt->Encrypt($sPPrivateKey, $sTokenBeforeEncryption));
+	}
+
+	/**
+	 * for backward compatibility test only
+	 */
+	private function CreateLegacyNewToken(DBObject $oObject): string
+	{
 		$aToken = [
-			self::TOKEN_ID     => $oObject->GetKey(),
-			self::TOKEN_CLASS     => get_class($oObject),
-			self::TOKEN_SALT => random_int(0, 1000000),
+			self::LEGACY_TOKEN_ID     => $oObject->GetKey(),
+			self::LEGACY_TOKEN_CLASS     => get_class($oObject),
+			self::LEGACY_TOKEN_SALT => bin2hex(random_bytes(8)),
 		];
 
 		$sPPrivateKey = $this->GetPrivateKey();

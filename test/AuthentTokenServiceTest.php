@@ -3,6 +3,7 @@
 namespace Combodo\iTop\AuthentToken\Test;
 
 use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
+use Combodo\iTop\AuthentToken\Service\MetaModelService;
 use Combodo\iTop\Test\UnitTest\ItopDataTestCase;
 use DBObjectSet;
 use MetaModel;
@@ -34,34 +35,76 @@ class AuthentTokenServiceTest extends ItopDataTestCase {
 
 		//make sure token can stored in AttributeEncryptedString for webhook extension
 		$this->assertTrue(strlen($sToken1) < 255);
-	}
+		var_dump((['new token format length' => strlen($sToken1) ]));
+		var_dump((['new format length' => $sToken1 ]));
 
-	public function testEncryptDecrypt(){
-		$oApplicationToken = $this->CreateUserToken();
-		$oAuthentTokenService = new AuthentTokenService();
-		$sToken1 = $oAuthentTokenService->CreateNewToken($oApplicationToken);
+		//test decrypt
+		$oToken = $oAuthentTokenService->DecryptToken($sToken1);
+		$this->assertNotNull($oToken);
 
-		$aTokenFields = $oAuthentTokenService->DecryptToken($sToken1);
-		$oToken = $oAuthentTokenService->GetToken($aTokenFields);
+		//test decrypt with 3.1 alpha/saas format decrypt
+		$sToken1 = $this->InvokeNonPublicMethod(AuthentTokenService::class , "CreateLegacyNewToken", $oAuthentTokenService, [$oToken]);
+		var_dump((['old token format length' => strlen($sToken1) ]));
+		var_dump((['old format' => $sToken1 ]));
+		$oToken = $oAuthentTokenService->DecryptToken($sToken1);
 		$this->assertNotNull($oToken);
 	}
 
-	public function testLegacyEncryptDecrypt(){
-		$oApplicationToken = $this->CreateUserToken();
-
-		$aLegacyToken = [
-			AuthentTokenService::LEGACY_TOKEN_ID     => $oApplicationToken->GetKey(),
-			AuthentTokenService::LEGACY_TOKEN_CLASS => get_class($oApplicationToken),
-			AuthentTokenService::TOKEN_SALT => random_int(0, 1000000),
+	public function GetLegacyTokenProvider(){
+		return [
+			'not an array' => [ 'sToken' => "xxx" ],
+			'an array without id' => [ 'sToken' => json_encode(["c" => 'PersonalToken'])],
+			'an array without class' => [ 'sToken' => json_encode(["i" => 1])],
+			'an array with class not a class' => [ 'sToken' => json_encode(["i" => 1, "c" => "Toto"]) ],
+			'an array with class not a token' => [ 'sToken' => json_encode(["i" => 1, "c" => AuthentTokenService::class]) ],
+			'an array with id not an integer' => [ 'sToken' => json_encode(["i" => "a", "c" => \PersonalToken::class]) ],
+			'PersonalToken' => [ 'sToken' => json_encode(["i" => 2, "c" => \PersonalToken::class]), 'bIsNull' => false, 'sExpectedClass' => \PersonalToken::class, 'sExpectedId' =>2 ],
+			'UserToken' => [ 'sToken' => json_encode(["i" => 1, "c" => \UserToken::class]), 'bIsNull' => false, 'sExpectedClass' => \UserToken::class, 'sExpectedId' => 1 ],
 		];
+	}
 
-		$oAuthentTokenService = new AuthentTokenService();
-		$sPPrivateKey = $this->InvokeNonPublicMethod(AuthentTokenService::class , "GetPrivateKey", $oAuthentTokenService, []);
-		$oCrypt = $this->InvokeNonPublicMethod(AuthentTokenService::class , "GetSimpleCryptObject", $oAuthentTokenService, []);
-		$sToken1 = bin2hex($oCrypt->Encrypt($sPPrivateKey, json_encode($aLegacyToken)));
+	/**
+	 * @dataProvider GetLegacyTokenProvider
+	 */
+	public function testGetLegacyToken($sToken, $bIsNull=true, $sExpectedClass=null, $sExpectedId=null){
+		$oMetaModelService = $this->createMock(MetaModelService::class);
+		$oAuthentTokenService = new AuthentTokenService($oMetaModelService);
 
-		$aTokenFields = $oAuthentTokenService->DecryptToken($sToken1);
-		$oToken = $oAuthentTokenService->GetToken($aTokenFields);
-		$this->assertNotNull($oToken);
+		if ($bIsNull){
+			$oMetaModelService->expects($this->never())->method('GetObject');
+			$this->assertNull($oAuthentTokenService->GetLegacyToken($sToken));
+		} else {
+			$oMetaModelService->expects($this->once())->method('GetObject')->with($sExpectedClass, $sExpectedId, true, false, null);
+			$oAuthentTokenService->GetLegacyToken($sToken);
+		}
+	}
+
+	public function GetTokenProvider(){
+		return [
+			'not enough separators 1' => [ 'sToken' => "xxx" ],
+			'not enough separators 2' => [ 'sToken' => "xxx:" ],
+			'id not an integer' => [ 'sToken' => "aa:PersonalToken:vorhgiorh" ],
+			'class not a class' => [ 'sToken' => "1:Toto:vorhgiorh" ],
+			'class not a token' => [ 'sToken' => "1:" . AuthentTokenService::class . ":vorhgiorh" ],
+			'PersonalToken' => [ 'sToken' => "1:" . \PersonalToken::class . ":vorhgiorh", 'bIsNull' => false, 'sExpectedClass' => \PersonalToken::class, 'sExpectedId' => 1 ],
+			'UserToken' => [ 'sToken' => "2:" . UserToken::class . ":vorhgiorh", 'bIsNull' => false, 'sExpectedClass' => \UserToken::class, 'sExpectedId' => 2 ],
+			'UserToken + a separator inside salt' => [ 'sToken' => "2:" . UserToken::class. ":vorh:giorh", 'bIsNull' => false, 'sExpectedClass' => \UserToken::class, 'sExpectedId' => 2 ],
+		];
+	}
+
+	/**
+	 * @dataProvider GetTokenProvider
+	 */
+	public function testGetToken($sToken, $bIsNull=true, $sExpectedClass=null, $sExpectedId=null){
+		$oMetaModelService = $this->createMock(MetaModelService::class);
+		$oAuthentTokenService = new AuthentTokenService($oMetaModelService);
+
+		if ($bIsNull){
+			$oMetaModelService->expects($this->never())->method('GetObject');
+			$this->assertNull($oAuthentTokenService->GetToken($sToken));
+		} else {
+			$oMetaModelService->expects($this->once())->method('GetObject')->with($sExpectedClass, $sExpectedId, true, false, null);
+			$oAuthentTokenService->GetToken($sToken);
+		}
 	}
 }

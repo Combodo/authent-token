@@ -2,6 +2,7 @@
 
 namespace Combodo\iTop\AuthentToken\Service;
 
+use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Model\iToken;
 use DBObject;
 use DBProperty;
@@ -24,6 +25,7 @@ class AuthentTokenService {
 	}
 
 	/**
+	 * N°5921: decrypt both short and old big token format
 	 * @param $sToken
 	 *
 	 * @return array|mixed
@@ -41,12 +43,22 @@ class AuthentTokenService {
 			if (! is_null($oToken)){
 				return $oToken;
 			}
-		} catch(\Exception $e){}
+		} catch(\Exception $e){
+			if (MetaModel::GetConfig()->Get('login_debug')){
+				TokenAuthLog::Debug("DecryptToken could not decrypt or base64_decode token.");
+			}
+		}
 
-		$sDecryptedToken = $oCrypt->Decrypt($sPrivateKey, hex2bin($sToken));
-		$oToken = $this->GetLegacyToken($sDecryptedToken);
-		if (! is_null($oToken)){
-			return $oToken;
+		try{
+			$sDecryptedToken = $oCrypt->Decrypt($sPrivateKey, hex2bin($sToken));
+			$oToken = $this->GetLegacyToken($sDecryptedToken);
+			if (! is_null($oToken)){
+				return $oToken;
+			}
+		} catch(\Exception $e){
+			if (MetaModel::GetConfig()->Get('login_debug')){
+				TokenAuthLog::Debug("DecryptToken (legacy) could not decrypt or hex2bin token.");
+			}
 		}
 
 		return null;
@@ -59,8 +71,13 @@ class AuthentTokenService {
 
 	public function GetToken(string $sDecryptedToken) : ?iToken
 	{
+		$bLoginDebug = MetaModel::GetConfig()->Get('login_debug');
+
 		$aFields = explode(':', $sDecryptedToken);
 		if (count($aFields) < 2){
+			if ($bLoginDebug){
+				TokenAuthLog::Debug("GetToken not enough separators.", null, [ 'sDecryptedToken' => $sDecryptedToken ]);
+			}
 			return null;
 		}
 
@@ -68,6 +85,9 @@ class AuthentTokenService {
 		$sClassName = $aFields[1];
 
 		if ( ! preg_match('/^\d+$/', $sId) ) {
+			if ($bLoginDebug){
+				TokenAuthLog::Debug("GetToken id not an iTop key.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sId' => $sId ]);
+			}
 			return null;
 		}
 
@@ -76,7 +96,14 @@ class AuthentTokenService {
 			if ($oReflectionClass->implementsInterface(iToken::class)){
 				return $this->oMetaModelService->GetObject($sClassName, $sId);
 			}
+
+			if ($bLoginDebug){
+				TokenAuthLog::Debug("GetToken class not an iToken interface.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sClassName' => $sClassName ]);
+			}
 		} catch(\ReflectionException $e){
+			if ($bLoginDebug){
+				TokenAuthLog::Debug("GetToken class not  real class.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sClassName' => $sClassName ]);
+			}
 		}
 
 		return null;
@@ -84,8 +111,13 @@ class AuthentTokenService {
 
 	public function GetLegacyToken(string $sDecryptedToken) : ?iToken
 	{
+		$bLoginDebug = MetaModel::GetConfig()->Get('login_debug');
+
 		$aTokenData = json_decode($sDecryptedToken, true);
 		if (! is_array($aTokenData)){
+			if ($bLoginDebug){
+				TokenAuthLog::Debug("GetLegacyToken not a proper json structure.", null, [ 'sDecryptedToken' => $sDecryptedToken ]);
+			}
 			return null;
 		}
 
@@ -93,10 +125,16 @@ class AuthentTokenService {
 		$sId = (array_key_exists(self::LEGACY_TOKEN_ID, $aTokenData)) ? $aTokenData[self::LEGACY_TOKEN_ID] : null;
 
 		if (is_null($sClassName) || is_null($sId)){
+			if ($bLoginDebug){
+				TokenAuthLog::Debug("GetLegacyToken missing class or id in json structure.", null, [ 'sDecryptedToken' => $sDecryptedToken ]);
+			}
 			return null;
 		}
 
 		if ( ! preg_match('/^\d+$/', $sId) ) {
+			if ($bLoginDebug){
+				TokenAuthLog::Debug("GetLegacyToken id not an iTop key.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sId' => $sId ]);
+			}
 			return null;
 		}
 
@@ -105,8 +143,14 @@ class AuthentTokenService {
 			if ($oReflectionClass->implementsInterface(iToken::class)) {
 				return $this->oMetaModelService->GetObject($sClassName, $sId);
 			}
-		}catch(\Exception $e){
 
+			if ($bLoginDebug){
+				TokenAuthLog::Debug("GetLegacyToken class not an iToken interface.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sClassName' => $sClassName ]);
+			}
+		}catch(\ReflectionException $e){
+			if ($bLoginDebug){
+				TokenAuthLog::Debug("GetLegacyToken class not  real class.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sClassName' => $sClassName ]);
+			}
 		}
 
 		return null;
@@ -126,7 +170,7 @@ class AuthentTokenService {
 	/**
 	 * for backward compatibility test only
 	 */
-	private function CreateLegacyNewToken(DBObject $oObject): string
+	private function CreateLegacyToken(DBObject $oObject): string
 	{
 		$aToken = [
 			self::LEGACY_TOKEN_ID     => $oObject->GetKey(),

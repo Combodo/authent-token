@@ -193,8 +193,8 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 	public static function GetToken($sToken) : iToken
 	{
 		$oService = new AuthentTokenService();
-		$oToken = $oService->DecryptToken($sToken);
 
+		$oToken = $oService->DecryptToken($sToken);
 		if (! is_null($oToken)) {
 			if (MetaModel::GetConfig()->Get('login_debug')){
 				TokenAuthLog::Info("GetToken", null, ["sTokenId" => $oToken->GetKey(), "sTokenClass" => get_class($oToken)]);

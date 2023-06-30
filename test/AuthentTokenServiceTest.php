@@ -34,7 +34,8 @@ class AuthentTokenServiceTest extends ItopDataTestCase {
 		$this->assertNotEquals($sToken1,$sToken2, "Make sure we always generate a new token value");
 
 		//make sure token can stored in AttributeEncryptedString for webhook extension
-		$this->assertTrue(strlen($sToken1) < 255);
+		//real limit is 255 but it is nice to have early notifications
+		$this->assertTrue(strlen($sToken1) < 200, "make sure token can stored in AttributeEncryptedString for webhook extension (real limit is 255 but it is nice to have early notifications)");
 		var_dump((['new token format length' => strlen($sToken1) ]));
 		var_dump((['new format length' => $sToken1 ]));
 
@@ -43,7 +44,7 @@ class AuthentTokenServiceTest extends ItopDataTestCase {
 		$this->assertNotNull($oToken);
 
 		//test decrypt with 3.1 alpha/saas format decrypt
-		$sToken1 = $this->InvokeNonPublicMethod(AuthentTokenService::class , "CreateLegacyNewToken", $oAuthentTokenService, [$oToken]);
+		$sToken1 = $this->InvokeNonPublicMethod(AuthentTokenService::class , "CreateLegacyToken", $oAuthentTokenService, [$oToken]);
 		var_dump((['old token format length' => strlen($sToken1) ]));
 		var_dump((['old format' => $sToken1 ]));
 		$oToken = $oAuthentTokenService->DecryptToken($sToken1);

@@ -129,8 +129,25 @@ $('#ibo-panel-ez-token').on('click', '.token-edit-button', function(){
 	$(button).prop('disabled', false);
 });
 
+function ReleaseObjectLock(token_id){
+	if (token_id == '0'){
+		//token creation no lock
+		return;
+	}
+
+	sOwnershipToken =  $('#modify_dialog').find('[name = "ownership_token"]').val();
+	sToken = '';
+	if (sOwnershipToken != undefined)
+	{
+		sToken = '&token='+sOwnershipToken;
+	}
+
+	releaseLockUrl = GetAbsoluteUrlAppRoot()+'pages/UI.php?operation=release_lock_and_details&class=PersonalToken&id='+token_id+sToken;
+	$.post(releaseLockUrl);
+}
+
 function DisplayEditionPopup(html, token_id){
-	this.dlg = $('<div id="modify_dialog" class="dialog"></div>');
+	this.dlg = $('<div id="modify_dialog" data-role="ibo-modal" class="dialog"></div>');
 	var modifyDialog = this.dlg;
 
 	var cloned_alert = $('#operation_fail_alert').clone();
@@ -139,15 +156,11 @@ function DisplayEditionPopup(html, token_id){
 	modifyDialog.html(cloned_alert);
 	modifyDialog.append(html);
 
-	modifyDialog.find('.cancel').remove();
-	modifyDialog.find('.action[type=submit]').remove();
-
 	var save_token_url = '{{Infos.save_token_link|raw}}';
 	current_form = modifyDialog.find('form');
 	current_form.on('submit',function(event){
 		/* stop form from submitting normally */
 		event.preventDefault();
-		/* get the action attribute from the <form action=""> element */
 		var $form = $(this);
 
 		if(CheckFields($form.attr('id'), false))
@@ -167,27 +180,11 @@ function DisplayEditionPopup(html, token_id){
 
 	modifyDialog.dialog( { width:'auto', height: 'auto', title: '', closeOnEscape: true, modal:true,
 		close: function () {
-			modifyDialog.remove();
-		},
-		buttons: [
-			{
-				id: "close_button",
-				text: "{{ 'UI:Button:Cancel'|dict_s }}",
-				click: function() {
-					window.bInSubmit = true;
-					modifyDialog.dialog('close');
-				}
-			}
-			,{
-				id: "save_button",
-				text: "{{ 'UI:Links:ActionRow:SaveToken'|dict_s }}",
-				class: "ibo-is-primary",
-				click: function() {
-					window.bInSubmit = true;
-					current_form.submit();
-				}
-			}
-		],
+			//release lock
+			ReleaseObjectLock(token_id);
+			modifyDialog.dialog('close');
+			modifyDialog.dialog('destroy');
+		}
 	});
 
 	//hide datamodel tab

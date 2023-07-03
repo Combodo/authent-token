@@ -11,31 +11,57 @@ use ormPassword;
 use SimpleCrypt;
 
 class AuthentTokenService {
-	const TOKEN_APPLICATION_NAME     = 'a';
-	const TOKEN_ID     = 'i';
-	const TOKEN_CLASS     = 'c';
-	const TOKEN_SALT     = 's';
+	const LEGACY_TOKEN_CLASS     = 'c';
+	const LEGACY_TOKEN_ID     = 'i';
+	const LEGACY_TOKEN_SALT     = 's';
 	const PRIVATE_KEY    = 'authent-token-priv-key';
 
+	/** @var \Combodo\iTop\AuthentToken\Service\MetaModelService $oMetaModelService */
+	private $oMetaModelService;
+
+	public function __construct(?MetaModelService $oMetaModelService=null)
+	{
+		$this->oMetaModelService = is_null($oMetaModelService) ? new MetaModelService() : $oMetaModelService;
+	}
+
 	/**
+	 * N°5921: decrypt both short and old big token format
 	 * @param $sToken
 	 *
 	 * @return array|mixed
 	 * @throws \CoreException
 	 * @throws \MySQLException
 	 */
-	public function DecryptToken($sToken)
+	public function DecryptToken($sToken) : ?iToken
 	{
 		$sPrivateKey = $this->GetPrivateKey();
 		$oCrypt = $this->GetSimpleCryptObject();
 
-		$sJson = $oCrypt->Decrypt($sPrivateKey, hex2bin($sToken));
-		$aTokenData = json_decode($sJson, true);
-		if (! is_array($aTokenData)){
-			TokenAuthLog::Error(sprintf("Cannot decrypt json token structure (%s)", $aTokenData));
+		try{
+			$sDecryptedToken = $oCrypt->Decrypt($sPrivateKey, base64_decode($sToken, true));
+			$oToken = $this->GetToken($sDecryptedToken);
+			if (! is_null($oToken)){
+				return $oToken;
+			}
+		} catch(\Exception $e){
+			if (MetaModel::GetConfig()->Get('login_debug')){
+				TokenAuthLog::Debug("DecryptToken could not decrypt or base64_decode token.");
+			}
 		}
 
-		return $aTokenData;
+		try{
+			$sDecryptedToken = $oCrypt->Decrypt($sPrivateKey, hex2bin($sToken));
+			$oToken = $this->GetLegacyToken($sDecryptedToken);
+			if (! is_null($oToken)){
+				return $oToken;
+			}
+		} catch(\Exception $e){
+			if (MetaModel::GetConfig()->Get('login_debug')){
+				TokenAuthLog::Debug("DecryptToken (legacy) could not decrypt or hex2bin token.");
+			}
+		}
+
+		return null;
 	}
 
 	private function GetSimpleCryptObject() : SimpleCrypt
@@ -43,19 +69,113 @@ class AuthentTokenService {
 		return new SimpleCrypt(MetaModel::GetConfig()->GetEncryptionLibrary());
 	}
 
-	public function GetToken(array $aTokenFields) : iToken
+	public function GetToken(string $sDecryptedToken) : ?iToken
 	{
-		$sClass = $aTokenFields[self::TOKEN_CLASS];
-		$sId = $aTokenFields[self::TOKEN_ID];
-		return MetaModel::GetObject($sClass, $sId);
+		$bLoginDebug = MetaModel::GetConfig()->Get('login_debug');
+
+		$aFields = explode(':', $sDecryptedToken);
+		if (count($aFields) < 2){
+			if ($bLoginDebug){
+				TokenAuthLog::Debug("GetToken not enough separators.", null, [ 'sDecryptedToken' => $sDecryptedToken ]);
+			}
+			return null;
+		}
+
+		$sId = $aFields[0];
+		$sClassName = $aFields[1];
+
+		if ( ! preg_match('/^\d+$/', $sId) ) {
+			if ($bLoginDebug){
+				TokenAuthLog::Debug("GetToken id not an iTop key.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sId' => $sId ]);
+			}
+			return null;
+		}
+
+		try{
+			$oReflectionClass = new \ReflectionClass($sClassName);
+			if ($oReflectionClass->implementsInterface(iToken::class)){
+				return $this->oMetaModelService->GetObject($sClassName, $sId);
+			}
+
+			if ($bLoginDebug){
+				TokenAuthLog::Debug("GetToken class not an iToken interface.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sClassName' => $sClassName ]);
+			}
+		} catch(\ReflectionException $e){
+			if ($bLoginDebug){
+				TokenAuthLog::Debug("GetToken class not  real class.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sClassName' => $sClassName ]);
+			}
+		}
+
+		return null;
+	}
+
+	public function GetLegacyToken(string $sDecryptedToken) : ?iToken
+	{
+		$bLoginDebug = MetaModel::GetConfig()->Get('login_debug');
+
+		$aTokenData = json_decode($sDecryptedToken, true);
+		if (! is_array($aTokenData)){
+			if ($bLoginDebug){
+				TokenAuthLog::Debug("GetLegacyToken not a proper json structure.", null, [ 'sDecryptedToken' => $sDecryptedToken ]);
+			}
+			return null;
+		}
+
+		$sClassName = (array_key_exists(self::LEGACY_TOKEN_CLASS, $aTokenData)) ? $aTokenData[self::LEGACY_TOKEN_CLASS] : null;
+		$sId = (array_key_exists(self::LEGACY_TOKEN_ID, $aTokenData)) ? $aTokenData[self::LEGACY_TOKEN_ID] : null;
+
+		if (is_null($sClassName) || is_null($sId)){
+			if ($bLoginDebug){
+				TokenAuthLog::Debug("GetLegacyToken missing class or id in json structure.", null, [ 'sDecryptedToken' => $sDecryptedToken ]);
+			}
+			return null;
+		}
+
+		if ( ! preg_match('/^\d+$/', $sId) ) {
+			if ($bLoginDebug){
+				TokenAuthLog::Debug("GetLegacyToken id not an iTop key.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sId' => $sId ]);
+			}
+			return null;
+		}
+
+		try {
+			$oReflectionClass = new \ReflectionClass($sClassName);
+			if ($oReflectionClass->implementsInterface(iToken::class)) {
+				return $this->oMetaModelService->GetObject($sClassName, $sId);
+			}
+
+			if ($bLoginDebug){
+				TokenAuthLog::Debug("GetLegacyToken class not an iToken interface.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sClassName' => $sClassName ]);
+			}
+		}catch(\ReflectionException $e){
+			if ($bLoginDebug){
+				TokenAuthLog::Debug("GetLegacyToken class not  real class.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sClassName' => $sClassName ]);
+			}
+		}
+
+		return null;
 	}
 
 	public function CreateNewToken(DBObject $oObject): string
 	{
+		$sTokenBeforeEncryption = sprintf("%s:%s:%s",
+			$oObject->GetKey(), get_class($oObject), random_bytes(8)
+		);
+
+		$sPPrivateKey = $this->GetPrivateKey();
+		$oCrypt = $this->GetSimpleCryptObject();
+		return base64_encode($oCrypt->Encrypt($sPPrivateKey, $sTokenBeforeEncryption));
+	}
+
+	/**
+	 * for backward compatibility test only
+	 */
+	private function CreateLegacyToken(DBObject $oObject): string
+	{
 		$aToken = [
-			self::TOKEN_ID     => $oObject->GetKey(),
-			self::TOKEN_CLASS     => get_class($oObject),
-			self::TOKEN_SALT => bin2hex(random_bytes(8)),
+			self::LEGACY_TOKEN_ID     => $oObject->GetKey(),
+			self::LEGACY_TOKEN_CLASS     => get_class($oObject),
+			self::LEGACY_TOKEN_SALT => bin2hex(random_bytes(8)),
 		];
 
 		$sPPrivateKey = $this->GetPrivateKey();

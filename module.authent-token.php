@@ -5,7 +5,7 @@
 
 SetupWebPage::AddModule(
 	__FILE__, // Path to the current file, all other file names are relative to the directory containing this file
-	'authent-token/2.1.0-dev',
+	'authent-token/2.1.0',
 	array(
 		// Identification
 		//

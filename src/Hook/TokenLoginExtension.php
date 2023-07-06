@@ -75,7 +75,8 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 		}
 
 		$sSessionLoginMode = Session::Get('login_mode');
-		if (strlen(self::$sAuthToken) === 0)
+		// Note: We don't use \utils::IsNullOrEmptyString() as it is not available in iTop 2.7
+		if (strlen(self::$sAuthToken ?? '') === 0)
 		{
 			if ($this->IsLoginModeSupported($sSessionLoginMode)){
 				//login_mode forced and no token. exit to stop login automata

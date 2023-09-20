@@ -66,23 +66,30 @@ abstract class AbstractApplicationToken extends UserInternal implements iToken
 
 	public function DisplayDetails(WebPage $oPage, $bEditMode = false)
 	{
+		//N°6452 - Auto-lock: 2 regenerate buttons
+		static $bBlockReentrance = false;
+
 		parent::DisplayDetails($oPage, $bEditMode);
 		$oPage->SetCurrentTab('UI:PropertiesTab');
 
-		if (version_compare(ITOP_DESIGN_LATEST_VERSION, '2.7', '<=')) {
-			$sButtonLabel = Dict::S('AuthentToken:RebuildToken');
-			$sHtml = <<<HTML
+		if ($bBlockReentrance === false) {
+			$bBlockReentrance = true;
+
+			if (version_compare(ITOP_DESIGN_LATEST_VERSION, '2.7', '<=')) {
+				$sButtonLabel = Dict::S('AuthentToken:RebuildToken');
+				$sHtml = <<<HTML
 <form method="post">
 	<button type="submit" name="rebuild_Token" value="1">{$sButtonLabel}</button>
 </form>
 HTML;
-			$oPage->add($sHtml);
-		} else {
-			$oForm = FormUIBlockFactory::MakeStandard();
-			$oButton = ButtonUIBlockFactory::MakeForDestructiveAction(Dict::S('AuthentToken:RebuildToken'), 'rebuild_Token', 1, true);
-			$oButton->SetTooltip(Dict::S('AuthentToken:RebuildToken+'));
-			$oForm->AddSubBlock($oButton);
-			$oPage->AddSubBlock($oForm);
+				$oPage->add($sHtml);
+			} else {
+				$oForm = FormUIBlockFactory::MakeStandard();
+				$oButton = ButtonUIBlockFactory::MakeForDestructiveAction(Dict::S('AuthentToken:RebuildToken'), 'rebuild_Token', 1, true);
+				$oButton->SetTooltip(Dict::S('AuthentToken:RebuildToken+'));
+				$oForm->AddSubBlock($oButton);
+				$oPage->AddSubBlock($oForm);
+			}
 		}
 	}
 

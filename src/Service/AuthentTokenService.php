@@ -45,11 +45,12 @@ class AuthentTokenService {
 			}
 		} catch(\Exception $e){
 			if (MetaModel::GetConfig()->Get('login_debug')){
-				TokenAuthLog::Debug("DecryptToken could not decrypt or base64_decode token.");
+				TokenAuthLog::Debug("DecryptToken could not decrypt or base64_decode token.", null, [ 'exception_message' => $e->getMessage() ]);
 			}
 		}
 
 		try{
+			$oCrypt = new SimpleCrypt();
 			$sDecryptedToken = $oCrypt->Decrypt($sPrivateKey, hex2bin($sToken));
 			$oToken = $this->GetLegacyToken($sDecryptedToken);
 			if (! is_null($oToken)){
@@ -57,7 +58,7 @@ class AuthentTokenService {
 			}
 		} catch(\Exception $e){
 			if (MetaModel::GetConfig()->Get('login_debug')){
-				TokenAuthLog::Debug("DecryptToken (legacy) could not decrypt or hex2bin token.");
+				TokenAuthLog::Debug("DecryptToken (legacy) could not decrypt or hex2bin token.", null, [ 'exception_message' => $e->getMessage() ]);
 			}
 		}
 
@@ -179,7 +180,7 @@ class AuthentTokenService {
 		];
 
 		$sPPrivateKey = $this->GetPrivateKey();
-		$oCrypt = $this->GetSimpleCryptObject();
+		$oCrypt = new SimpleCrypt();
 		return bin2hex($oCrypt->Encrypt($sPPrivateKey, json_encode($aToken)));
 	}
 

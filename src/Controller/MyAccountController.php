@@ -191,7 +191,21 @@ class MyAccountController extends Controller{
 
 			$oPage = new AjaxPage('');
 			$oToken->SetCanEditUserId(false);
-			$oToken->DisplayModifyForm($oPage);
+
+			$sOnCancelJs = <<<JS
+				function() {	
+					$(this).closest('[data-role="ibo-modal"]').dialog('close');
+				};
+JS;
+
+			$aExtraParams = [
+				'custom_button' => Dict::S('UI:Links:ActionRow:SaveToken'),
+				'js_handlers' => [
+					'cancel_button_on_click' =>
+						$sOnCancelJs
+				]
+			];
+			$oToken->DisplayModifyForm($oPage, $aExtraParams);
 			$oPage->output();
 		} catch (\Exception $e){
 			TokenAuthLog::Error("Cannot edit token: " + $e->getMessage());
@@ -219,6 +233,16 @@ class MyAccountController extends Controller{
 
 			$oToken = $this->FetchToken($oUser, $sTokenId);
 			$this->SaveToken($oUser, $oToken);
+
+			$bLockEnabled = MetaModel::GetConfig()->Get('concurrent_lock_enabled');
+			if ($bLockEnabled) {
+				// Release the concurrent lock, if any
+				$sOwnershipToken = utils::ReadPostedParam('ownership_token', null, 'raw_data');
+				if ($sOwnershipToken !== null) {
+					// We're done, let's release the lock
+					\iTopOwnershipLock::ReleaseLock(get_class($oToken), $oToken->GetKey(), $sOwnershipToken);
+				}
+			}
 		} catch (\Exception $e){
 			TokenAuthLog::Error("Cannot modify token: " + $e->getMessage());
 			$this->DisplayJSONPage(['result' => 'error'], 200);

@@ -15,14 +15,9 @@ use UserToken;
 
 
 /**
- * @mark
  * @group itopRequestMgmt
  * @group multiTokenRestApi
  * @group defaultProfiles
- *
- * @runTestsInSeparateProcesses
- * @preserveGlobalState disabled
- * @backupGlobals disabled
  */
 class ApplicationTokenRestTest extends AbstractTokenRestTest
 {

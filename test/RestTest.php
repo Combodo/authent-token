@@ -9,10 +9,6 @@ use MetaModel;
  * @group itopRequestMgmt
  * @group multiTokenRestApi
  * @group defaultProfiles
- *
- * @runTestsInSeparateProcesses
- * @preserveGlobalState disabled
- * @backupGlobals disabled
  */
 class RestTest extends AbstractRestTest
 {
@@ -34,7 +30,7 @@ class RestTest extends AbstractRestTest
 			}
 		}
 	}
-	
+
 	protected function GetPostParameters($sContext=null){
 		return [
 			'version' => '1.3',

@@ -9,9 +9,6 @@ use MetaModel;
 
 /**
  * @myaccount
- * @runTestsInSeparateProcesses
- * @preserveGlobalState disabled
- * @backupGlobals disabled
  */
 class MyAccountControllerTest  extends ItopDataTestCase {
 	protected function setUp(): void {

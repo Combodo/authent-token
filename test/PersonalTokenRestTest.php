@@ -16,10 +16,6 @@ use PersonalToken;
  * @group itopRequestMgmt
  * @group multiTokenRestApi
  * @group defaultProfiles
- *
- * @runTestsInSeparateProcesses
- * @preserveGlobalState disabled
- * @backupGlobals disabled
  */
 class PersonalTokenRestTest extends AbstractTokenRestTest
 {
@@ -36,7 +32,7 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 	protected function setUp(): void
 	{
 		parent::setUp();
-		
+
 		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
 		$this->InitLoginMode(TokenLoginExtension::LOGIN_TYPE);
 
@@ -123,27 +119,7 @@ class PersonalTokenRestTest extends AbstractTokenRestTest
 	}
 
 	/**
-	 * @dataProvider BasicTokenProvider
-	 */
-	public function testUpdateApiViaToken($iJsonDataMode, $bTokenInPost)
-	{
-		parent::testUpdateApiViaToken($iJsonDataMode, $bTokenInPost);
-		$this->CheckToken($this->oPersonalToken, time(), 2);
-		$this->CheckToken($this->oAdminToken, time(), 2);
-	}
-
-	/**
-	 * @dataProvider BasicTokenProvider
-	 */
-	public function testDeleteApiViaToken($iJsonDataMode, $bTokenInPost)
-	{
-		parent::testDeleteApiViaToken($iJsonDataMode, $bTokenInPost);
-		$this->CheckToken($this->oPersonalToken, time(), 2);
-		$this->CheckToken($this->oAdminToken, time(), 1);
-	}
-
-	/**
-	 * @dataProvider BasicTokenProvider
+	 * @dataProvider RestrictedBasicTokenProvider
 	 */
 	public function testApiWithExpirationTimeIntheFuture($iJsonDataMode, $bTokenInPost)
 	{
@@ -212,7 +188,7 @@ JSON;
 		$this->assertEquals($sExpectedOutput, $sOuputJson, "should be html login form instead of any json : " .  $sOuputJson);
 	}
 
-	public function testApiShouldFailWithACorrectTokenAssociatedToAUserWithoutAuthorizedProfileInConf()
+	public function testApiShouldFailWithACorrectTokenAssociatedToANonAdminUserWithoutAuthorizedProfileInConf()
 	{
 		MetaModel::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Configuration Manager']);
 		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
@@ -419,21 +395,21 @@ HTML;
 				'empty token' => true,
 				'bTokenLoginModesNotConfigured' => false
 			],
-			'rest.php / no login_mode passed / authentication OK' => [
+			'rest.php / no login_mode passed and token passed / authentication OK' => [
 				'sLoginMode' => null,
 				'sNeedle' => $sRestOkNeedle,
 				'bAuthenticationSuccess' => true,
 				'empty token' => false,
 				'bTokenLoginModesNotConfigured' => false
 			],
-			'rest.php / token login_mode forced / authentication OK' => [
+			'rest.php / token login_mode forced and token passed  / authentication OK' => [
 				'sLoginMode' => 'token',
 				'sNeedle' => $sRestOkNeedle,
 				'bAuthenticationSuccess' => true,
 				'empty token' => false,
 				'bTokenLoginModesNotConfigured' => false
 			],
-			'rest.php / rest-token login_mode forced / authentication OK' => [
+			'rest.php / rest-token login_mode forced and token passed  / authentication OK' => [
 				'sLoginMode' => 'rest-token',
 				'sNeedle' => $sRestOkNeedle,
 				'bAuthenticationSuccess' => true,

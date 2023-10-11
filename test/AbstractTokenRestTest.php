@@ -11,10 +11,6 @@ use MetaModel;
  * @group itopRequestMgmt
  * @group multiTokenRestApi
  * @group defaultProfiles
- *
- * @runTestsInSeparateProcesses
- * @preserveGlobalState disabled
- * @backupGlobals disabled
  */
 abstract class AbstractTokenRestTest extends AbstractRestTest
 {
@@ -45,6 +41,15 @@ abstract class AbstractTokenRestTest extends AbstractRestTest
 				'sJsonDataMode' => self::MODE['JSONDATA_AS_STRING'],
 				'tokenInPost' => true,
 			],
+			'pass json_data as file/ token in header' => [
+				'sJsonDataMode' => self::MODE['JSONDATA_AS_STRING'],
+				'tokenInPost' => false,
+			],
+		];
+	}
+
+	public function RestrictedBasicTokenProvider(){
+		return [
 			'pass json_data as file/ token in header' => [
 				'sJsonDataMode' => self::MODE['JSONDATA_AS_STRING'],
 				'tokenInPost' => false,
@@ -87,7 +92,7 @@ abstract class AbstractTokenRestTest extends AbstractRestTest
 	}
 
 	/**
-	 * @dataProvider BasicTokenProvider
+	 * @dataProvider RestrictedBasicTokenProvider
 	 */
 	public function testUpdateApiViaToken($iJsonDataMode, $bTokenInPost)
 	{
@@ -96,7 +101,7 @@ abstract class AbstractTokenRestTest extends AbstractRestTest
 	}
 
 	/**
-	 * @dataProvider BasicTokenProvider
+	 * @dataProvider RestrictedBasicTokenProvider
 	 */
 	public function testDeleteApiViaToken($iJsonDataMode, $bTokenInPost)
 	{

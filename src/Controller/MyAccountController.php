@@ -499,7 +499,8 @@ JS;
 
 		$oBlockRenderer = new BlockRenderer($oToolbar);
 
-		$sDeletionLabel = Dict::Format("AuthentToken:Message:DeleteTokenConfirmation", $oToken->Get('application'));
+		// Double escape 'application' to prevent from XSS, there's also HTML markup in AuthentToken:Message:DeleteTokenConfirmation dict entry that needs to be escaped.
+		$sDeletionLabel = utils::HtmlEntities(Dict::Format("AuthentToken:Message:DeleteTokenConfirmation", utils::HtmlEntities($oToken->Get('application'))));
 		$sTokenId = $oToken->GetKey();
 		$sRowHtml = str_replace('data-role="ibo-button"',
 			sprintf('data-role="ibo-button" data-token-id="%s" data-deletion-label="%s"', $sTokenId, $sDeletionLabel),

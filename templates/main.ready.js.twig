@@ -23,7 +23,7 @@ $datatableTokens.on('click', '.token-refresh-button', function(){
 			{
 				refresh_alert_fail.addClass('ibo-is-hidden');
 				refresh_alert_ok.find('.ibo-alert--body').html(data.message);
-				refresh_alert_ok.find('.ibo-alert--title').html(data.title);
+				refresh_alert_ok.find('.ibo-alert--title').text(data.title);
 
 				refresh_alert_ok.removeClass('ibo-is-hidden');
 			}

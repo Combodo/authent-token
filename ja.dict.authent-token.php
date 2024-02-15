@@ -8,7 +8,7 @@ Dict::Add('JA JP', 'Japanese', '日本語', [
 	'AuthentToken:CopyToken' => 'The credentials you have to provide are:<p>auth_token=<a>%1$s</a></p>Copy them now, you won\'t be able to get them later!~~',
 	'AuthentToken:RebuildToken' => 'Rebuild token~~',
 	'AuthentToken:RebuildToken+' => 'The authentification token will be recreated, BEWARE the previous one will be lost~~',
-	'Class:UserToken' => 'Token based user~~',
+	'Class:UserToken' => 'Application Token~~',
 	'Class:UserToken/Attribute:login' => 'Remote application~~',
 	'Class:UserToken/Attribute:login+' => 'Remote application identification string~~',
 	'UI:MyAccount' => 'My Account~~',
@@ -33,9 +33,9 @@ Dict::Add('JA JP', 'Japanese', '日本語', [
 //
 
 Dict::Add('JA JP', 'Japanese', '日本語', array(
-	'Class:PersonalToken' => 'PersonalToken~~',
+	'Class:PersonalToken' => 'Personal Token~~',
 	'Class:PersonalToken+' => '~~',
-	'Class:PersonalToken/Attribute:user_id' => 'User id~~',
+	'Class:PersonalToken/Attribute:user_id' => 'User~~',
 	'Class:PersonalToken/Attribute:user_id+' => '~~',
 	'Class:PersonalToken/Attribute:auth_token' => 'Auth token~~',
 	'Class:PersonalToken/Attribute:auth_token+' => '~~',

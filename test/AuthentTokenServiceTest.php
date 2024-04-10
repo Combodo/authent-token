@@ -36,8 +36,8 @@ class AuthentTokenServiceTest extends ItopDataTestCase {
 		//make sure token can stored in AttributeEncryptedString for webhook extension
 		//real limit is 255 but it is nice to have early notifications
 		$this->assertTrue(strlen($sToken1) < 200, "make sure token can stored in AttributeEncryptedString for webhook extension (real limit is 255 but it is nice to have early notifications)");
-		var_dump((['new token format length' => strlen($sToken1) ]));
-		var_dump((['new format length' => $sToken1 ]));
+		var_dump(['Token length' => strlen($sToken1), 'Token' => $sToken1 ]);
+
 
 		//test decrypt
 		$oToken = $oAuthentTokenService->DecryptToken($sToken1);
@@ -50,18 +50,29 @@ class AuthentTokenServiceTest extends ItopDataTestCase {
 
 		$oAuthentTokenService = new AuthentTokenService();
 		$sToken1 = $oAuthentTokenService->CreateNewToken($oApplicationToken);
-		var_dump((['new token format length' => strlen($sToken1) ]));
-		var_dump((['new format length' => $sToken1 ]));
+		var_dump(['Token length' => strlen($sToken1), 'Token' => $sToken1 ]);
 
 		$oToken = $oAuthentTokenService->DecryptToken($sToken1);
 		$this->assertNotNull($oToken);
 
+		$bFailed = false;
 		for ($i = 1; $i <= 16; $i++) {
 			$sTruncatedToken = substr($sToken1, 0, -$i);
 			//test decrypt fail
 			$oToken = $oAuthentTokenService->DecryptToken($sTruncatedToken);
-			$this->assertNull($oToken, 'The truncated token must not be decoded');
+			if (!is_null($oToken)) {
+				$bFailed = true;
+				$aTrace = ['Token length' => strlen($sTruncatedToken), 'Token' => $sTruncatedToken];
+				$sPrivateKey = $this->InvokeNonPublicMethod(get_class($oAuthentTokenService), 'GetPrivateKey', $oAuthentTokenService);
+				$aTrace['Private key'] = $sPrivateKey;
+				$aTrace['Encryption'] = MetaModel::GetConfig()->GetEncryptionLibrary();
+				$oCrypt = $this->InvokeNonPublicMethod(get_class($oAuthentTokenService), 'GetSimpleCryptObject', $oAuthentTokenService);
+				$sDecryptedToken = $oCrypt->Decrypt($sPrivateKey, base64_decode($sTruncatedToken, true));
+				$aTrace['Decrypted'] = $sDecryptedToken;
+				var_dump($aTrace);
+			}
 		}
+		$this->assertFalse($bFailed, 'The truncated token must not be decoded');
 	}
 
 	public function GetLegacyTokenProvider(){

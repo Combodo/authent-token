@@ -1,10 +1,12 @@
 <?php
 
 namespace Combodo\iTop\AuthentToken\Hook;
+
 use AbstractApplicationToken;
 use AbstractLoginFSMExtension;
 use Combodo\iTop\Application\Helper\Session;
 use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
+use Combodo\iTop\AuthentToken\Helper\TokenAuthConfig;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Model\iToken;
 use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
@@ -115,6 +117,9 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 			catch(\Exception $e)
 			{
 				TokenAuthLog::Error("OnCheckCredentials: " . $e->getMessage());
+				Session::Unset('token_id');
+				Session::Unset('token_class');
+
 				$iErrorCode = LoginWebPage::EXIT_CODE_WRONGCREDENTIALS;
 				return LoginWebPage::LOGIN_FSM_ERROR;
 			}
@@ -205,13 +210,16 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 			return $oToken;
 		}
 
-		$oToken = AbstractApplicationToken::GetUserLegacy($sToken);
-		if (! is_null($oToken)){
-			if (MetaModel::GetConfig()->Get('login_debug')){
-				TokenAuthLog::Info("GetToken (legacy)", null, ["sTokenId" => $oToken->GetKey(), "sTokenClass" => get_class($oToken)]);
+		if (TokenAuthConfig::GetInstance()->GetBoolean('allow_fallback_token', 'application_token', false)) {
+			$oToken = AbstractApplicationToken::GetUserLegacy($sToken);
+			if (!is_null($oToken)) {
+				if (MetaModel::GetConfig()->Get('login_debug')) {
+					TokenAuthLog::Info("GetToken (legacy)", null, ["sTokenId" => $oToken->GetKey(), "sTokenClass" => get_class($oToken)]);
+				}
+				$oToken->CheckValidity($sToken);
+
+				return $oToken;
 			}
-			$oToken->CheckValidity($sToken);
-			return $oToken;
 		}
 
 		// Not decrypted

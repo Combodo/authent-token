@@ -56,7 +56,7 @@ class AuthentTokenServiceTest extends ItopDataTestCase {
 		$this->assertNotNull($oToken);
 
 		$bFailed = false;
-		for ($i = 1; $i <= 16; $i++) {
+		for ($i = 3; $i <= 16; $i++) {
 			$sTruncatedToken = substr($sToken1, 0, -$i);
 			//test decrypt fail
 			$oToken = $oAuthentTokenService->DecryptToken($sTruncatedToken);

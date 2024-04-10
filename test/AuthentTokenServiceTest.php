@@ -26,9 +26,6 @@ class AuthentTokenServiceTest extends ItopDataTestCase {
 
 	public function testTokenGeneration()
 	{
-		if (version_compare(PHP_VERSION, '8.0') >= 0) {
-			$this->markTestSkipped("(N°6763) no need to test as previous encryption mode will not work anymore this test will fail. customers in that case must regenerate their tokens...");
-		}
 		$oApplicationToken = $this->CreateUserToken();
 
 		$oAuthentTokenService = new AuthentTokenService();
@@ -45,13 +42,26 @@ class AuthentTokenServiceTest extends ItopDataTestCase {
 		//test decrypt
 		$oToken = $oAuthentTokenService->DecryptToken($sToken1);
 		$this->assertNotNull($oToken);
+	}
 
-		//test decrypt with 3.1 alpha/saas format decrypt
-		$sToken1 = $this->InvokeNonPublicMethod(AuthentTokenService::class , "CreateLegacyToken", $oAuthentTokenService, [$oToken]);
-		var_dump((['old token format length' => strlen($sToken1) ]));
-		var_dump((['old format' => $sToken1 ]));
+	public function testTruncateTokenGeneration()
+	{
+		$oApplicationToken = $this->CreateUserToken();
+
+		$oAuthentTokenService = new AuthentTokenService();
+		$sToken1 = $oAuthentTokenService->CreateNewToken($oApplicationToken);
+		var_dump((['new token format length' => strlen($sToken1) ]));
+		var_dump((['new format length' => $sToken1 ]));
+
 		$oToken = $oAuthentTokenService->DecryptToken($sToken1);
 		$this->assertNotNull($oToken);
+
+		for ($i = 1; $i <= 16; $i++) {
+			$sTruncatedToken = substr($sToken1, 0, -$i);
+			//test decrypt fail
+			$oToken = $oAuthentTokenService->DecryptToken($sTruncatedToken);
+			$this->assertNull($oToken, 'The truncated token must not be decoded');
+		}
 	}
 
 	public function GetLegacyTokenProvider(){

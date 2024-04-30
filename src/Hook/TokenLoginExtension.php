@@ -141,7 +141,7 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 			$oToken = MetaModel::GetObject($sTokenClass, $sTokenId);
 			$oUser = $oToken->GetUser();
 
-			LoginWebPage::OnLoginSuccess($oUser->Get('login'), 'internal', Session::Get('login_mode'));
+			LoginWebPage::OnLoginSuccess($oUser->Get('login'), 'any', Session::Get('login_mode'));
 		}
 		return LoginWebPage::LOGIN_FSM_CONTINUE;
 	}

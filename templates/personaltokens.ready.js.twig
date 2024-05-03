@@ -1,7 +1,5 @@
-
-{% if null != Params.personaltoken %}
-{% set Infos = Params.personaltoken %}
-
+{# @copyright   Copyright (C) 2010-2024 Combodo SARL #}
+{# @license     http://opensource.org/licenses/AGPL-3.0 #}
 var $datatableTokens = $('#datatable_tokens');
 
 $datatableTokens.on('click', '.token-refresh-button', function(){
@@ -10,7 +8,7 @@ $datatableTokens.on('click', '.token-refresh-button', function(){
 
 	var token_id = $(this).attr('data-token-id');
 
-	var refresh_url = '{{Infos.refresh_token_url|raw}}&token_id=' + token_id;
+	var refresh_url = '{{Section.refresh_token_url|raw}}&token_id=' + token_id;
 	$.ajax({
 			type: "POST",
 			url: refresh_url
@@ -86,7 +84,7 @@ $datatableTokens.on('click', '.token-delete-button', function(){
 });
 
 function DeleteToken(button, token_id){
-	var delete_token_url = '{{Infos.delete_token_url|raw}}&token_id=' + token_id;
+	var delete_token_url = '{{Section.delete_token_url|raw}}&token_id=' + token_id;
 	$.ajax({
 			type: "POST",
 			url: delete_token_url
@@ -113,7 +111,7 @@ $('#ibo-panel-ez-token').on('click', '.token-edit-button', function(){
 
 	var token_id = $(this).attr('data-token-id');
 
-	var edit_token_url = '{{Infos.edit_token_url|raw}}&token_id=' + token_id ;
+	var edit_token_url = '{{Section.edit_token_url|raw}}&token_id=' + token_id ;
 
 	$.ajax({
 			type: "POST",
@@ -156,7 +154,7 @@ function DisplayEditionPopup(html, token_id){
 	modifyDialog.html(cloned_alert);
 	modifyDialog.append(html);
 
-	var save_token_url = '{{Infos.save_token_link|raw}}';
+	var save_token_url = '{{Section.save_token_link|raw}}';
 	current_form = modifyDialog.find('form');
 	current_form.on('submit',function(event){
 		/* stop form from submitting normally */
@@ -195,5 +193,3 @@ function DisplayEditionPopup(html, token_id){
 		}
 	});
 }
-
-{% endif %}

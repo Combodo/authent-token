@@ -2,8 +2,9 @@
 
 namespace Combodo\iTop\AuthentToken\Test;
 
-use Combodo\iTop\AuthentToken\Controller\MyAccountController;
+use Combodo\iTop\AuthentToken\Controller\AuthentTokenAjaxController;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
+use Combodo\iTop\AuthentToken\Service\PersonalTokenService;
 use Combodo\iTop\Test\UnitTest\ItopDataTestCase;
 use MetaModel;
 
@@ -36,10 +37,10 @@ class MyAccountControllerTest  extends ItopDataTestCase {
 		$_SESSION = [];
 		\UserRights::Login($oUser->Get('login'));
 
-		$this->assertEquals(true, MyAccountController::IsPersonalTokenManagementAllowed($oUser), "default conf: IsPersonalTokenManagementAllowed check on $sProfileName");
+		$this->assertEquals(true, PersonalTokenService::GetInstance()->IsPersonalTokenManagementAllowed($oUser), "default conf: IsPersonalTokenManagementAllowed check on $sProfileName");
 
 		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', []);
-		$this->assertEquals(true, MyAccountController::IsPersonalTokenManagementAllowed($oUser), "default conf: IsPersonalTokenManagementAllowed check on $sProfileName");
+		$this->assertEquals(true, PersonalTokenService::GetInstance()->IsPersonalTokenManagementAllowed($oUser), "default conf: IsPersonalTokenManagementAllowed check on $sProfileName");
 	}
 
 	public function testIsMenuAllowed_Admin($sProfileName='Administrator'){
@@ -47,11 +48,11 @@ class MyAccountControllerTest  extends ItopDataTestCase {
 		$_SESSION = [];
 		\UserRights::Login($oUser->Get('login'));
 
-		$this->assertEquals(true, MyAccountController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
+		$this->assertEquals(true, AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
 
 		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', []);
 		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'enable_myaccount_menu', false);
-		$this->assertEquals(true, MyAccountController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
+		$this->assertEquals(true, AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
 	}
 
 	public function testIsPersonalTokenManagementAllowed_OtherThanAdmin($sProfileName="Configuration Manager"){
@@ -59,10 +60,10 @@ class MyAccountControllerTest  extends ItopDataTestCase {
 		$_SESSION = [];
 		\UserRights::Login($oUser->Get('login'));
 
-		$this->assertEquals(false, MyAccountController::IsPersonalTokenManagementAllowed($oUser), "default conf: IsPersonalTokenManagementAllowed check on $sProfileName");
+		$this->assertEquals(false, PersonalTokenService::GetInstance()->IsPersonalTokenManagementAllowed($oUser), "default conf: IsPersonalTokenManagementAllowed check on $sProfileName");
 
 		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', [$sProfileName]);
-		$this->assertEquals(true, MyAccountController::IsPersonalTokenManagementAllowed($oUser), "default conf: IsPersonalTokenManagementAllowed check on $sProfileName");
+		$this->assertEquals(true, PersonalTokenService::GetInstance()->IsPersonalTokenManagementAllowed($oUser), "default conf: IsPersonalTokenManagementAllowed check on $sProfileName");
 	}
 
 	public function testIsMenuAllowed_OtherThanAdmin($sProfileName='Configuration Manager'){
@@ -70,11 +71,11 @@ class MyAccountControllerTest  extends ItopDataTestCase {
 		$_SESSION = [];
 		\UserRights::Login($oUser->Get('login'));
 
-		$this->assertEquals(false, MyAccountController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
+		$this->assertEquals(false, AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
 
 		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', []);
 		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'enable_myaccount_menu', true);
-		$this->assertEquals(true, MyAccountController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
+		$this->assertEquals(true, AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
 	}
 
 	public function testIsMenuAllowed_OtherThanAdminAndProfileByPassing($sProfileName='Configuration Manager'){
@@ -82,11 +83,11 @@ class MyAccountControllerTest  extends ItopDataTestCase {
 		$_SESSION = [];
 		\UserRights::Login($oUser->Get('login'));
 
-		$this->assertEquals(false, MyAccountController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
+		$this->assertEquals(false, AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
 
 		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', [$sProfileName]);
 		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'enable_myaccount_menu', false);
-		$this->assertEquals(true, MyAccountController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
+		$this->assertEquals(true, AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
 	}
 }
 

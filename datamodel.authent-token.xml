@@ -338,6 +338,9 @@
   </user_rights>
   <module_parameters>
     <parameters id="authent-token" _delta="define">
+      <personal_tokens_allowed_profiles type="array">
+        <item>Administrator</item>
+      </personal_tokens_allowed_profiles>
       <application_token type="hash">
         <allow_fallback_token>false</allow_fallback_token>
       </application_token>

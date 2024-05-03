@@ -14,11 +14,6 @@ use LoginWebPage;
 use MetaModel;
 use utils;
 
-// iTop 2.7 compatibility
-if (!class_exists('Combodo\iTop\Application\Helper\Session')) {
-	require_once __DIR__ . '/../../legacy/Helper/Session.php';
-}
-
 /**
  * Class TokenLoginExtension
  *

@@ -3,12 +3,12 @@
 		"classmap-authoritative": true
 	},
 	"autoload" : {
-		"psr-0" : {
+		"psr-4" : {
 			"Combodo\\iTop\\AuthentToken\\" : "src"
 		}
 	},
 	"autoload-dev": {
-		"psr-0": {
+		"psr-4": {
 			"Combodo\\iTop\\AuthentToken\\Test\\": "test/"
 		}
 	},

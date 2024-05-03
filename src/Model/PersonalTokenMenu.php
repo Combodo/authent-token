@@ -4,7 +4,7 @@
  * @license     http://opensource.org/licenses/AGPL-3.0
  */
 
-namespace Combodo\iTop\Extension\Model;
+namespace Combodo\iTop\AuthentToken\Model;
 
 use ApplicationMenu;
 use OQLMenuNode;

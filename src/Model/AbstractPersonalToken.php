@@ -19,11 +19,6 @@ abstract class AbstractPersonalToken extends cmdbAbstractObject  implements iTok
 	protected $bCanEditUserId = true;
 	private $aContext;
 
-	private function InitPrivateKey()
-	{
-		return $this->GetPrivateKey();
-	}
-
 	public function DisplayBareHeader(WebPage $oPage, $bEditMode = false)
 	{
 		$bRebuildToken = utils::ReadParam('rebuild_Token', 0);
@@ -129,6 +124,7 @@ HTML;
 
 	public function GetUser() : \User
 	{
+		/** @var \User $oUser */
 		$oUser = MetaModel::GetObject(\User::class, $this->Get('user_id'));
 		$this->aContext = [
 			'token' => get_class($this),

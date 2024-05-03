@@ -7,7 +7,7 @@
 Dict::Add('FR FR', 'French', 'Français', array(
 	'AuthentToken:CopyToken' => 'Les identifiants que vous aurez à fournir sont :<p>auth_token=<a>%1$s</a></p>Notez les maintenant, vous ne pourrez plus les afficher ensuite !',
 	'AuthentToken:RebuildToken' => 'Regénérer le jeton',
-	'AuthentToken:RebuildToken+' => 'Le jeton d\'authentification sera regénéré, ATTENTION le précédent sera perdu et ne pourra plus être utilisé',
+	'AuthentToken:RebuildToken+' => 'Le jeton d\'authentification sera regénéré',
 	'UI:MyAccount' => 'Mon compte',
 	'authent-token/Operation:MainPage/Title' => 'Mon compte',
 	'MyAccount:SubTitle:user' => 'Mon utilisateur',
@@ -74,4 +74,14 @@ Dict::Add('FR FR', 'French', 'Français', array(
     'Class:UserToken/Attribute:login+' => 'Chaîne d\'identification de l\'application distante',
 	'Class:UserToken/Attribute:auth_token' => 'Jeton d\'authentification',
 	'Class:UserToken/Attribute:auth_token+' => 'Lisible uniquement à la génération',
+	'Class:UserToken/Attribute:scope' => 'Périmètre',
+	'Class:UserToken/Attribute:scope+' => 'Les points d\'entrées autorisés à la connexion avec ce jeton',
+	'Class:UserToken/Attribute:scope/Value:REST/JSON' => 'REST/JSON',
+	'Class:UserToken/Attribute:scope/Value:REST/JSON+' => '/webservices/rest.php',
+	'Class:UserToken/Attribute:scope/Value:Synchro' => 'Synchro',
+	'Class:UserToken/Attribute:scope/Value:Synchro+' => '/synchro/synchro_import.php et /synchro/synchro_exec.php',
+	'Class:UserToken/Attribute:scope/Value:Import' => 'Import',
+	'Class:UserToken/Attribute:scope/Value:Import+' => '/webservices/import.php',
+	'Class:UserToken/Attribute:scope/Value:Export' => 'Export',
+	'Class:UserToken/Attribute:scope/Value:Export+' => '/webservices/export-v2.php',
 ));

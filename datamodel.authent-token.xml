@@ -52,6 +52,7 @@
           <default_value/>
           <is_null_allowed>false</is_null_allowed>
         </field>
+        <!-- Duplicated field in UserToken class -->
         <field id="scope" xsi:type="AttributeEnumSet">
           <values>
             <value id="WebService">
@@ -227,6 +228,26 @@
           <default_value/>
           <is_null_allowed>false</is_null_allowed>
         </field>
+        <!-- Duplicated field in PersonalToken class -->
+        <field id="scope" xsi:type="AttributeEnumSet">
+          <values>
+            <value id="WebService">
+              <code>REST/JSON</code>
+            </value>
+            <value id="Synchro">
+              <code>Synchro</code>
+            </value>
+            <value id="Import">
+              <code>Import</code>
+            </value>
+            <value id="Export">
+              <code>Export</code>
+            </value>
+          </values>
+          <sql>scope</sql>
+          <default_value>WebService</default_value>
+          <is_null_allowed>true</is_null_allowed>
+        </field>
       </fields>
       <methods/>
       <presentation>
@@ -249,6 +270,9 @@
                     </item>
                     <item id="login">
                       <rank>40</rank>
+                    </item>
+                    <item id="scope">
+                      <rank>45</rank>
                     </item>
                     <item id="language">
                       <rank>50</rank>

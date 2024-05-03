@@ -7,7 +7,7 @@
 Dict::Add('DE DE', 'German', 'Deutsch', [
 	'AuthentToken:CopyToken' => 'Die Anmeldedaten (Token), die Sie angeben müssen, lauten: <p>auth_token=<a>%1$s</a></p>Bitte notieren Sie sie jetzt, Sie können sie später nicht mehr anzeigen!',
 	'AuthentToken:RebuildToken' => 'Token neu erstellen',
-	'AuthentToken:RebuildToken+' => 'Das Authentifizierungs-Token wird neu erstellt, VORSICHT, das vorherige Token geht verloren.',
+	'AuthentToken:RebuildToken+' => 'Das Authentifizierungs-Token wird neu erstellt',
 	'Class:UserToken' => 'Token-basierter Nutzer',
 	'Class:UserToken/Attribute:login' => 'Remote-Anwendung',
 	'Class:UserToken/Attribute:login+' => 'Identifizierungs-String der Remote-Anwendung',
@@ -66,4 +66,14 @@ Dict::Add('DE DE', 'German', 'Deutsch', array(
 Dict::Add('DE DE', 'German', 'Deutsch', array(
 	'Class:UserToken/Attribute:auth_token' => 'Authentifizierungs-Token',
 	'Class:UserToken/Attribute:auth_token+' => '~~',
+	'Class:UserToken/Attribute:scope' => 'Scope',
+	'Class:UserToken/Attribute:scope+' => '~~',
+	'Class:UserToken/Attribute:scope/Value:REST/JSON' => 'REST/JSON',
+	'Class:UserToken/Attribute:scope/Value:REST/JSON+' => '',
+	'Class:UserToken/Attribute:scope/Value:Synchro' => 'Synchro',
+	'Class:UserToken/Attribute:scope/Value:Synchro+' => '',
+	'Class:UserToken/Attribute:scope/Value:Import' => 'Import',
+	'Class:UserToken/Attribute:scope/Value:Import+' => '',
+	'Class:UserToken/Attribute:scope/Value:Export' => 'Export',
+	'Class:UserToken/Attribute:scope/Value:Export+' => '',
 ));

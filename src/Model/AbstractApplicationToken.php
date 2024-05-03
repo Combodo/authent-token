@@ -2,6 +2,7 @@
 
 use Combodo\iTop\Application\UI\Base\Component\Button\ButtonUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\Component\Form\FormUIBlockFactory;
+use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Model\iToken;
 use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
@@ -163,7 +164,21 @@ HTML;
 	{
 	}
 
+	/**
+	 * @throws \ArchivedObjectException
+	 * @throws \CoreException
+	 * @throws \Combodo\iTop\AuthentToken\Exception\TokenAuthException
+	 */
 	public function CheckScopes(): void
 	{
+		/** @var \ormSet $oScope */
+		$oScope = $this->Get('scope');
+		foreach ($oScope->GetValues() as $sScope) {
+			if (ContextTag::Check($sScope)) {
+				return;
+			}
+		}
+
+		throw new TokenAuthException('Scope not authorized');
 	}
 }

@@ -118,7 +118,7 @@ class MyAccountController extends Controller{
 			$sMessage = Dict::Format('AuthentToken:CopyToken', $oToken->GetToken());
 			$this->DisplayJSONPage(['result' => 'ok', 'message' => $sMessage, 'title' => $oToken->Get('application')], 200);
 		} catch (\Exception $e){
-			TokenAuthLog::Error("Cannot refresh token: " + $e->getMessage());
+			TokenAuthLog::Error("Cannot refresh token: " . $e->getMessage());
 			$this->DisplayJSONPage(['result' => 'error'], 200);
 		}
 	}
@@ -154,7 +154,7 @@ class MyAccountController extends Controller{
 
 			$this->DisplayJSONPage(['result' => 'ok'], 200);
 		} catch (\Exception $e){
-			TokenAuthLog::Error("Cannot delete token: " + $e->getMessage());
+			TokenAuthLog::Error("Cannot delete token: " . $e->getMessage());
 			$this->DisplayJSONPage(['result' => 'error'], 200);
 		}
 	}
@@ -211,7 +211,7 @@ JS;
 			$oToken->DisplayModifyForm($oPage, $aExtraParams);
 			$oPage->output();
 		} catch (\Exception $e){
-			TokenAuthLog::Error("Cannot edit token: " + $e->getMessage());
+			TokenAuthLog::Error("Cannot edit token: " . $e->getMessage());
 			$this->DisplayJSONPage(['result' => 'error'], 200);
 		}
 	}
@@ -247,7 +247,7 @@ JS;
 				}
 			}
 		} catch (\Exception $e){
-			TokenAuthLog::Error("Cannot modify token: " + $e->getMessage());
+			TokenAuthLog::Error("Cannot modify token: " . $e->getMessage());
 			$this->DisplayJSONPage(['result' => 'error'], 200);
 		}
 	}
@@ -276,7 +276,7 @@ JS;
 				]
 			);
 		} catch (\Exception $e){
-			TokenAuthLog::Error("Cannot create token: " + $e->getMessage());
+			TokenAuthLog::Error("Cannot create token: " . $e->getMessage());
 			$this->DisplayJSONPage(['result' => 'error'], 200);
 		}
 	}
@@ -301,7 +301,7 @@ JS;
 		if (!empty($aErrors))
 		{
 			$sErrors = implode(',', $aErrors);
-			TokenAuthLog::Error(sprintf("SaveToken :  user='%s' errors:", $oUser->Get('login'), $sErrors));
+			TokenAuthLog::Error(sprintf("SaveToken :  user='%s' errors: %s", $oUser->Get('login'), $sErrors));
 			throw new \CoreCannotSaveObjectException(['issues' => $aErrors, 'id' => $oToken->GetKey(), 'class' => \PersonalToken::class ]);
 		}
 

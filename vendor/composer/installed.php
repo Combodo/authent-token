@@ -1,24 +1,23 @@
-<?php return array (
-  'root' => 
-  array (
-    'pretty_version' => 'dev-master',
-    'version' => 'dev-master',
-    'aliases' => 
-    array (
+<?php return array(
+    'root' => array(
+        'name' => 'combodo/authent-token',
+        'pretty_version' => 'dev-master',
+        'version' => 'dev-master',
+        'reference' => '0ecefd10b6cb8742f07ee9d3635a659bd4dc3c2e',
+        'type' => 'itop-extension',
+        'install_path' => __DIR__ . '/../../',
+        'aliases' => array(),
+        'dev' => true,
     ),
-    'reference' => '24554ef7f1eab7cf57cbfb1456b374dc0b94800f',
-    'name' => 'combodo/authent-token',
-  ),
-  'versions' => 
-  array (
-    'combodo/authent-token' => 
-    array (
-      'pretty_version' => 'dev-master',
-      'version' => 'dev-master',
-      'aliases' => 
-      array (
-      ),
-      'reference' => '24554ef7f1eab7cf57cbfb1456b374dc0b94800f',
+    'versions' => array(
+        'combodo/authent-token' => array(
+            'pretty_version' => 'dev-master',
+            'version' => 'dev-master',
+            'reference' => '0ecefd10b6cb8742f07ee9d3635a659bd4dc3c2e',
+            'type' => 'itop-extension',
+            'install_path' => __DIR__ . '/../../',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
     ),
-  ),
 );

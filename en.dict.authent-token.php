@@ -8,7 +8,7 @@
 Dict::Add('EN US', 'English', 'English', array(
 	'AuthentToken:CopyToken' => 'The credentials you have to provide are:<p>auth_token=<a>%1$s</a></p>Copy them now, you won\'t be able to get them later!',
 	'AuthentToken:RebuildToken' => 'Rebuild token',
-	'AuthentToken:RebuildToken+' => 'The authentification token will be recreated, BEWARE the previous one will be lost',
+	'AuthentToken:RebuildToken+' => 'The authentification token will be recreated',
 
 	'UI:MyAccount' => 'My Account',
 	'authent-token/Operation:MainPage/Title' => 'My Account',
@@ -78,4 +78,14 @@ Dict::Add('EN US', 'English', 'English', array(
     'Class:UserToken/Attribute:login+' => 'Remote application identification string',
     'Class:UserToken/Attribute:auth_token' => 'Auth token',
 	'Class:UserToken/Attribute:auth_token+' => 'Readable only at generation time',
+	'Class:UserToken/Attribute:scope' => 'Scope',
+	'Class:UserToken/Attribute:scope+' => 'In which context(s), this token is allowed to be used',
+	'Class:UserToken/Attribute:scope/Value:REST/JSON' => 'REST/JSON',
+	'Class:UserToken/Attribute:scope/Value:REST/JSON+' => '/webservices/rest.php',
+	'Class:UserToken/Attribute:scope/Value:Synchro' => 'Synchro',
+	'Class:UserToken/Attribute:scope/Value:Synchro+' => '/synchro/synchro_import.php and /synchro/synchro_exec.php',
+	'Class:UserToken/Attribute:scope/Value:Import' => 'Import',
+	'Class:UserToken/Attribute:scope/Value:Import+' => '/webservices/import.php',
+	'Class:UserToken/Attribute:scope/Value:Export' => 'Export',
+	'Class:UserToken/Attribute:scope/Value:Export+' => '/webservices/export-v2.php',
 ));

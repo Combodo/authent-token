@@ -33,58 +33,6 @@ use const ITOP_DESIGN_LATEST_VERSION;
  * creation / modification / refresh / deletion
  */
 class MyAccountController extends Controller{
-	public function OperationMainPage()
-	{
-		$aParams = [];
-		/** @var \User $oUser */
-		$oUser = UserRights::GetUserObject();
-
-		if (! self::IsMenuAllowed($oUser)){
-			//in case someone not allowed try to type full URL...
-			http_response_code(401);
-			die("User not allowed to access current ressource.");
-		}
-
-		$this->ProvideHtmlUserInfo($oUser, $aParams);
-		$this->ProvideHtmlContactInfo($oUser, $aParams);
-
-		if (self::IsPersonalTokenManagementAllowed($oUser)){
-			$this->ProvideHtmlTokenInfo($oUser, $aParams);
-		}
-
-		//adding all below js. some in order to avoid a js console error. which is not fonctionnal even when displaying token forms
-
-		if (version_compare(ITOP_DESIGN_LATEST_VERSION, '3.2', '<')) { // N°7251 iTop 3.2.0 deprecated lib
-		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/json.js');
-		}
-		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/forms-json-utils.js');
-		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/wizardhelper.js');
-		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/wizard.utils.js');
-		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/linkswidget.js');
-		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/linksdirectwidget.js');
-		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/extkeywidget.js');
-		$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().'js/jquery.blockUI.js');
-
-		foreach (TabContainer::DEFAULT_JS_FILES_REL_PATH as $sJsFile){
-			$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().$sJsFile);
-		}
-
-		$aJsFilesArrays = [
-			UIBlock::DEFAULT_JS_FILES_REL_PATH,
-			Panel::DEFAULT_JS_FILES_REL_PATH,
-			TabContainer::DEFAULT_JS_FILES_REL_PATH,
-			ObjectDetails::DEFAULT_JS_FILES_REL_PATH,
-		];
-
-		foreach ($aJsFilesArrays as $aJsFilesArray){
-			foreach ($aJsFilesArray as $sJsRelFile){
-				$this->AddLinkedScript(utils::GetAbsoluteUrlAppRoot().$sJsRelFile);
-			}
-		}
-
-		$this->DisplayPage(['Params' => $aParams ], 'main');
-	}
-
 	/**
 	 * Called after clicking on refresh token button
 	 * @return void

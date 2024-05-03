@@ -12,7 +12,7 @@ return array(
     'Combodo\\iTop\\AuthentToken\\Helper\\TokenAuthHelper' => $baseDir . '/src/Helper/TokenAuthHelper.php',
     'Combodo\\iTop\\AuthentToken\\Helper\\TokenAuthLog' => $baseDir . '/src/Helper/TokenAuthLog.php',
     'Combodo\\iTop\\AuthentToken\\Hook\\LegacyTokenLoginExtension' => $baseDir . '/src/Hook/LegacyTokenLoginExtension.php',
-    'Combodo\\iTop\\AuthentToken\\Hook\\MyAccountPopupMenuExtension' => $baseDir . '/src/Hook/MyAccountPopupMenuExtension.php',
+    'Combodo\\iTop\\AuthentToken\\Hook\\MyAccountExtension' => $baseDir . '/src/Hook/MyAccountExtension.php',
     'Combodo\\iTop\\AuthentToken\\Hook\\TokenLoginExtension' => $baseDir . '/src/Hook/TokenLoginExtension.php',
     'Combodo\\iTop\\AuthentToken\\Model\\PersonalTokenMenu' => $baseDir . '/src/Model/PersonalTokenMenu.php',
     'Combodo\\iTop\\AuthentToken\\Model\\iToken' => $baseDir . '/src/Model/iToken.php',

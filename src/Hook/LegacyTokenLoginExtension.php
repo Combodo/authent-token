@@ -7,7 +7,7 @@ namespace Combodo\iTop\AuthentToken\Hook;
  * duplicate of TokenLoginExtension due to a limitation in LoginWebPage::GetLoginPluginList
  * a iLoginExtension cannot register twice...
  *
- * @copyright   Copyright (C) 2010-2021 Combodo SARL
+ * @copyright   Copyright (C) 2010-2024 Combodo SAS
  * @license     http://opensource.org/licenses/AGPL-3.0
  */
 class LegacyTokenLoginExtension extends TokenLoginExtension

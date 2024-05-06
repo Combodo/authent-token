@@ -2,7 +2,7 @@
 /**
  * Localized data
  *
- * @copyright   Copyright (C) 2022 Combodo SARL
+ * @copyright   Copyright (C) 2024 Combodo SAS
  */
 Dict::Add('FR FR', 'French', 'Français', array(
 	'AuthentToken:CopyToken' => 'Les identifiants que vous aurez à fournir sont :<p>auth_token=<a>%1$s</a></p>Notez les maintenant, vous ne pourrez plus les afficher ensuite !',

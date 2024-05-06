@@ -2,7 +2,7 @@
 /**
  * Localized data
  *
- * @copyright   Copyright (C) 2022 Combodo SARL
+ * @copyright   Copyright (C) 2024 Combodo SAS
  */
 
 Dict::Add('EN US', 'English', 'English', array(

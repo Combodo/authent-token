@@ -2,7 +2,7 @@
 /**
  * Localized data
  *
- * @copyright   Copyright (C) 2022 Combodo SARL
+ * @copyright   Copyright (C) 2024 Combodo SAS
  */
 Dict::Add('DA DA', 'Danish', 'Dansk', [
 	'AuthentToken:CopyToken' => 'The credentials you have to provide are:<p>auth_token=<a>%1$s</a></p>Copy them now, you won\'t be able to get them later!~~',

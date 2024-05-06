@@ -2,7 +2,7 @@
 /**
  * Localized data
  *
- * @copyright   Copyright (C) 2022 Combodo SARL
+ * @copyright   Copyright (C) 2024 Combodo SAS
  */
 Dict::Add('DE DE', 'German', 'Deutsch', [
 	'AuthentToken:CopyToken' => 'Die Anmeldedaten (Token), die Sie angeben müssen, lauten: <p>auth_token=<a>%1$s</a></p>Bitte notieren Sie sie jetzt, Sie können sie später nicht mehr anzeigen!',

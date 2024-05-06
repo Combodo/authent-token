@@ -22,7 +22,7 @@ if (!class_exists('Combodo\iTop\Application\Helper\Session')) {
 /**
  * Class TokenLoginExtension
  *
- * @copyright   Copyright (C) 2010-2021 Combodo SARL
+ * @copyright   Copyright (C) 2010-2024 Combodo SAS
  * @license     http://opensource.org/licenses/AGPL-3.0
  */
 

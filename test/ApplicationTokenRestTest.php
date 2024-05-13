@@ -1,4 +1,5 @@
 <?php
+
 namespace Combodo\iTop\AuthentToken\Test;
 
 require_once __DIR__.'/AbstractRestTest.php';
@@ -29,53 +30,53 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
 	protected $sToken;
 
 	/**
-     * @throws Exception
-     */
-    protected function setUp(): void
-    {
-	    parent::setUp();
+	 * @throws Exception
+	 */
+	protected function setUp(): void
+	{
+		parent::setUp();
 		self::$DEBUG_UNIT_TEST = true;
 
-	    @require_once(APPROOT . 'env-production/authent-token/vendor/autoload.php');
+		@require_once(APPROOT.'env-production/authent-token/vendor/autoload.php');
 
-	    @chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
-	    $this->InitLoginMode(TokenLoginExtension::LEGACY_LOGIN_TYPE);
+		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
+		$this->InitLoginMode(TokenLoginExtension::LEGACY_LOGIN_TYPE);
 
-	    $oRestProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'REST Services User'), true);
-	    $oAdminProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'Administrator'), true);
+		$oRestProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", ['name' => 'REST Services User'], true);
+		$oAdminProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", ['name' => 'Administrator'], true);
 
-	    if (is_object($oAdminProfile))
-	    {
-		    $oUserProfile = new URP_UserProfile();
-		    $oUserProfile->Set('profileid', $oAdminProfile->GetKey());
-		    $oUserProfile->Set('reason', 'UNIT Tests');
-		    $oSet = DBObjectSet::FromObject($oUserProfile);
+		if (is_object($oAdminProfile)) {
+			$oUserProfile = new URP_UserProfile();
+			$oUserProfile->Set('profileid', $oAdminProfile->GetKey());
+			$oUserProfile->Set('reason', 'UNIT Tests');
+			$oSet = DBObjectSet::FromObject($oUserProfile);
 
-		    $this->sLogin = uniqid('applicationtoken_',  true);
+			$this->sLogin = uniqid('applicationtoken_', true);
 
-		    /** @var \UserLocal $oUser */
-		    $this->oUser = $this->createObject(UserToken::class, array(
-			    'login' => $this->sLogin,
-			    'language' => 'EN US',
-			    'profile_list' => $oSet,
-		    ));
-		    $this->debug("Created {$this->oUser->GetName()} ({$this->oUser->GetKey()})");
+			/** @var \UserLocal $oUser */
+			$this->oUser = $this->createObject(UserToken::class, [
+				'login' => $this->sLogin,
+				'language' => 'EN US',
+				'profile_list' => $oSet,
+			]);
+			$this->debug("Created {$this->oUser->GetName()} ({$this->oUser->GetKey()})");
 
-		    if (is_object($oRestProfile))
-		    {
-			    $this->oUser = $this->AddProfileToUser($this->oUser, $oRestProfile->GetKey());
-		    } else {
-			    MetaModel::GetConfig()->Set('secure_rest_services', false, 'auth-token');
-			    MetaModel::GetConfig()->WriteToFile();
-		    }
-	    }
-	    @chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
-	    $oReflectionClass = new \ReflectionClass(AbstractApplicationToken::class);
-	    $oProperty = $oReflectionClass->getProperty('sToken');
-	    $oProperty->setAccessible(true);
-	    $this->sToken = $oProperty->getValue($this->oUser);	}
+			if (is_object($oRestProfile)) {
+				$this->oUser = $this->AddProfileToUser($this->oUser, $oRestProfile->GetKey());
+			} else {
+				MetaModel::GetConfig()->Set('secure_rest_services', false, 'auth-token');
+				MetaModel::GetConfig()->WriteToFile();
+			}
+		}
+		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
+		$oReflectionClass = new \ReflectionClass(AbstractApplicationToken::class);
+		$oProperty = $oReflectionClass->getProperty('sToken');
+		$oProperty->setAccessible(true);
+		$this->sToken = $oProperty->getValue($this->oUser);
+	}
 
-	protected function GetAuthToken($sContext=null){
+	protected function GetAuthToken($sContext = null)
+	{
 		return $this->sToken;
 	}
 
@@ -106,9 +107,9 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
 		/** @var \ormLinkSet $oSet */
 		$oSet = $oUser->Get('profile_list');
 		$oSet->AddItem($oUserProfile);
-		$oUser = $this->updateObject(\User::class, $oUser->GetKey(), array(
+		$oUser = $this->updateObject(\User::class, $oUser->GetKey(), [
 			'profile_list' => $oSet,
-		));
+		]);
 		$this->debug("Updated {$oUser->GetName()} ({$oUser->GetKey()})");
 
 		return $oUser;
@@ -133,17 +134,22 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
 
 		// Allow legacy tokens in configuration
 		$oConfig = MetaModel::GetConfig();
-		$aParamsByTokenType = $oConfig->GetModuleSetting('authent-token', 'application_token', array());
+		$aParamsByTokenType = $oConfig->GetModuleSetting('authent-token', 'application_token', []);
 		$aParamsByTokenType['allow_fallback_token'] = true;
 		$oConfig->SetModuleSetting('authent-token', 'application_token', $aParamsByTokenType);
 		$sConfigFile = $oConfig->GetLoadedFile();
 		@chmod($sConfigFile, 0770); // Allow overwriting the file
 		$oConfig->WriteToFile();
-		@chmod($sConfigFile, 0440); // Deny overwriting the file
 
 		$sOutputJson = $this->CreateTicketViaApi($description);
+
+		$oConfig->SetModuleSetting('authent-token', 'application_token', []);
+		$oConfig->WriteToFile();
+		@chmod($sConfigFile, 0440); // Deny overwriting the file
 		$aJson = json_decode($sOutputJson, true);
-		$this->assertFalse(is_null($aJson), "should be json (and not html login form): " .  $sOutputJson);
+
+		$this->assertFalse(is_null($aJson), "should be json (and not html login form): ".$sOutputJson);
+		$this->assertEquals('0', ''.$aJson['code'], $sOutputJson);
 	}
 
 }

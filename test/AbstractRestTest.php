@@ -1,4 +1,5 @@
 <?php
+
 namespace Combodo\iTop\AuthentToken\Test;
 
 use Combodo\iTop\Test\UnitTest\ItopDataTestCase;
@@ -11,7 +12,7 @@ abstract class AbstractRestTest extends ItopDataTestCase
 {
 	const USE_TRANSACTION = false;
 
-	const MODE = [ 'JSONDATA_AS_STRING' => 0, 'JSONDATA_AS_FILE' => 1 , 'NO_JSONDATA' => 2 ];
+	const MODE = ['JSONDATA_AS_STRING' => 0, 'JSONDATA_AS_FILE' => 1, 'NO_JSONDATA' => 2];
 
 	protected $sTmpFile = "";
 	/** @var int $iJsonDataMode */
@@ -25,47 +26,48 @@ abstract class AbstractRestTest extends ItopDataTestCase
 	protected $sOrgName;
 
 	/**
-     * @throws Exception
-     */
-    protected function setUp(): void
-    {
-	    parent::setUp();
+	 * @throws Exception
+	 */
+	protected function setUp(): void
+	{
+		parent::setUp();
 
-	    $sConfigPath = MetaModel::GetConfig()->GetLoadedFile();
+		$sConfigPath = MetaModel::GetConfig()->GetLoadedFile();
 
-	    clearstatcache();
-	    echo sprintf("rights via ls on %s:\n %s \n", $sConfigPath, exec("ls -al $sConfigPath"));
-	    $sFilePermOutput = substr(sprintf('%o', fileperms('/etc/passwd')), -4);
-	    echo sprintf("rights via fileperms on %s:\n %s \n", $sConfigPath, $sFilePermOutput);
+		clearstatcache();
+		echo sprintf("rights via ls on %s:\n %s \n", $sConfigPath, exec("ls -al $sConfigPath"));
+		$sFilePermOutput = substr(sprintf('%o', fileperms('/etc/passwd')), -4);
+		echo sprintf("rights via fileperms on %s:\n %s \n", $sConfigPath, $sFilePermOutput);
 
-	    $sUid = date('dmYHis');
-	    $this->sLogin = "rest-user-".$sUid;
-	    $this->sOrgName = "Org-$sUid";
-	    $this->CreateOrganization($this->sOrgName);
+		$sUid = date('dmYHis');
+		$this->sLogin = "rest-user-".$sUid;
+		$this->sOrgName = "Org-$sUid";
+		$this->CreateOrganization($this->sOrgName);
 
-	    if (0 !== strlen($this->sTmpFile)) {
-		    unlink($this->sTmpFile);
-	    }
+		if (0 !== strlen($this->sTmpFile)) {
+			unlink($this->sTmpFile);
+		}
 
 		$this->sUrl = MetaModel::GetConfig()->Get('app_root_url');
 
-	    $this->sConfigTmpBackupFile = tempnam(sys_get_temp_dir(), "config_");
-	    MetaModel::GetConfig()->WriteToFile($this->sConfigTmpBackupFile);
+		$this->sConfigTmpBackupFile = tempnam(sys_get_temp_dir(), "config_");
+		MetaModel::GetConfig()->WriteToFile($this->sConfigTmpBackupFile);
 
-	    $oAdminProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'Administrator'), true);
+		$oAdminProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", ['name' => 'Administrator'], true);
 
-	    if (is_object($oAdminProfile)) {
-		    $this->oUser = $this->CreateContactlessUser($this->sLogin, $oAdminProfile->GetKey(), $this->sPassword);
-	    }
+		if (is_object($oAdminProfile)) {
+			$this->oUser = $this->CreateContactlessUser($this->sLogin, $oAdminProfile->GetKey(), $this->sPassword);
+		}
 	}
 
 	/**
 	 * @throws Exception
 	 */
-	protected function tearDown(): void {
+	protected function tearDown(): void
+	{
 		parent::tearDown();
 
-		if (! is_null($this->sConfigTmpBackupFile) && is_file($this->sConfigTmpBackupFile)){
+		if (!is_null($this->sConfigTmpBackupFile) && is_file($this->sConfigTmpBackupFile)) {
 			//put config back
 			$sConfigPath = MetaModel::GetConfig()->GetLoadedFile();
 			@chmod($sConfigPath, 0770);
@@ -75,26 +77,29 @@ abstract class AbstractRestTest extends ItopDataTestCase
 		}
 	}
 
-	abstract protected function GetPostParameters($sContext=null);
+	abstract protected function GetPostParameters($sContext = null);
 
 	protected function GetHeadersParam($sContext = null)
 	{
 		return [];
 	}
 
-	protected function CallRestApi($sJsonDataContent, $sContext=null, $sUri='webservices/rest.php'){
+	protected function CallRestApi($sJsonDataContent, $sContext = null, $sUri = 'webservices/rest.php')
+	{
 		$ch = curl_init();
 		$aPostFields = $this->GetPostParameters($sContext);
 		var_dump($aPostFields);
 
-		if ($this->iJsonDataMode === self::MODE['JSONDATA_AS_STRING']){
+		if ($this->iJsonDataMode === self::MODE['JSONDATA_AS_STRING']) {
 			$this->sTmpFile = tempnam(sys_get_temp_dir(), 'jsondata_');
 			file_put_contents($this->sTmpFile, $sJsonDataContent);
 
 			$oCurlFile = curl_file_create($this->sTmpFile);
 			$aPostFields['json_data'] = $oCurlFile;
-		}else if ($this->iJsonDataMode === self::MODE['JSONDATA_AS_FILE']){
-			$aPostFields['json_data'] = $sJsonDataContent;
+		} else {
+			if ($this->iJsonDataMode === self::MODE['JSONDATA_AS_FILE']) {
+				$aPostFields['json_data'] = $sJsonDataContent;
+			}
 		}
 
 		//curl_setopt($ch, CURLOPT_COOKIE, "XDEBUG_SESSION=phpstorm");
@@ -105,7 +110,7 @@ abstract class AbstractRestTest extends ItopDataTestCase
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $aPostFields);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		$sJson = curl_exec($ch);
-		curl_close ($ch);
+		curl_close($ch);
 
 		return $sJson;
 	}
@@ -114,14 +119,17 @@ abstract class AbstractRestTest extends ItopDataTestCase
 	 * array_key_first comes with PHP7.3
 	 * itop should also work with previous PHP versions
 	 */
-	private function array_key_first($aTab){
-		if (!is_array($aTab) || empty($aTab)){
+	private function array_key_first($aTab)
+	{
+		if (!is_array($aTab) || empty($aTab)) {
 			return false;
 		}
 
-		foreach ($aTab as $sKey => $sVal){
+		foreach ($aTab as $sKey => $sVal) {
 			return $sKey;
 		}
+
+		return false;
 	}
 
 
@@ -132,34 +140,35 @@ abstract class AbstractRestTest extends ItopDataTestCase
 		//create ticket
 		$description = date('dmY H:i:s');
 
-		$sOuputJson = $this->CreateTicketViaApi($description);
-		$aJson = json_decode($sOuputJson, true);
-		if (is_null($aJson)){
-			var_dump($sOuputJson);
+		$sOutputJson = $this->CreateTicketViaApi($description);
+		$aJson = json_decode($sOutputJson, true);
+		if (is_null($aJson)) {
+			var_dump($sOutputJson);
 			throw new \Exception("Not a json output. this is surely the login html form.");
 		}
 
-		if ($this->iJsonDataMode === self::MODE['NO_JSONDATA']){
-			$this->assertStringContainsString("3", "".$aJson['code'], $sOuputJson);
-			$this->assertStringContainsString("Error: Missing parameter 'json_data'", "".$aJson['message'], $sOuputJson);
+		if ($this->iJsonDataMode === self::MODE['NO_JSONDATA']) {
+			$this->assertStringContainsString("3", "".$aJson['code'], $sOutputJson);
+			$this->assertStringContainsString("Error: Missing parameter 'json_data'", "".$aJson['message'], $sOutputJson);
+
 			return;
 		}
 
-		$this->assertEquals("0", "".$aJson['code'], $sOuputJson);
-		$this->assertTrue(array_key_exists('objects', $aJson), $sOuputJson);
+		$this->assertEquals("0", "".$aJson['code'], $sOutputJson);
+		$this->assertTrue(array_key_exists('objects', $aJson), $sOutputJson);
 		$sUserRequestKey = $this->array_key_first($aJson['objects']);
 		$this->assertStringContainsString('UserRequest::', $sUserRequestKey);
 		$iId = $aJson['objects'][$sUserRequestKey]['key'];
-		$sExpectedJsonOuput=<<<JSON
+		$sExpectedJsonOutput = <<<JSON
 {"objects":{"UserRequest::$iId":{"code":0,"message":"created","class":"UserRequest","key":"$iId","fields":{"id":"$iId"}}},"code":0,"message":null}
 JSON;
 
-		$this->ValidateJsonAreTheSameEvenInOtherOrders($sExpectedJsonOuput, $sOuputJson);
+		$this->ValidateJsonAreTheSameEvenInOtherOrders($sExpectedJsonOutput, $sOutputJson);
 
-		$sExpectedJsonOuput=<<<JSON
+		$sExpectedJsonOutput = <<<JSON
 {"objects":{"UserRequest::$iId":{"code":0,"message":"","class":"UserRequest","key":"$iId","fields":{"id":"$iId","description":"<p>$description<\/p>"}}},"code":0,"message":"Found: 1"}
 JSON;
-		$this->ValidateJsonAreTheSameEvenInOtherOrders($sExpectedJsonOuput, $this->GetTicketViaRest($iId));
+		$this->ValidateJsonAreTheSameEvenInOtherOrders($sExpectedJsonOutput, $this->GetTicketViaRest($iId));
 
 		$aCmdbChangeUserInfo = $this->GetCmdbChangeUserInfo($iId);
 		var_dump($aCmdbChangeUserInfo);
@@ -169,13 +178,16 @@ JSON;
 		$this->DeleteTicketFromApi($iId);
 	}
 
-	protected function ReOrderJsonFields(string $sJson) : string {
+	protected function ReOrderJsonFields(string $sJson): string
+	{
 		$aJson = json_decode($sJson, true);
 		ksort($aJson);
+
 		return json_encode($aJson);
 	}
 
-	protected function ValidateJsonAreTheSameEvenInOtherOrders(string $sExpectedJson, string $sJson){
+	protected function ValidateJsonAreTheSameEvenInOtherOrders(string $sExpectedJson, string $sJson)
+	{
 		$this->assertEquals($this->ReOrderJsonFields($sExpectedJson), $this->ReOrderJsonFields($sJson));
 	}
 
@@ -186,31 +198,32 @@ JSON;
 		//create ticket
 		$description = date('dmY H:i:s');
 
-		$sOuputJson = $this->CreateTicketViaApi($description);
-		$aJson = json_decode($sOuputJson, true);
-		if (is_null($aJson)){
-			var_dump($sOuputJson);
+		$sOutputJson = $this->CreateTicketViaApi($description);
+		$aJson = json_decode($sOutputJson, true);
+		if (is_null($aJson)) {
+			var_dump($sOutputJson);
 			throw new \Exception("Not a json output. this is surely the login html form.");
 		}
 
-		if ($this->iJsonDataMode === self::MODE['NO_JSONDATA']){
-			$this->assertStringContainsString("3", "".$aJson['code'], $sOuputJson);
-			$this->assertStringContainsString("Error: Missing parameter 'json_data'", "".$aJson['message'], $sOuputJson);
+		if ($this->iJsonDataMode === self::MODE['NO_JSONDATA']) {
+			$this->assertStringContainsString("3", "".$aJson['code'], $sOutputJson);
+			$this->assertStringContainsString("Error: Missing parameter 'json_data'", "".$aJson['message'], $sOutputJson);
+
 			return;
 		}
 
-		$this->assertEquals("0", "".$aJson['code'], $sOuputJson);
-		$this->assertTrue(array_key_exists('objects', $aJson), $sOuputJson);
+		$this->assertEquals("0", "".$aJson['code'], $sOutputJson);
+		$this->assertTrue(array_key_exists('objects', $aJson), $sOutputJson);
 		$sUserRequestKey = $this->array_key_first($aJson['objects']);
 		$this->assertStringContainsString('UserRequest::', $sUserRequestKey);
 		$iId = $aJson['objects'][$sUserRequestKey]['key'];
 
 		//update ticket
 		$description = date('Ymd H:i:s');
-		$sExpectedJsonOuput=<<<JSON
+		$sExpectedJsonOutput = <<<JSON
 {"objects":{"UserRequest::$iId":{"code":0,"message":"updated","class":"UserRequest","key":"$iId","fields":{"description":"<p>$description<\/p>"}}},"code":0,"message":null}
 JSON;
-		$this->ValidateJsonAreTheSameEvenInOtherOrders($sExpectedJsonOuput, $this->UpdateTicketViaApi($iId, $description));
+		$this->ValidateJsonAreTheSameEvenInOtherOrders($sExpectedJsonOutput, $this->UpdateTicketViaApi($iId, $description));
 
 		$aCmdbChangeUserInfo = $this->GetCmdbChangeUserInfo($iId);
 		var_dump($aCmdbChangeUserInfo);
@@ -228,38 +241,40 @@ JSON;
 		//create ticket
 		$description = date('dmY H:i:s');
 
-		$sOuputJson = $this->CreateTicketViaApi($description);
-		$aJson = json_decode($sOuputJson, true);
-		if (is_null($aJson)){
-			var_dump($sOuputJson);
+		$sOutputJson = $this->CreateTicketViaApi($description);
+		$aJson = json_decode($sOutputJson, true);
+		if (is_null($aJson)) {
+			var_dump($sOutputJson);
 			throw new \Exception("Not a json output. this is surely the login html form.");
 		}
 
-		if ($this->iJsonDataMode === self::MODE['NO_JSONDATA']){
-			$this->assertStringContainsString("3", "".$aJson['code'], $sOuputJson);
-			$this->assertStringContainsString("Error: Missing parameter 'json_data'", "".$aJson['message'], $sOuputJson);
+		if ($this->iJsonDataMode === self::MODE['NO_JSONDATA']) {
+			$this->assertStringContainsString("3", "".$aJson['code'], $sOutputJson);
+			$this->assertStringContainsString("Error: Missing parameter 'json_data'", "".$aJson['message'], $sOutputJson);
+
 			return;
 		}
 
-		$this->assertEquals("0", "".$aJson['code'], $sOuputJson);
-		$this->assertTrue(array_key_exists('objects', $aJson), $sOuputJson);
+		$this->assertEquals("0", "".$aJson['code'], $sOutputJson);
+		$this->assertTrue(array_key_exists('objects', $aJson), $sOutputJson);
 		$sUserRequestKey = $this->array_key_first($aJson['objects']);
 		$this->assertStringContainsString('UserRequest::', $sUserRequestKey);
 		$iId = $aJson['objects'][$sUserRequestKey]['key'];
 
 		//delete ticket
-		$sExpectedJsonOuput=<<<JSON
+		$sExpectedJsonOutput = <<<JSON
 "objects":{"UserRequest::$iId"
 JSON;
-		$this->assertStringContainsString($sExpectedJsonOuput, $this->DeleteTicketFromApi($iId));
+		$this->assertStringContainsString($sExpectedJsonOutput, $this->DeleteTicketFromApi($iId));
 
-		$sExpectedJsonOuput=<<<JSON
+		$sExpectedJsonOutput = <<<JSON
 {"objects":null,"code":0,"message":"Found: 0"}
 JSON;
-		$this->ValidateJsonAreTheSameEvenInOtherOrders($sExpectedJsonOuput, $this->GetTicketViaRest($iId));
+		$this->ValidateJsonAreTheSameEvenInOtherOrders($sExpectedJsonOutput, $this->GetTicketViaRest($iId));
 	}
 
-	private function GetTicketViaRest($iId){
+	private function GetTicketViaRest($iId)
+	{
 		$sJsonGetContent = <<<JSON
 {
    "operation": "core/get",
@@ -272,7 +287,8 @@ JSON;
 		return $this->CallRestApi($sJsonGetContent);
 	}
 
-	private function UpdateTicketViaApi($iId, $description){
+	private function UpdateTicketViaApi($iId, $description)
+	{
 		$sJsonUpdateContent = <<<JSON
 {"operation": "core/update","comment": "test","class": "UserRequest","key":"$iId","output_fields": "description","fields":{"description": "$description"}}
 JSON;
@@ -280,7 +296,8 @@ JSON;
 		return $this->CallRestApi($sJsonUpdateContent);
 	}
 
-	protected function CreateTicketViaApi($description){
+	protected function CreateTicketViaApi($description)
+	{
 		$sJsonCreateContent = <<<JSON
 {
    "operation": "core/create",
@@ -300,8 +317,9 @@ JSON;
 		return $this->CallRestApi($sJsonCreateContent);
 	}
 
-	private function DeleteTicketFromApi($iId){
-    	$sJson = <<<JSON
+	private function DeleteTicketFromApi($iId)
+	{
+		$sJson = <<<JSON
 {
    "operation": "core/delete",
    "comment": "Cleanup",
@@ -310,6 +328,7 @@ JSON;
    "simulate": false
 }
 JSON;
+
 		return $this->CallRestApi($sJson, 'delete');
 
 	}
@@ -317,9 +336,11 @@ JSON;
 	/**
 	 * @param $iId
 	 * Get CMDBChangeOp info to test
+	 *
 	 * @return array
 	 */
-	private function GetCmdbChangeUserInfo($iId){
+	private function GetCmdbChangeUserInfo($iId)
+	{
 		$sJsonGetContent = <<<JSON
 {
    "operation": "core/get",
@@ -333,16 +354,17 @@ JSON;
 		$sOutput = $this->CallRestApi($sJsonGetContent, 'CMDBChangeOp');
 		$aJson = json_decode($sOutput, true);
 		var_dump($aJson);
-		if (is_array($aJson) && array_key_exists('objects', $aJson)){
+		if (is_array($aJson) && array_key_exists('objects', $aJson)) {
 			$aObjects = $aJson['objects'];
-			if (!empty($aObjects)){
-				foreach ($aObjects as $aObject){
+			if (!empty($aObjects)) {
+				foreach ($aObjects as $aObject) {
 					$sClass = $aObject['class'];
 					$sUserInfo = $aObject['fields']['userinfo'];
 					$aUserInfo[$sClass] = $sUserInfo;
 				}
 			}
 		}
+
 		return $aUserInfo;
 	}
 }

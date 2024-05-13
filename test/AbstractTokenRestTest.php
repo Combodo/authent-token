@@ -1,4 +1,5 @@
 <?php
+
 namespace Combodo\iTop\AuthentToken\Test;
 
 require_once __DIR__.'/AbstractRestTest.php';
@@ -21,18 +22,20 @@ abstract class AbstractTokenRestTest extends AbstractRestTest
 	const USE_TRANSACTION = false;
 
 	protected $bTokenInPost;
+
 	/**
-     * @throws Exception
-     */
-    protected function setUp(): void
-    {
-	    parent::setUp();
-	    @require_once(APPROOT . 'env-production/authent-token/vendor/autoload.php');
+	 * @throws Exception
+	 */
+	protected function setUp(): void
+	{
+		parent::setUp();
+		@require_once(APPROOT.'env-production/authent-token/vendor/autoload.php');
 	}
 
-	protected function InitLoginMode($sLoginMode){
+	protected function InitLoginMode($sLoginMode)
+	{
 		$aAllowedLoginTypes = MetaModel::GetConfig()->GetAllowedLoginTypes();
-		if (! in_array($sLoginMode, $aAllowedLoginTypes)){
+		if (!in_array($sLoginMode, $aAllowedLoginTypes)) {
 			$aAllowedLoginTypes[] = $sLoginMode;
 			MetaModel::GetConfig()->SetAllowedLoginTypes($aAllowedLoginTypes);
 			$sConfigFile = APPROOT.'conf/'.\utils::GetCurrentEnvironment().'/config-itop.php';
@@ -41,7 +44,8 @@ abstract class AbstractTokenRestTest extends AbstractRestTest
 		}
 	}
 
-	public function BasicTokenProvider(){
+	public function BasicTokenProvider()
+	{
 		return [
 			'pass json_data as file/ token in POST' => [
 				'sJsonDataMode' => self::MODE['JSONDATA_AS_STRING'],
@@ -54,9 +58,10 @@ abstract class AbstractTokenRestTest extends AbstractRestTest
 		];
 	}
 
-	abstract protected function GetAuthToken($sContext=null);
+	abstract protected function GetAuthToken($sContext = null);
 
-	protected function GetPostParameters($sContext=null){
+	protected function GetPostParameters($sContext = null)
+	{
 		$aParams = [
 			'version' => '1.3',
 		];

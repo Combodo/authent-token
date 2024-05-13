@@ -77,8 +77,16 @@ abstract class AbstractRestTest extends ItopDataTestCase
 
 	abstract protected function GetPostParameters($sContext=null);
 
-	protected function GetHeadersParam($sContext=null){
-		return [];
+	protected function GetHeadersParam($sContext = null)
+	{
+		if ($this->bTokenInPost) {
+			return [];
+		}
+
+		return [
+			//'Content-Type: application/x-www-form-urlencoded',
+			'Auth-Token: '.$this->GetAuthToken($sContext),
+		];
 	}
 
 	protected function CallRestApi($sJsonDataContent, $sContext=null, $sUri='webservices/rest.php'){

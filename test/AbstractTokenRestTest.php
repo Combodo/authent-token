@@ -35,6 +35,8 @@ abstract class AbstractTokenRestTest extends AbstractRestTest
 		if (! in_array($sLoginMode, $aAllowedLoginTypes)){
 			$aAllowedLoginTypes[] = $sLoginMode;
 			MetaModel::GetConfig()->SetAllowedLoginTypes($aAllowedLoginTypes);
+			$sConfigFile = APPROOT.'conf/'.\utils::GetCurrentEnvironment().'/config-itop.php';
+			@chmod($sConfigFile, 0770); // Allow overwriting the file
 			MetaModel::GetConfig()->WriteToFile();
 		}
 	}
@@ -64,17 +66,6 @@ abstract class AbstractTokenRestTest extends AbstractRestTest
 		}
 
 		return $aParams;
-	}
-
-	protected function GetHeadersParam($sContext=null){
-		if ($this->bTokenInPost) {
-			return [];
-		}
-
-		return [
-			//'Content-Type: application/x-www-form-urlencoded',
-			"Auth-Token: " . $this->GetAuthToken($sContext),
-		];
 	}
 
 	/**

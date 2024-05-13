@@ -1,4 +1,4 @@
-<phpunit bootstrap="../unittestautoload.php" backupGlobals="false" verbose="true">
+<phpunit bootstrap="../../../tests/php-unit-tests/unittestautoload.php" backupGlobals="false" verbose="true">
   <php>
     <!--ini name="error_reporting" value="E_ALL &amp; ~E_DEPRECATED"/-->
     <ini name="display_errors" value="On"/>

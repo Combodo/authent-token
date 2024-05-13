@@ -120,6 +120,15 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
 		//create ticket
 		$description = date('dmY H:i:s');
 
+		// Allow legacy tokens in configuration
+		$oConfig = MetaModel::GetConfig();
+		$aParamsByTokenType = $oConfig->GetModuleSetting('authent-token', 'application_token', array());
+		$aParamsByTokenType['allow_legacy_tokens'] = true;
+		$oConfig->SetModuleSetting('authent-token', 'application_token', $aParamsByTokenType);
+		$sConfigFile = APPROOT.'conf/'.\utils::GetCurrentEnvironment().'/config-itop.php';
+		@chmod($sConfigFile, 0770); // Allow overwriting the file
+		MetaModel::GetConfig()->WriteToFile();
+
 		$sOuputJson = $this->CreateTicketViaApi($description);
 		$aJson = json_decode($sOuputJson, true);
 		$this->assertFalse(is_null($aJson), "should be json (and not html login form): " .  $sOuputJson);

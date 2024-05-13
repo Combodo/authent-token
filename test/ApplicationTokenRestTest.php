@@ -26,7 +26,6 @@ use UserToken;
  */
 class ApplicationTokenRestTest extends AbstractTokenRestTest
 {
-	protected $oApplicationToken;
 	protected $sToken;
 
 	/**
@@ -35,6 +34,8 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
     protected function setUp(): void
     {
 	    parent::setUp();
+		self::$DEBUG_UNIT_TEST = true;
+
 	    @require_once(APPROOT . 'env-production/authent-token/vendor/autoload.php');
 
 	    @chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
@@ -53,27 +54,23 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
 		    $this->sLogin = uniqid('applicationtoken_',  true);
 
 		    /** @var \UserLocal $oUser */
-		    $this->oApplicationToken = $this->createObject(UserToken::class, array(
+		    $this->oUser = $this->createObject(UserToken::class, array(
 			    'login' => $this->sLogin,
 			    'language' => 'EN US',
 			    'profile_list' => $oSet,
 		    ));
-		    $this->debug("Created {$this->oApplicationToken->GetName()} ({$this->oApplicationToken->GetKey()})");
+		    $this->debug("Created {$this->oUser->GetName()} ({$this->oUser->GetKey()})");
 
 		    if (is_object($oRestProfile))
 		    {
-			    $this->AddProfileToUser($this->oApplicationToken, $oRestProfile->GetKey());
+			    $this->oUser = $this->AddProfileToUser($this->oUser, $oRestProfile->GetKey());
 		    } else {
 			    MetaModel::GetConfig()->Set('secure_rest_services', false, 'auth-token');
 			    MetaModel::GetConfig()->WriteToFile();
 		    }
 	    }
 	    @chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
-
-	    $oReflectionClass = new \ReflectionClass(AbstractApplicationToken::class);
-	    $oProperty = $oReflectionClass->getProperty('sToken');
-	    $oProperty->setAccessible(true);
-	    $this->sToken = $oProperty->getValue($this->oApplicationToken);
+	    $this->sToken = $this->GetNonPublicProperty($this->oUser, 'sToken');
 	}
 
 	protected function GetAuthToken($sContext=null){
@@ -126,8 +123,8 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
 		$oService = new AuthentTokenService();
 		$this->sToken = bin2hex(random_bytes(16));
 		$oPassword = $oService->CreatePassword($this->sToken);
-		$this->oApplicationToken->Set('auth_token', $oPassword);
-		$this->oApplicationToken->DBWrite();
+		$this->oUser->Set('auth_token', $oPassword);
+		$this->oUser->DBWrite();
 
 		//create ticket
 		$description = date('dmY H:i:s');
@@ -137,13 +134,14 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
 		$aParamsByTokenType = $oConfig->GetModuleSetting('authent-token', 'application_token', array());
 		$aParamsByTokenType['allow_legacy_tokens'] = true;
 		$oConfig->SetModuleSetting('authent-token', 'application_token', $aParamsByTokenType);
-		$sConfigFile = APPROOT.'conf/'.\utils::GetCurrentEnvironment().'/config-itop.php';
+		$sConfigFile = $oConfig->GetLoadedFile();
 		@chmod($sConfigFile, 0770); // Allow overwriting the file
-		MetaModel::GetConfig()->WriteToFile();
+		$sConfigFile->WriteToFile();
+		@chmod($sConfigFile, 0440); // Deny overwriting the file
 
-		$sOuputJson = $this->CreateTicketViaApi($description);
-		$aJson = json_decode($sOuputJson, true);
-		$this->assertFalse(is_null($aJson), "should be json (and not html login form): " .  $sOuputJson);
+		$sOutputJson = $this->CreateTicketViaApi($description);
+		$aJson = json_decode($sOutputJson, true);
+		$this->assertFalse(is_null($aJson), "should be json (and not html login form): " .  $sOutputJson);
 	}
 
 }

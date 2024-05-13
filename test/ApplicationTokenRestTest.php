@@ -70,8 +70,10 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
 		    }
 	    }
 	    @chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
-	    $this->sToken = $this->GetNonPublicProperty($this->oUser, 'sToken');
-	}
+	    $oReflectionClass = new \ReflectionClass(AbstractApplicationToken::class);
+	    $oProperty = $oReflectionClass->getProperty('sToken');
+	    $oProperty->setAccessible(true);
+	    $this->sToken = $oProperty->getValue($this->oUser);	}
 
 	protected function GetAuthToken($sContext=null){
 		return $this->sToken;

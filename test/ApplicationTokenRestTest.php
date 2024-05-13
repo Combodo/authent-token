@@ -134,7 +134,7 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
 		// Allow legacy tokens in configuration
 		$oConfig = MetaModel::GetConfig();
 		$aParamsByTokenType = $oConfig->GetModuleSetting('authent-token', 'application_token', array());
-		$aParamsByTokenType['allow_legacy_tokens'] = true;
+		$aParamsByTokenType['allow_fallback_token'] = true;
 		$oConfig->SetModuleSetting('authent-token', 'application_token', $aParamsByTokenType);
 		$sConfigFile = $oConfig->GetLoadedFile();
 		@chmod($sConfigFile, 0770); // Allow overwriting the file

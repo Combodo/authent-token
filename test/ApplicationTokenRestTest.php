@@ -80,6 +80,18 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
 		return $this->sToken;
 	}
 
+	protected function GetHeadersParam($sContext = null)
+	{
+		if ($this->bTokenInPost) {
+			return [];
+		}
+
+		return [
+			//'Content-Type: application/x-www-form-urlencoded',
+			'Auth-Token: '.$this->GetAuthToken($sContext),
+		];
+	}
+
 	/**
 	 * @param \DBObject $oUser
 	 * @param int $iProfileId

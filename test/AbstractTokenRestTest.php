@@ -68,6 +68,18 @@ abstract class AbstractTokenRestTest extends AbstractRestTest
 		return $aParams;
 	}
 
+	protected function GetHeadersParam($sContext = null)
+	{
+		if ($this->bTokenInPost) {
+			return [];
+		}
+
+		return [
+			//'Content-Type: application/x-www-form-urlencoded',
+			'Auth-Token: '.$this->GetAuthToken($sContext),
+		];
+	}
+
 	/**
 	 * @dataProvider BasicTokenProvider
 	 */

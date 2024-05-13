@@ -138,7 +138,7 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
 		$oConfig->SetModuleSetting('authent-token', 'application_token', $aParamsByTokenType);
 		$sConfigFile = $oConfig->GetLoadedFile();
 		@chmod($sConfigFile, 0770); // Allow overwriting the file
-		$sConfigFile->WriteToFile();
+		$oConfig->WriteToFile();
 		@chmod($sConfigFile, 0440); // Deny overwriting the file
 
 		$sOutputJson = $this->CreateTicketViaApi($description);

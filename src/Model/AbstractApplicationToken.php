@@ -14,7 +14,8 @@ use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
 
 abstract class AbstractApplicationToken extends UserInternal implements iToken
 {
-	private $sToken;
+	protected $sToken;
+
 	/**
 	 * @var array[AbstractApplicationToken]
 	 */

@@ -109,7 +109,12 @@ abstract class AbstractRestTest extends ItopDataTestCase
 		curl_setopt($ch, CURLOPT_POST, 1);// set post data to true
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $aPostFields);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 		$sJson = curl_exec($ch);
+		if (curl_errno($ch)) {
+			echo 'Curl error: '.curl_error($ch);
+		}
 		curl_close($ch);
 
 		return $sJson;

@@ -6,6 +6,7 @@ require_once __DIR__.'/AbstractRestTest.php';
 require_once __DIR__.'/AbstractTokenRestTest.php';
 
 use AbstractApplicationToken;
+use AttributeEnumSet;
 use Combodo\iTop\AuthentToken\Hook\TokenLoginExtension;
 use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
 use DBObjectSet;
@@ -35,11 +36,9 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
 	protected function setUp(): void
 	{
 		parent::setUp();
-		self::$DEBUG_UNIT_TEST = true;
 
 		@require_once(APPROOT.'env-production/authent-token/vendor/autoload.php');
 
-		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
 		$this->InitLoginMode(TokenLoginExtension::LEGACY_LOGIN_TYPE);
 
 		$oRestProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", ['name' => 'REST Services User'], true);
@@ -58,6 +57,7 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
 				'login' => $this->sLogin,
 				'language' => 'EN US',
 				'profile_list' => $oSet,
+				'scope' => \ContextTag::TAG_REST,
 			]);
 			$this->debug("Created {$this->oUser->GetName()} ({$this->oUser->GetKey()})");
 
@@ -69,10 +69,9 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
 			}
 		}
 		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
-		$oReflectionClass = new \ReflectionClass(AbstractApplicationToken::class);
-		$oProperty = $oReflectionClass->getProperty('sToken');
-		$oProperty->setAccessible(true);
-		$this->sToken = $oProperty->getValue($this->oUser);
+
+		$this->InvokeNonPublicMethod(get_class($this->oUser), 'CreateNewToken', $this->oUser);
+		$this->sToken = $this->GetNonPublicProperty($this->oUser, 'sToken');
 	}
 
 	protected function GetAuthToken($sContext = null)
@@ -145,7 +144,7 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
 
 		$oConfig->SetModuleSetting('authent-token', 'application_token', []);
 		$oConfig->WriteToFile();
-		@chmod($sConfigFile, 0440); // Deny overwriting the file
+		//@chmod($sConfigFile, 0440); // Deny overwriting the file
 		$aJson = json_decode($sOutputJson, true);
 
 		$this->assertFalse(is_null($aJson), "should be json (and not html login form): ".$sOutputJson);

@@ -159,6 +159,11 @@ HTML;
 
 	public function CheckValidity(string $sToken): void
 	{
+		$oPassword = $this->Get('auth_token');
+		if (!$oPassword->CheckPassword($sToken)) {
+			TokenAuthLog::Error('Invalid token', null, ['token' => $sToken]);
+			throw new TokenAuthException('Invalid token');
+		}
 	}
 
 	public function UpdateUsage(): void

@@ -7,7 +7,7 @@
 Dict::Add('DE DE', 'German', 'Deutsch', [
 	'AuthentToken:CopyToken' => 'Die Anmeldedaten (Token), die Sie angeben müssen, lauten: <p>auth_token=<a>%1$s</a></p>Bitte notieren Sie sie jetzt, Sie können sie später nicht mehr anzeigen!',
 	'AuthentToken:RebuildToken' => 'Token neu erstellen',
-	'AuthentToken:RebuildToken+' => 'Das Authentifizierungs-Token wird neu erstellt',
+	'AuthentToken:RebuildToken+' => 'Das Authentifizierungs-Token wird neu erstellt, VORSICHT, das vorherige Token geht verloren.',
 	'Class:UserToken' => 'Token-basierter Nutzer',
 	'Class:UserToken/Attribute:login' => 'Remote-Anwendung',
 	'Class:UserToken/Attribute:login+' => 'Identifizierungs-String der Remote-Anwendung',

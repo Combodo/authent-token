@@ -6,8 +6,8 @@
  */
 Dict::Add('FR FR', 'French', 'Français', array(
 	'AuthentToken:CopyToken' => 'Les identifiants que vous aurez à fournir sont :<p>auth_token=<a>%1$s</a></p>Notez les maintenant, vous ne pourrez plus les afficher ensuite !',
-	'AuthentToken:RebuildToken' => 'Regénérer le jeton',
-	'AuthentToken:RebuildToken+' => 'Le jeton d\'authentification sera regénéré',
+	'AuthentToken:RebuildToken' => 'Régénérer le jeton',
+	'AuthentToken:RebuildToken+' => 'Le jeton d\'authentification sera régénéré, ATTENTION le précédent sera perdu et ne pourra plus être utilisé',
 	'UI:MyAccount' => 'Mon compte',
 	'authent-token/Operation:MainPage/Title' => 'Mon compte',
 	'MyAccount:SubTitle:user' => 'Mon utilisateur',

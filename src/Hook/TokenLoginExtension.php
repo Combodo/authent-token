@@ -205,8 +205,8 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 			if (MetaModel::GetConfig()->Get('login_debug')){
 				TokenAuthLog::Info("GetToken", null, ["sTokenId" => $oToken->GetKey(), "sTokenClass" => get_class($oToken)]);
 			}
-
 			$oToken->CheckValidity($sToken);
+
 			return $oToken;
 		}
 
@@ -216,7 +216,6 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 				if (MetaModel::GetConfig()->Get('login_debug')) {
 					TokenAuthLog::Info("GetToken (legacy)", null, ["sTokenId" => $oToken->GetKey(), "sTokenClass" => get_class($oToken)]);
 				}
-				$oToken->CheckValidity($sToken);
 
 				return $oToken;
 			}

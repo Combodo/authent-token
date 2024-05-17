@@ -37,7 +37,7 @@ class MyAccountExtension implements iMyAccountExtension
 	{
 		$aSectionParams = $this->ProvideHtmlTokenInfo(\UserRights::GetUserObject());
 		$aSectionParams['sHtmlTwig'] = 'personaltokens.html.twig';
-		$aSectionParams['sJsTwig'] = 'personaltokens.ready.js.twig';
+		$aSectionParams['sReadyJsTwig'] = 'personaltokens.ready.js.twig';
 
 		return $aSectionParams;
 	}

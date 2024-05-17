@@ -2,11 +2,11 @@
 
 use Combodo\iTop\Application\UI\Base\Component\Button\ButtonUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\Component\Form\FormUIBlockFactory;
-use Combodo\iTop\AuthentToken\Controller\MyAccountController;
 use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Model\iToken;
 use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
+use Combodo\iTop\AuthentToken\Service\PersonalTokenService;
 
 /**
  * @copyright   Copyright (C) 2010-2024 Combodo SAS
@@ -157,9 +157,9 @@ HTML;
 	public function CheckValidity(string $sToken): void
 	{
 		$oUser = $this->GetUser();
-		if (! MyAccountController::IsPersonalTokenManagementAllowed($oUser)){
+		if (! PersonalTokenService::GetInstance()->IsPersonalTokenManagementAllowed($oUser)){
 			if (MetaModel::GetConfig()->Get('login_debug')) {
-				$aProfiles = MyAccountController::GetAuthorizedProfiles();
+				$aProfiles = PersonalTokenService::GetInstance()->GetAuthorizedProfiles();
 				$sMessage = sprintf('Current user has not the Personal Token allowed profiles (%s).', implode(',', $aProfiles));
 				TokenAuthLog::Info($sMessage, null, $this->GetContextParams());
 			}

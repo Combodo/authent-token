@@ -14,7 +14,7 @@ Dict::Add('EN US', 'English', 'English', array(
 	'authent-token/Operation:MainPage/Title' => 'My Account',
 	'MyAccount:SubTitle:user' => 'My user',
 	'MyAccount:SubTitle:contact' => 'My contact',
-	'MyAccount:SubTitle:personaltokens' => 'My personal tokens',
+	'MyAccount:SubTitle:PersonalTokens' => 'My personal tokens',
 
 	'UI:Datatables:Column:RowActions:Label' => '',
 	'UI:Datatables:Column:RowActions:Description' => '',

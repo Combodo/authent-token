@@ -30,7 +30,7 @@ class TokenAuthConfig
 		if (is_null($sTokenType)) {
 			return MetaModel::GetModuleSetting('authent-token', $sParamName, $default);
 		}
-		$aParamsByTokenType = MetaModel::GetModuleSetting('authent-token', 'application_token', array());
+		$aParamsByTokenType = MetaModel::GetModuleSetting('authent-token', $sTokenType, array());
 		if (array_key_exists($sParamName, $aParamsByTokenType)) {
 			return $aParamsByTokenType[$sParamName];
 		}

@@ -2,11 +2,8 @@
 
 namespace Combodo\iTop\AuthentToken\Test;
 
-require_once __DIR__.'/AbstractRestTest.php';
-require_once __DIR__.'/AbstractTokenRestTest.php';
+require_once __DIR__.'/AbstractTokenRest.php';
 
-use AbstractApplicationToken;
-use AttributeEnumSet;
 use Combodo\iTop\AuthentToken\Hook\TokenLoginExtension;
 use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
 use DBObjectSet;
@@ -26,7 +23,7 @@ use UserToken;
  * @preserveGlobalState disabled
  * @backupGlobals disabled
  */
-class ApplicationTokenRestTest extends AbstractTokenRestTest
+class ApplicationTokenRestTest extends AbstractTokenRest
 {
 	protected $sToken;
 
@@ -60,6 +57,7 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
 				'scope' => \ContextTag::TAG_REST,
 			]);
 			$this->debug("Created {$this->oUser->GetName()} ({$this->oUser->GetKey()})");
+			$this->sToken = $this->GetNonPublicProperty($this->oUser, 'sToken');
 
 			if (is_object($oRestProfile)) {
 				$this->oUser = $this->AddProfileToUser($this->oUser, $oRestProfile->GetKey());
@@ -69,9 +67,6 @@ class ApplicationTokenRestTest extends AbstractTokenRestTest
 			}
 		}
 		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
-
-		$this->InvokeNonPublicMethod(get_class($this->oUser), 'CreateNewToken', $this->oUser);
-		$this->sToken = $this->GetNonPublicProperty($this->oUser, 'sToken');
 	}
 
 	protected function GetAuthToken($sContext = null)

@@ -2,7 +2,7 @@
 
 namespace Combodo\iTop\AuthentToken\Test;
 
-require_once __DIR__.'/AbstractRestTest.php';
+require_once __DIR__.'/AbstractRest.php';
 
 use Exception;
 use MetaModel;
@@ -17,7 +17,7 @@ use MetaModel;
  * @preserveGlobalState disabled
  * @backupGlobals disabled
  */
-abstract class AbstractTokenRestTest extends AbstractRestTest
+abstract class AbstractTokenRest extends AbstractRest
 {
 	const USE_TRANSACTION = false;
 

@@ -9,7 +9,6 @@
   <testsuites>
     <testsuite name="testsU">
       <directory suffix="Test.php">.</directory>
-      <exclude>./AbstractRestTest.php</exclude>
     </testsuite>
   </testsuites>
 </phpunit>

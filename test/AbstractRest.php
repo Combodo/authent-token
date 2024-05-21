@@ -8,7 +8,7 @@ use Exception;
 use MetaModel;
 
 
-abstract class AbstractRestTest extends ItopDataTestCase
+abstract class AbstractRest extends ItopDataTestCase
 {
 	const USE_TRANSACTION = false;
 
@@ -35,7 +35,7 @@ abstract class AbstractRestTest extends ItopDataTestCase
 		$sConfigPath = MetaModel::GetConfig()->GetLoadedFile();
 
 		clearstatcache();
-		echo sprintf("rights via ls on %s:\n %s \n", $sConfigPath, exec("ls -al $sConfigPath"));
+		echo sprintf("\nrights via ls on %s:\n %s \n", $sConfigPath, exec("ls -al $sConfigPath"));
 		$sFilePermOutput = substr(sprintf('%o', fileperms('/etc/passwd')), -4);
 		echo sprintf("rights via fileperms on %s:\n %s \n", $sConfigPath, $sFilePermOutput);
 
@@ -52,13 +52,7 @@ abstract class AbstractRestTest extends ItopDataTestCase
 
 		$this->sConfigTmpBackupFile = tempnam(sys_get_temp_dir(), "config_");
 		MetaModel::GetConfig()->WriteToFile($this->sConfigTmpBackupFile);
-
-		$oAdminProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", ['name' => 'Administrator'], true);
-
-		if (is_object($oAdminProfile)) {
-			$this->oUser = $this->CreateContactlessUser($this->sLogin, $oAdminProfile->GetKey(), $this->sPassword);
-		}
-	}
+}
 
 	/**
 	 * @throws Exception

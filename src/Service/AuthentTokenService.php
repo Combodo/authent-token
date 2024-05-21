@@ -21,6 +21,7 @@ class AuthentTokenService {
 
 	public function __construct(?MetaModelService $oMetaModelService=null)
 	{
+		TokenAuthLog::Enable(APPROOT.'log/error.log');
 		$this->oMetaModelService = is_null($oMetaModelService) ? new MetaModelService() : $oMetaModelService;
 	}
 
@@ -45,7 +46,7 @@ class AuthentTokenService {
 			}
 		} catch(\Exception $e){
 			if (MetaModel::GetConfig()->Get('login_debug')){
-				TokenAuthLog::Debug("DecryptToken could not decrypt or base64_decode token.", null, [ 'exception_message' => $e->getMessage() ]);
+				TokenAuthLog::Error("DecryptToken could not decrypt or base64_decode token.", null, [ 'exception_message' => $e->getMessage() ]);
 			}
 		}
 
@@ -58,7 +59,7 @@ class AuthentTokenService {
 			}
 		} catch(\Exception $e){
 			if (MetaModel::GetConfig()->Get('login_debug')){
-				TokenAuthLog::Debug("DecryptToken (legacy) could not decrypt or hex2bin token.", null, [ 'exception_message' => $e->getMessage() ]);
+				TokenAuthLog::Error("DecryptToken (legacy) could not decrypt or hex2bin token.", null, [ 'exception_message' => $e->getMessage() ]);
 			}
 		}
 
@@ -77,7 +78,7 @@ class AuthentTokenService {
 		$aFields = explode(':', $sDecryptedToken);
 		if (count($aFields) < 2){
 			if ($bLoginDebug){
-				TokenAuthLog::Debug("GetToken not enough separators.", null, [ 'sDecryptedToken' => $sDecryptedToken ]);
+				TokenAuthLog::Error("GetToken not enough separators.", null, [ 'sDecryptedToken' => $sDecryptedToken ]);
 			}
 			return null;
 		}
@@ -87,7 +88,7 @@ class AuthentTokenService {
 
 		if ( ! preg_match('/^\d+$/', $sId) ) {
 			if ($bLoginDebug){
-				TokenAuthLog::Debug("GetToken id not an iTop key.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sId' => $sId ]);
+				TokenAuthLog::Error("GetToken id not an iTop key.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sId' => $sId ]);
 			}
 			return null;
 		}
@@ -95,15 +96,20 @@ class AuthentTokenService {
 		try{
 			$oReflectionClass = new \ReflectionClass($sClassName);
 			if ($oReflectionClass->implementsInterface(iToken::class)){
-				return $this->oMetaModelService->GetObject($sClassName, $sId);
+				/** @var iToken $oToken */
+				$oToken = $this->oMetaModelService->GetObject($sClassName, $sId);
+				if ($bLoginDebug) {
+					TokenAuthLog::Info("GetToken found token.", null, ['sDecryptedToken' => $sDecryptedToken, 'sClassName' => $sClassName, 'sId' => $sId]);
+				}
+				return $oToken;
 			}
 
 			if ($bLoginDebug){
-				TokenAuthLog::Debug("GetToken class not an iToken interface.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sClassName' => $sClassName ]);
+				TokenAuthLog::Error("GetToken class not an iToken interface.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sClassName' => $sClassName ]);
 			}
 		} catch(\ReflectionException $e){
 			if ($bLoginDebug){
-				TokenAuthLog::Debug("GetToken class not  real class.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sClassName' => $sClassName ]);
+				TokenAuthLog::Error("GetToken class not  real class.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sClassName' => $sClassName ]);
 			}
 		}
 
@@ -117,7 +123,7 @@ class AuthentTokenService {
 		$aTokenData = json_decode($sDecryptedToken, true);
 		if (! is_array($aTokenData)){
 			if ($bLoginDebug){
-				TokenAuthLog::Debug("GetLegacyToken not a proper json structure.", null, [ 'sDecryptedToken' => $sDecryptedToken ]);
+				TokenAuthLog::Error("GetLegacyToken not a proper json structure.", null, [ 'sDecryptedToken' => $sDecryptedToken ]);
 			}
 			return null;
 		}
@@ -127,14 +133,14 @@ class AuthentTokenService {
 
 		if (is_null($sClassName) || is_null($sId)){
 			if ($bLoginDebug){
-				TokenAuthLog::Debug("GetLegacyToken missing class or id in json structure.", null, [ 'sDecryptedToken' => $sDecryptedToken ]);
+				TokenAuthLog::Error("GetLegacyToken missing class or id in json structure.", null, [ 'sDecryptedToken' => $sDecryptedToken ]);
 			}
 			return null;
 		}
 
 		if ( ! preg_match('/^\d+$/', $sId) ) {
 			if ($bLoginDebug){
-				TokenAuthLog::Debug("GetLegacyToken id not an iTop key.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sId' => $sId ]);
+				TokenAuthLog::Error("GetLegacyToken id not an iTop key.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sId' => $sId ]);
 			}
 			return null;
 		}
@@ -142,15 +148,21 @@ class AuthentTokenService {
 		try {
 			$oReflectionClass = new \ReflectionClass($sClassName);
 			if ($oReflectionClass->implementsInterface(iToken::class)) {
-				return $this->oMetaModelService->GetObject($sClassName, $sId);
+				/** @var iToken $oToken */
+				$oToken = $this->oMetaModelService->GetObject($sClassName, $sId);
+				if ($bLoginDebug) {
+					TokenAuthLog::Info('GetToken found token.', null, ['sDecryptedToken' => $sDecryptedToken, 'sClassName' => $sClassName, 'sId' => $sId]);
+				}
+
+				return $oToken;
 			}
 
 			if ($bLoginDebug){
-				TokenAuthLog::Debug("GetLegacyToken class not an iToken interface.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sClassName' => $sClassName ]);
+				TokenAuthLog::Error("GetLegacyToken class not an iToken interface.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sClassName' => $sClassName ]);
 			}
 		}catch(\ReflectionException $e){
 			if ($bLoginDebug){
-				TokenAuthLog::Debug("GetLegacyToken class not  real class.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sClassName' => $sClassName ]);
+				TokenAuthLog::Error("GetLegacyToken class not  real class.", null, [ 'sDecryptedToken' => $sDecryptedToken, 'sClassName' => $sClassName ]);
 			}
 		}
 

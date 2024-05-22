@@ -7,7 +7,7 @@
 Dict::Add('RU RU', 'Russian', 'Русский', [
 	'AuthentToken:CopyToken' => 'The credentials you have to provide are:<p>auth_token=<a>%1$s</a></p>Copy them now, you won\'t be able to get them later!~~',
 	'AuthentToken:RebuildToken' => 'Rebuild token~~',
-	'AuthentToken:RebuildToken+' => 'The authentification token will be recreated~~',
+	'AuthentToken:RebuildToken+' => 'The authentification token will be recreated, BEWARE the previous one will be lost~~',
 	'Class:UserToken' => 'Application Token~~',
 	'Class:UserToken/Attribute:login' => 'Remote application~~',
 	'Class:UserToken/Attribute:login+' => 'Remote application identification string~~',

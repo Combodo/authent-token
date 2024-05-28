@@ -40,13 +40,13 @@ class ComposerStaticInit2dc5f289d4f7cd17bc210cd38fdd5ef1
         'Combodo\\iTop\\AuthentToken\\Service\\AuthentTokenService' => __DIR__ . '/../..' . '/src/Service/AuthentTokenService.php',
         'Combodo\\iTop\\AuthentToken\\Service\\MetaModelService' => __DIR__ . '/../..' . '/src/Service/MetaModelService.php',
         'Combodo\\iTop\\AuthentToken\\Service\\PersonalTokenService' => __DIR__ . '/../..' . '/src/Service/PersonalTokenService.php',
-        'Combodo\\iTop\\AuthentToken\\Test\\AbstractRestTest' => __DIR__ . '/../..' . '/test/AbstractRestTest.php',
-        'Combodo\\iTop\\AuthentToken\\Test\\AbstractTokenRestTest' => __DIR__ . '/../..' . '/test/AbstractTokenRestTest.php',
+        'Combodo\\iTop\\AuthentToken\\Test\\AbstractRest' => __DIR__ . '/../..' . '/test/AbstractRest.php',
+        'Combodo\\iTop\\AuthentToken\\Test\\AbstractTokenRest' => __DIR__ . '/../..' . '/test/AbstractTokenRest.php',
         'Combodo\\iTop\\AuthentToken\\Test\\ApplicationTokenRestTest' => __DIR__ . '/../..' . '/test/ApplicationTokenRestTest.php',
         'Combodo\\iTop\\AuthentToken\\Test\\AuthentTokenServiceTest' => __DIR__ . '/../..' . '/test/AuthentTokenServiceTest.php',
         'Combodo\\iTop\\AuthentToken\\Test\\MyAccountControllerTest' => __DIR__ . '/../..' . '/test/MyAccountControllerTest.php',
         'Combodo\\iTop\\AuthentToken\\Test\\PersonalTokenRestTest' => __DIR__ . '/../..' . '/test/PersonalTokenRestTest.php',
-        'Combodo\\iTop\\AuthentToken\\Test\\RestTest' => __DIR__ . '/../..' . '/test/RestTest.php',
+        'Combodo\\iTop\\AuthentToken\\Test\\Rest' => __DIR__ . '/../..' . '/test/Rest.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
     );
 

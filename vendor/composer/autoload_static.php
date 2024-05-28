@@ -27,14 +27,13 @@ class ComposerStaticInit2dc5f289d4f7cd17bc210cd38fdd5ef1
 
     public static $classMap = array (
         'Combodo\\iTop\\AuthentToken\\Controller\\AuthentTokenAjaxController' => __DIR__ . '/../..' . '/src/Controller/AuthentTokenAjaxController.php',
-        'Combodo\\iTop\\AuthentToken\\Controller\\AuthentTokenController' => __DIR__ . '/../..' . '/src/Controller/AuthentTokenController.php',
         'Combodo\\iTop\\AuthentToken\\Exception\\TokenAuthException' => __DIR__ . '/../..' . '/src/Exception/TokenAuthException.php',
         'Combodo\\iTop\\AuthentToken\\Helper\\TokenAuthConfig' => __DIR__ . '/../..' . '/src/Helper/TokenAuthConfig.php',
         'Combodo\\iTop\\AuthentToken\\Helper\\TokenAuthHelper' => __DIR__ . '/../..' . '/src/Helper/TokenAuthHelper.php',
         'Combodo\\iTop\\AuthentToken\\Helper\\TokenAuthLog' => __DIR__ . '/../..' . '/src/Helper/TokenAuthLog.php',
         'Combodo\\iTop\\AuthentToken\\Hook\\LegacyTokenLoginExtension' => __DIR__ . '/../..' . '/src/Hook/LegacyTokenLoginExtension.php',
-        'Combodo\\iTop\\AuthentToken\\Hook\\MyAccountAjaxTabExtension' => __DIR__ . '/../..' . '/src/Hook/MyAccountAjaxTabExtension.php',
-        'Combodo\\iTop\\AuthentToken\\Hook\\MyAccountExtension' => __DIR__ . '/../..' . '/src/Hook/MyAccountExtension.php',
+        'Combodo\\iTop\\AuthentToken\\Hook\\MyAccountSectionSectionExtension' => __DIR__ . '/../..' . '/src/Hook/MyAccountSectionSectionExtension.php',
+        'Combodo\\iTop\\AuthentToken\\Hook\\MyAccountTabExtension' => __DIR__ . '/../..' . '/src/Hook/MyAccountTabExtension.php',
         'Combodo\\iTop\\AuthentToken\\Hook\\TokenLoginExtension' => __DIR__ . '/../..' . '/src/Hook/TokenLoginExtension.php',
         'Combodo\\iTop\\AuthentToken\\Model\\PersonalTokenMenu' => __DIR__ . '/../..' . '/src/Model/PersonalTokenMenu.php',
         'Combodo\\iTop\\AuthentToken\\Model\\iToken' => __DIR__ . '/../..' . '/src/Model/iToken.php',

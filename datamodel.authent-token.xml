@@ -341,9 +341,6 @@
       <personal_tokens_allowed_profiles type="array">
         <item>Administrator</item>
       </personal_tokens_allowed_profiles>
-      <personal_token type="hash">
-        <display_as_separate_tab>true</display_as_separate_tab>
-      </personal_token>
       <application_token type="hash">
         <allow_fallback_token>false</allow_fallback_token>
       </application_token>

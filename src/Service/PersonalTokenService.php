@@ -71,8 +71,9 @@ class PersonalTokenService
 		return [];
 	}
 
-	public function ProvideHtmlTokenInfo(\User $oUser): array
+	public function ProvideHtmlTokenInfo(): array
 	{
+		$oUser = UserRights::GetUserObject();
 		$aColumns = [];
 		foreach ($this->GetFields() as $sField) {
 			$aColumns[] = ['label' => MetaModel::GetLabel(\PersonalToken::class, $sField)];

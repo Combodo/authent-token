@@ -37,4 +37,9 @@ class MyAccountSectionSectionExtension implements iMyAccountSectionExtension
 	{
 		return 0;
 	}
+
+	public function IsActive(): bool
+	{
+		return PersonalTokenService::GetInstance()->IsPersonalTokenManagementAllowed(UserRights::GetUser());
+	}
 }

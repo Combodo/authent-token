@@ -6,8 +6,10 @@
 
 namespace Combodo\iTop\AuthentToken\Hook;
 
+use Combodo\iTop\AuthentToken\Service\PersonalTokenService;
 use Combodo\iTop\MyAccount\Hook\iMyAccountTabExtension;
 use Dict;
+use UserRights;
 
 class MyAccountTabExtension implements iMyAccountTabExtension
 {
@@ -17,7 +19,7 @@ class MyAccountTabExtension implements iMyAccountTabExtension
 	 */
 	public function IsTabPresent(): bool
 	{
-		return true;
+		return PersonalTokenService::GetInstance()->IsPersonalTokenManagementAllowed(UserRights::GetUserObject());
 	}
 
 	/**

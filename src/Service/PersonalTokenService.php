@@ -20,6 +20,7 @@ use DBObjectSearch;
 use DBObjectSet;
 use Dict;
 use MetaModel;
+use User;
 use UserRights;
 use utils;
 
@@ -40,7 +41,7 @@ class PersonalTokenService
 		return static::$oInstance;
 	}
 
-	public function IsPersonalTokenManagementAllowed($oUser) : bool
+	public function IsPersonalTokenManagementAllowed(User $oUser) : bool
 	{
 		if (is_null($oUser)){
 			return false;

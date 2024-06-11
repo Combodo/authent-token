@@ -2,78 +2,74 @@
 /**
  * Localized data
  *
- * @copyright   Copyright (C) 2024 Combodo SAS
+ * @copyright Copyright (C) 2010-2024 Combodo SAS
+ * @license    https://opensource.org/licenses/AGPL-3.0
+ * 
+ */
+/**
+ *
  */
 Dict::Add('DE DE', 'German', 'Deutsch', [
 	'AuthentToken:CopyToken' => 'Die Anmeldedaten (Token), die Sie angeben müssen, lauten: <p>auth_token=<a>%1$s</a></p>Bitte notieren Sie sie jetzt, Sie können sie später nicht mehr anzeigen!',
+	'AuthentToken:Message:DeleteTokenConfirmation' => 'Möchten Sie das Token <a>%1$s</a> löschen?',
 	'AuthentToken:RebuildToken' => 'Token neu erstellen',
 	'AuthentToken:RebuildToken+' => 'Das Authentifizierungs-Token wird neu erstellt, VORSICHT, das vorherige Token geht verloren.',
-	'Class:UserToken' => 'Token-basierter Nutzer',
-	'Class:UserToken/Attribute:login' => 'Remote-Anwendung',
-	'Class:UserToken/Attribute:login+' => 'Identifizierungs-String der Remote-Anwendung',
-	'UI:MyAccount' => 'Mein Konto',
-	'authent-token/Operation:MainPage/Title' => 'Mein Konto',
-	'MyAccount:SubTitle:user' => 'Mein Benutzer',
-	'MyAccount:SubTitle:contact' => 'Mein Kontakt',
-	'MyAccount:SubTitle:personaltokens' => 'Meine persönlichen Token',
-	'UI:Datatables:Column:RowActions:Label' => '',
-	'UI:Datatables:Column:RowActions:Description' => '',
-	'UI:Links:ActionRow:DeleteToken' => 'Token löschen',
-	'UI:Links:ActionRow:AddToken' => 'Neuen Token hinzufügen',
-	'UI:Links:ActionRow:EditToken' => 'Token bearbeiten',
-	'UI:Links:ActionRow:Edit' => 'Bearbeiten',
-	'UI:Links:ActionRow:SaveToken' => 'Token speichern',
 	'AuthentToken:Title:DeleteTokenConfirmation' => 'Bestätigen',
-	'AuthentToken:Message:DeleteTokenConfirmation' => 'Möchten Sie das Token <a>%1$s</a> löschen?',
-]);
-
-
-//
-// Class: PersonalToken
-//
-
-Dict::Add('DE DE', 'German', 'Deutsch', array(
 	'Class:PersonalToken' => 'Persönlicher Token',
-	'Class:PersonalToken+' => '~~',
-	'Class:PersonalToken/Attribute:user_id' => 'Benutzer',
-	'Class:PersonalToken/Attribute:user_id+' => 'Zugeordneter Benutzer',
-	'Class:PersonalToken/Attribute:auth_token' => 'Authentifizierungs-Token',
-	'Class:PersonalToken/Attribute:auth_token+' => '~~',
+	'Class:PersonalToken+' => 'Personal token for accessing '.ITOP_APPLICATION_SHORT.' webservices, import, export, rest and data synchro~~',
 	'Class:PersonalToken/Attribute:application' => 'Anwendung',
-	'Class:PersonalToken/Attribute:application+' => '~~',
+	'Class:PersonalToken/Attribute:application+' => 'Logical identifier to remember why you have created this token~~',
+	'Class:PersonalToken/Attribute:auth_token' => 'Authentifizierungs-Token',
+	'Class:PersonalToken/Attribute:auth_token+' => 'Readable only at generation time~~',
+	'Class:PersonalToken/Attribute:expiration_date' => 'Ablaufdatum',
+	'Class:PersonalToken/Attribute:expiration_date+' => '',
+	'Class:PersonalToken/Attribute:last_use_date' => 'Letzte Verwendung',
+	'Class:PersonalToken/Attribute:last_use_date+' => '',
+	'Class:PersonalToken/Attribute:org_id' => 'Organization~~',
+	'Class:PersonalToken/Attribute:org_id+' => 'Organization inherited from the associated user~~',
 	'Class:PersonalToken/Attribute:scope' => 'Scope',
-	'Class:PersonalToken/Attribute:scope+' => '~~',
+	'Class:PersonalToken/Attribute:scope+' => 'In which context(s), this token is allowed to be used~~',
+	'Class:PersonalToken/Attribute:scope/Value:Export' => 'Export',
+	'Class:PersonalToken/Attribute:scope/Value:Export+' => '',
+	'Class:PersonalToken/Attribute:scope/Value:Import' => 'Import',
+	'Class:PersonalToken/Attribute:scope/Value:Import+' => '',
 	'Class:PersonalToken/Attribute:scope/Value:REST/JSON' => 'REST/JSON',
 	'Class:PersonalToken/Attribute:scope/Value:REST/JSON+' => '',
 	'Class:PersonalToken/Attribute:scope/Value:Synchro' => 'Synchro',
 	'Class:PersonalToken/Attribute:scope/Value:Synchro+' => '',
-	'Class:PersonalToken/Attribute:scope/Value:Import' => 'Import',
-	'Class:PersonalToken/Attribute:scope/Value:Import+' => '',
-	'Class:PersonalToken/Attribute:scope/Value:Export' => 'Export',
-	'Class:PersonalToken/Attribute:scope/Value:Export+' => '',
-	'Class:PersonalToken/Attribute:expiration_date' => 'Ablaufdatum',
-	'Class:PersonalToken/Attribute:expiration_date+' => '',
 	'Class:PersonalToken/Attribute:use_count' => 'Anmeldungen',
 	'Class:PersonalToken/Attribute:use_count+' => 'Anzahl an Anmeldungen mit diesem Token',
-	'Class:PersonalToken/Attribute:last_use_date' => 'Letzte Verwendung',
-	'Class:PersonalToken/Attribute:last_use_date+' => '',
-));
-
-//
-// Class: UserToken
-//
-
-Dict::Add('DE DE', 'German', 'Deutsch', array(
+	'Class:PersonalToken/Attribute:user_id' => 'Benutzer',
+	'Class:PersonalToken/Attribute:user_id+' => 'Zugeordneter Benutzer',
+	'Class:User/Attribute:tokens_list' => 'Personal tokens~~',
+	'Class:UserToken' => 'Token-basierter Nutzer',
+	'Class:UserToken+' => 'User for remote applications accessing '.ITOP_APPLICATION_SHORT.' webservices~~',
 	'Class:UserToken/Attribute:auth_token' => 'Authentifizierungs-Token',
-	'Class:UserToken/Attribute:auth_token+' => '~~',
+	'Class:UserToken/Attribute:auth_token+' => 'Readable only at generation time~~',
+	'Class:UserToken/Attribute:login' => 'Remote-Anwendung',
+	'Class:UserToken/Attribute:login+' => 'Identifizierungs-String der Remote-Anwendung',
 	'Class:UserToken/Attribute:scope' => 'Scope',
-	'Class:UserToken/Attribute:scope+' => '~~',
+	'Class:UserToken/Attribute:scope+' => 'In which context(s), this token is allowed to be used~~',
+	'Class:UserToken/Attribute:scope/Value:Export' => 'Export',
+	'Class:UserToken/Attribute:scope/Value:Export+' => '',
+	'Class:UserToken/Attribute:scope/Value:Import' => 'Import',
+	'Class:UserToken/Attribute:scope/Value:Import+' => '',
 	'Class:UserToken/Attribute:scope/Value:REST/JSON' => 'REST/JSON',
 	'Class:UserToken/Attribute:scope/Value:REST/JSON+' => '',
 	'Class:UserToken/Attribute:scope/Value:Synchro' => 'Synchro',
 	'Class:UserToken/Attribute:scope/Value:Synchro+' => '',
-	'Class:UserToken/Attribute:scope/Value:Import' => 'Import',
-	'Class:UserToken/Attribute:scope/Value:Import+' => '',
-	'Class:UserToken/Attribute:scope/Value:Export' => 'Export',
-	'Class:UserToken/Attribute:scope/Value:Export+' => '',
-));
+	'Menu:SearchPersonalTokens' => 'Personal tokens~~',
+	'Menu:SearchPersonalTokens+' => 'Personal tokens, usable on webservices import, export, rest and datasynchro~~',
+	'MyAccount:SubTitle:contact' => 'Mein Kontakt',
+	'MyAccount:SubTitle:personaltokens' => 'Meine persönlichen Token',
+	'MyAccount:SubTitle:user' => 'Mein Benutzer',
+	'UI:Datatables:Column:RowActions:Description' => '',
+	'UI:Datatables:Column:RowActions:Label' => '',
+	'UI:Links:ActionRow:AddToken' => 'Neuen Token hinzufügen',
+	'UI:Links:ActionRow:DeleteToken' => 'Token löschen',
+	'UI:Links:ActionRow:Edit' => 'Bearbeiten',
+	'UI:Links:ActionRow:EditToken' => 'Token bearbeiten',
+	'UI:Links:ActionRow:SaveToken' => 'Token speichern',
+	'UI:MyAccount' => 'Mein Konto',
+	'authent-token/Operation:MainPage/Title' => 'Mein Konto',
+]);

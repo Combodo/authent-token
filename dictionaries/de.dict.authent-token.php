@@ -61,7 +61,7 @@ Dict::Add('DE DE', 'German', 'Deutsch', [
 	'Menu:SearchPersonalTokens' => 'Persönliche Tokens',
 	'Menu:SearchPersonalTokens+' => 'Persönliche Tokens, verwendbar für Webdienste, Import, Export, REST und Datensynchronisation',
 	'MyAccount:SubTitle:contact' => 'Mein Kontakt',
-	'MyAccount:SubTitle:personaltokens' => 'Meine persönlichen Token',
+	'MyAccount:SubTitle:PersonalTokens' => 'Meine persönlichen Token',
 	'MyAccount:SubTitle:user' => 'Mein Benutzer',
 	'UI:Datatables:Column:RowActions:Description' => '',
 	'UI:Datatables:Column:RowActions:Label' => '',

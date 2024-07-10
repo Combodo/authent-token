@@ -7,10 +7,11 @@
 namespace Combodo\iTop\AuthentToken\Hook;
 
 use Combodo\iTop\AuthentToken\Service\PersonalTokenService;
-use Combodo\iTop\MyAccount\Hook\iMyAccountSectionExtension;
+use Combodo\iTop\MyAccount\Hook\iMyAccountTabContentExtension;
+use UserRights;
 use utils;
 
-class MyAccountSectionSectionExtension implements iMyAccountSectionExtension
+class MyAccountSectionTabContentExtension implements iMyAccountTabContentExtension
 {
 
 	public function GetTemplatePath(): string
@@ -40,6 +41,6 @@ class MyAccountSectionSectionExtension implements iMyAccountSectionExtension
 
 	public function IsActive(): bool
 	{
-		return PersonalTokenService::GetInstance()->IsPersonalTokenManagementAllowed(UserRights::GetUser());
+		return PersonalTokenService::GetInstance()->IsPersonalTokenManagementAllowed(UserRights::GetUserObject());
 	}
 }

@@ -61,7 +61,7 @@ Dict::Add('PL PL', 'Polish', 'Polski', [
 	'Menu:SearchPersonalTokens' => 'Personal tokens~~',
 	'Menu:SearchPersonalTokens+' => 'Personal tokens, usable on webservices import, export, rest and datasynchro~~',
 	'MyAccount:SubTitle:contact' => 'My contact~~',
-	'MyAccount:SubTitle:personaltokens' => 'My personal tokens~~',
+	'MyAccount:SubTitle:PersonalTokens' => 'My personal tokens~~',
 	'MyAccount:SubTitle:user' => 'My user~~',
 	'UI:Datatables:Column:RowActions:Description' => '~~',
 	'UI:Datatables:Column:RowActions:Label' => '~~',

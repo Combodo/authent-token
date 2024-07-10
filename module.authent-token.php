@@ -10,17 +10,15 @@ SetupWebPage::AddModule(
 		// Identification
 		//
 		'label' => 'User authentication by token',
-		'category' => 'business',
+		'category' => 'authentication',
 
 		// Setup
 		//
 		'dependencies' => [
-			'itop-welcome-itil/3.2.0||itop-structure/3.2.0',
-			'combodo-my-account/3.2.0',
-			'combodo-mfa-light/3.2.0',
+			'combodo-my-account/1.0.0',
 		],
-		'mandatory' => true,
-		'visible' => false,
+		'mandatory' => false,
+		'visible' => true,
 
 		// Components
 		//

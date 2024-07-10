@@ -366,52 +366,6 @@ JS;
 		return ["application", "scope", "expiration_date", "use_count", "last_use_date"];
 	}
 
-	public function ProvideHtmlTokenInfo(\User $oUser, &$aParams): void
-	{
-		$aColumns = [];
-		foreach ($this->GetFields() as $sField) {
-			$aColumns[] = ['label' => MetaModel::GetLabel(\PersonalToken::class, $sField)];
-		}
-
-		$sOql = sprintf("SELECT PersonalToken WHERE user_id = %s", $oUser->GetKey());
-		$oFilter = DBObjectSearch::FromOQL($sOql, []);
-		$oSet = new DBObjectSet($oFilter);
-
-		$aToken = [];
-		if ($oSet->Count() > 0) {
-			while ($oToken = $oSet->Fetch()) {
-				$aToken[] = $oToken;
-			}
-		}
-
-		$aRefreshedTokenInfo = Session::Get('AuthentToken:CopyToken', null);
-		if ($aRefreshedTokenInfo) {
-			$sTokenValue = $aRefreshedTokenInfo['credential_message'];
-			$sTokenName = $aRefreshedTokenInfo['token_name'];
-			//reset token value in the session for next display
-			Session::Unset('AuthentToken:CopyToken');
-		} else {
-			$sTokenValue = null;
-			$sTokenName = "";
-		}
-
-		$oDatatableBlock = $this->BuildDatatable('tokens', $aColumns, $aToken);
-		$aParams['personaltoken'] = [
-			'token_name' => $sTokenName,
-			'token_value' => $sTokenValue,
-			'oDatatable' => $oDatatableBlock,
-			'refresh_token_url' => utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'ajax.php', ['operation' => 'RefreshToken', 'rebuild_Token' => 1]),
-
-			//link to get data before displaying apply_modify form
-			'edit_token_url' => utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'ajax.php', ['operation' => 'EditToken']),
-
-			'delete_token_url' => utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'ajax.php', ['operation' => 'DeleteToken']),
-
-			//link used after validating either create or modify popup form: it will reach either Operationapply_new or Operationapply_modify endpoint
-			'save_token_link' => utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'ajax.php', []),
-		];
-	}
-
 	/**
 	 * Generate Data panel with CRUD action button on each row.
 	 * this could be replaced by iTop 3.1 build-it twig code. For SaaS it has to work in 3.0

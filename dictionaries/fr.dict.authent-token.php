@@ -61,7 +61,7 @@ Dict::Add('FR FR', 'French', 'Français', [
 	'Menu:SearchPersonalTokens' => 'Jetons individuels de connexion',
 	'Menu:SearchPersonalTokens+' => 'Jetons individuels de connexion permettant à une personne d\'accéder aux webservices, import, export, rest et synchro',
 	'MyAccount:SubTitle:contact' => 'Mon contact',
-	'MyAccount:SubTitle:personaltokens' => 'Mes jetons de connexion',
+	'MyAccount:SubTitle:PersonalTokens' => 'Mes jetons de connexion',
 	'MyAccount:SubTitle:user' => 'Mon utilisateur',
 	'UI:Datatables:Column:RowActions:Description' => '',
 	'UI:Datatables:Column:RowActions:Label' => '',

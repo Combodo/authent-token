@@ -1,6 +1,5 @@
 {# @copyright   Copyright (C) 2010-2024 Combodo SARL #}
 {# @license     http://opensource.org/licenses/AGPL-3.0 #}
-<BR/>
 
 {% if null != Section.token_value %}
 	{% UIAlert ForInformation {sTitle:Section.token_name, sContent:'', sId:'refresh_token_alert_ok', IsHidden:false, IsCollapsible:true,
@@ -16,7 +15,6 @@ fake message
 	{% UIAlert ForFailure {sTitle:'', sContent:'', sId:'operation_fail_alert', IsHidden:true, IsCollapsible:true, IsClosable:false} %}
 Operation failed
 	{% EndUIAlert %}
-<BR/>
 
 <div id="deletion_popup">
 </div>
@@ -31,7 +29,7 @@ Operation failed
 		<div class="ibo-panel--header-right" data-role="ibo-panel--header-right">
 			{% UIToolbar ForButton {} %}
 
-				{% UIButton IconAction {sIconClasses:'fas fa-plus', CSSClasses:['.ibo-quick-create--icon token-edit-button'],
+				{% UIButton IconAction {sIconClasses:'fas fa-plus', CSSClasses:['ibo-quick-create--icon token-edit-button'],
 				sTooltipText:'UI:Links:ActionRow:AddToken'|dict_s,
 					sTarget:'TokenAdd', sId:'TokenAdd', DataAttributes:{'token-id':'0'} } %}
 			{% EndUIToolbar %}

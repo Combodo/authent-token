@@ -70,24 +70,25 @@ class MyAccountControllerTest  extends ItopDataTestCase {
 		$oUser = $this->CreateContactlessUserWithProfileName($sProfileName);
 		$_SESSION = [];
 		\UserRights::Login($oUser->Get('login'));
+		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'enable_myaccount_menu', false);
 
-		$this->assertEquals(false, AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
+		$this->assertFalse(AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
 
 		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', []);
 		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'enable_myaccount_menu', true);
-		$this->assertEquals(true, AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
+		$this->assertTrue(AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
 	}
 
 	public function testIsMenuAllowed_OtherThanAdminAndProfileByPassing($sProfileName='Configuration Manager'){
 		$oUser = $this->CreateContactlessUserWithProfileName($sProfileName);
 		$_SESSION = [];
 		\UserRights::Login($oUser->Get('login'));
+		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'enable_myaccount_menu', false);
 
-		$this->assertEquals(false, AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
+		$this->assertFalse(AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
 
 		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', [$sProfileName]);
-		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'enable_myaccount_menu', false);
-		$this->assertEquals(true, AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
+		$this->assertTrue(AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
 	}
 }
 

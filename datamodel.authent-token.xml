@@ -344,6 +344,7 @@
       <application_token type="hash">
         <allow_fallback_token>false</allow_fallback_token>
       </application_token>
+      <enable_myaccount_menu type="bool">true</enable_myaccount_menu>
     </parameters>
   </module_parameters>
 

@@ -16,6 +16,7 @@ SetupWebPage::AddModule(
 		//
 		'dependencies' => [
 			'combodo-my-account/1.0.0',
+			'itop-attribute-encrypted-password/1.0.0',
 		],
 		'mandatory' => false,
 		'visible' => true,

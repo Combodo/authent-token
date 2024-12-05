@@ -39,6 +39,7 @@ class ComposerStaticInit2dc5f289d4f7cd17bc210cd38fdd5ef1
         'Combodo\\iTop\\AuthentToken\\Model\\iToken' => __DIR__ . '/../..' . '/src/Model/iToken.php',
         'Combodo\\iTop\\AuthentToken\\Service\\AuthentTokenService' => __DIR__ . '/../..' . '/src/Service/AuthentTokenService.php',
         'Combodo\\iTop\\AuthentToken\\Service\\MetaModelService' => __DIR__ . '/../..' . '/src/Service/MetaModelService.php',
+        'Combodo\\iTop\\AuthentToken\\Service\\Oauth2ApplicationService' => __DIR__ . '/../..' . '/src/Service/Oauth2ApplicationService.php',
         'Combodo\\iTop\\AuthentToken\\Service\\PersonalTokenService' => __DIR__ . '/../..' . '/src/Service/PersonalTokenService.php',
         'Combodo\\iTop\\AuthentToken\\Test\\AbstractRest' => __DIR__ . '/../..' . '/test/AbstractRest.php',
         'Combodo\\iTop\\AuthentToken\\Test\\AbstractTokenRest' => __DIR__ . '/../..' . '/test/AbstractTokenRest.php',

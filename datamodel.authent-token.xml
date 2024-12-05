@@ -1,8 +1,316 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<itop_design xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.6">
+<itop_design xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="3.2">
   <constants>
   </constants>
   <classes>
+    <class id="Oauth2Application" _delta="define">
+      <parent>cmdbAbstractObject</parent>
+      <properties>
+        <category>addon/authentication,grant_by_profile</category>
+        <abstract>false</abstract>
+        <key_type>autoincrement</key_type>
+        <db_table>priv_oauth2_server_application</db_table>
+        <db_key_field>id</db_key_field>
+        <db_final_class_field/>
+        <icon/>
+        <naming>
+          <attributes>
+            <attribute id="application"/>
+          </attributes>
+        </naming>
+        <reconciliation>
+          <attributes>
+            <attribute id="application"/>
+            <attribute id="org_id"/>
+          </attributes>
+        </reconciliation>
+      </properties>
+      <fields>
+        <field id="org_id" xsi:type="AttributeExternalKey">
+          <sql>org_id</sql>
+          <dependencies/>
+          <is_null_allowed>false</is_null_allowed>
+          <allow_target_creation>false</allow_target_creation>
+          <display_style>list</display_style>
+          <target_class>Organization</target_class>
+          <on_target_delete>DEL_AUTO</on_target_delete>
+        </field>
+        <field id="application" xsi:type="AttributeString">
+          <sql>application</sql>
+          <default_value/>
+          <is_null_allowed>false</is_null_allowed>
+        </field>
+        <field id="realm" xsi:type="AttributeString">
+          <sql>realm</sql>
+          <default_value/>
+          <is_null_allowed>false</is_null_allowed>
+        </field>
+        <field id="scope" xsi:type="AttributeString">
+          <default_value/>
+          <is_null_allowed>true</is_null_allowed>
+          <sql>scope</sql>
+        </field>
+        <field id="client_id" xsi:type="AttributeString">
+          <sql>client_id</sql>
+          <default_value/>
+          <is_null_allowed>false</is_null_allowed>
+        </field>
+        <field id="client_secret" xsi:type="AttributeEncryptedPassword">
+          <sql>client_secret</sql>
+          <default_value/>
+          <is_null_allowed>false</is_null_allowed>
+        </field>
+      </fields>
+      <methods>
+        <method id="PrefillCreationForm">
+          <static>false</static>
+          <access>public</access>
+          <type>Overload-DBObject</type>
+          <code><![CDATA[
+	public function PrefillCreationForm(&$aContextParam)
+	{
+		$this->Set('client_id', Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService::GetInstance()->GenerateClientId());
+		$this->Set('client_secret', Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService::GetInstance()->GenerateClientSecret());
+
+		parent::PrefillCreationForm($aContextParam);
+	}
+]]></code>
+        </method>
+      </methods>
+      <presentation>
+        <details>
+          <items>
+            <item id="application">
+              <rank>10</rank>
+            </item>
+            <item id="org_id">
+              <rank>20</rank>
+            </item>
+            <item id="scope">
+              <rank>30</rank>
+            </item>
+            <item id="realm">
+              <rank>35</rank>
+            </item>
+            <item id="client_id">
+              <rank>40</rank>
+            </item>
+            <item id="client_secret">
+              <rank>50</rank>
+            </item>
+          </items>
+        </details>
+        <list>
+          <items>
+            <item id="application">
+              <rank>10</rank>
+            </item>
+            <item id="org_id">
+              <rank>20</rank>
+            </item>
+            <item id="scope">
+              <rank>30</rank>
+            </item>
+            <item id="realm">
+              <rank>35</rank>
+            </item>
+          </items>
+        </list>
+        <search>
+          <items>
+            <item id="application">
+              <rank>10</rank>
+            </item>
+            <item id="org_id">
+              <rank>20</rank>
+            </item>
+            <item id="scope">
+              <rank>30</rank>
+            </item>
+            <item id="realm">
+              <rank>35</rank>
+            </item>
+            <item id="client_id">
+              <rank>40</rank>
+            </item>
+          </items>
+        </search>
+      </presentation>
+    </class>
+    <class id="lnkOauth2ApplicationToUser" _delta="define">
+      <parent>cmdbAbstractObject</parent>
+      <properties>
+        <category>addon/authentication,grant_by_profile</category>
+        <abstract>false</abstract>
+        <key_type>autoincrement</key_type>
+        <db_table>priv_lnk_oauth2_server_application_to_user</db_table>
+        <db_key_field>id</db_key_field>
+        <db_final_class_field/>
+        <icon/>
+        <naming>
+          <attributes>
+            <attribute id="application_id"/>
+            <attribute id="user_id"/>
+          </attributes>
+        </naming>
+        <reconciliation>
+          <attributes>
+            <attribute id="application_id"/>
+            <attribute id="user_id"/>
+          </attributes>
+        </reconciliation>
+      </properties>
+      <fields>
+        <field id="application_id" xsi:type="AttributeExternalKey">
+          <sql>application_id</sql>
+          <dependencies/>
+          <is_null_allowed>false</is_null_allowed>
+          <allow_target_creation>false</allow_target_creation>
+          <display_style>list</display_style>
+          <target_class>Oauth2Application</target_class>
+          <on_target_delete>DEL_AUTO</on_target_delete>
+        </field>
+        <field id="user_id" xsi:type="AttributeExternalKey">
+          <sql>user_id</sql>
+          <dependencies/>
+          <is_null_allowed>false</is_null_allowed>
+          <allow_target_creation>false</allow_target_creation>
+          <display_style>list</display_style>
+          <target_class>User</target_class>
+          <on_target_delete>DEL_AUTO</on_target_delete>
+        </field>
+        <field id="refresh_token" xsi:type="AttributeEncryptedPassword">
+          <sql>refresh_token</sql>
+          <default_value/>
+          <is_null_allowed>true</is_null_allowed>
+          <tracking_level>none</tracking_level>
+        </field>
+        <field id="refresh_token_expiration" xsi:type="AttributeDateTime">
+          <sql>refresh_token_expiration</sql>
+          <default_value/>
+          <is_null_allowed>true</is_null_allowed>
+          <tracking_level>none</tracking_level>
+        </field>
+        <field id="access_token" xsi:type="AttributeEncryptedPassword">
+          <sql>access_token</sql>
+          <default_value/>
+          <is_null_allowed>true</is_null_allowed>
+          <tracking_level>none</tracking_level>
+        </field>
+        <field id="access_token_expiration" xsi:type="AttributeDateTime">
+          <sql>access_token_expiration</sql>
+          <default_value/>
+          <is_null_allowed>true</is_null_allowed>
+          <tracking_level>none</tracking_level>
+        </field>
+        <field id="authorization_state" xsi:type="AttributeString">
+          <sql>authorization_state</sql>
+          <default_value/>
+          <is_null_allowed>true</is_null_allowed>
+          <tracking_level>none</tracking_level>
+        </field>
+        <field id="status" xsi:type="AttributeEnum">
+          <values>
+            <value id="active">
+              <code>active</code>
+              <style>
+                <main_color>$ibo-lifecycle-active-state-primary-color</main_color>
+                <complementary_color>$ibo-lifecycle-active-state-secondary-color</complementary_color>
+                <decoration_classes/>
+              </style>
+            </value>
+            <value id="inactive">
+              <code>inactive</code>
+              <style>
+                <main_color>$ibo-lifecycle-inactive-state-primary-color</main_color>
+                <complementary_color>$ibo-lifecycle-inactive-state-secondary-color</complementary_color>
+                <decoration_classes/>
+              </style>
+            </value>
+          </values>
+          <sql>status</sql>
+          <default_value>active</default_value>
+          <is_null_allowed>true</is_null_allowed>
+          <display_style>list</display_style>
+        </field>
+        <field id="token_type" xsi:type="AttributeString">
+          <sql>token_type</sql>
+          <default_value/>
+          <is_null_allowed>true</is_null_allowed>
+          <tracking_level>none</tracking_level>
+        </field>
+      </fields>
+      <methods/>
+      <presentation>
+        <details>
+          <items>
+            <item id="col:col1">
+              <rank>10</rank>
+              <items>
+                <item id="application_id">
+                  <rank>10</rank>
+                </item>
+                <item id="user_id">
+                  <rank>20</rank>
+                </item>
+                <item id="status">
+                  <rank>30</rank>
+                </item>
+              </items>
+            </item>
+            <item id="col:col2">
+              <rank>10</rank>
+              <items>
+                <item id="access_token">
+                  <rank>70</rank>
+                </item>
+                <item id="access_token_expiration">
+                  <rank>80</rank>
+                </item>
+                <item id="refresh_token">
+                  <rank>90</rank>
+                </item>
+                <item id="refresh_token_expiration">
+                  <rank>100</rank>
+                </item>
+                <item id="token_type">
+                  <rank>110</rank>
+                </item>
+                <item id="authorization_state">
+                  <rank>120</rank>
+                </item>
+              </items>
+            </item>
+          </items>
+        </details>
+        <list>
+          <items>
+            <item id="application_id">
+              <rank>10</rank>
+            </item>
+            <item id="user_id">
+              <rank>20</rank>
+            </item>
+            <item id="status">
+              <rank>30</rank>
+            </item>
+          </items>
+        </list>
+        <search>
+          <items>
+            <item id="application_id">
+              <rank>10</rank>
+            </item>
+            <item id="user_id">
+              <rank>20</rank>
+            </item>
+            <item id="status">
+              <rank>30</rank>
+            </item>
+          </items>
+        </search>
+      </presentation>
+    </class>
     <class id="PersonalToken" _delta="define">
       <parent>cmdbAbstractObject</parent>
       <php_parent>
@@ -324,6 +632,17 @@
       </presentation>
     </class>
   </classes>
+  <menus>
+    <menu id="Oauth2Application" xsi:type="OQLMenuNode" _delta="define">
+      <rank>120</rank>
+      <parent>Integrations</parent>
+      <oql><![CDATA[SELECT Oauth2Application]]></oql>
+      <do_search>1</do_search>
+      <enable_admin_only>0</enable_admin_only>
+      <enable_class>Oauth2Application</enable_class>
+      <enable_action>UR_ACTION_MODIFY</enable_action>
+    </menu>
+  </menus>
   <dictionaries>
   </dictionaries>
   <user_rights>

@@ -11,7 +11,15 @@ use LogAPI;
 
 class TokenAuthLog extends LogAPI
 {
-	const CHANNEL_DEFAULT = 'TokenAuthLog';
+	const CHANNEL_DEFAULT = 'Token';
 
 	protected static $m_oFileLog = null;
+
+	public static function Enable($sTargetFile = null)
+	{
+		if (empty($sTargetFile)) {
+			$sTargetFile = APPROOT.'log/error.log';
+		}
+		parent::Enable($sTargetFile);
+	}
 }

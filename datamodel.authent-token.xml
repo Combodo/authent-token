@@ -55,10 +55,22 @@
           <default_value/>
           <is_null_allowed>false</is_null_allowed>
         </field>
+        <field id="redirect_url" xsi:type="AttributeURL">
+          <sql>redirect_url</sql>
+          <default_value/>
+          <is_null_allowed>false</is_null_allowed>
+        </field>
         <field id="client_secret" xsi:type="AttributeEncryptedPassword">
           <sql>client_secret</sql>
           <default_value/>
           <is_null_allowed>false</is_null_allowed>
+        </field>
+        <field id="users_list" xsi:type="AttributeLinkedSetIndirect">
+          <ext_key_to_me>application_id</ext_key_to_me>
+          <ext_key_to_remote>user_id</ext_key_to_remote>
+          <linked_class>lnkOauth2ApplicationToUser</linked_class>
+          <count_min>0</count_min>
+          <count_max>0</count_max>
         </field>
       </fields>
       <event_listeners>
@@ -179,6 +191,9 @@
             <item id="client_secret">
               <rank>50</rank>
             </item>
+            <item id="users_list">
+              <rank>60</rank>
+            </item>
           </items>
         </details>
         <list>
@@ -290,30 +305,6 @@
           <is_null_allowed>true</is_null_allowed>
           <tracking_level>none</tracking_level>
         </field>
-        <field id="status" xsi:type="AttributeEnum">
-          <values>
-            <value id="active">
-              <code>active</code>
-              <style>
-                <main_color>$ibo-lifecycle-active-state-primary-color</main_color>
-                <complementary_color>$ibo-lifecycle-active-state-secondary-color</complementary_color>
-                <decoration_classes/>
-              </style>
-            </value>
-            <value id="inactive">
-              <code>inactive</code>
-              <style>
-                <main_color>$ibo-lifecycle-inactive-state-primary-color</main_color>
-                <complementary_color>$ibo-lifecycle-inactive-state-secondary-color</complementary_color>
-                <decoration_classes/>
-              </style>
-            </value>
-          </values>
-          <sql>status</sql>
-          <default_value>active</default_value>
-          <is_null_allowed>true</is_null_allowed>
-          <display_style>list</display_style>
-        </field>
         <field id="token_type" xsi:type="AttributeString">
           <sql>token_type</sql>
           <default_value/>
@@ -372,9 +363,6 @@
             <item id="user_id">
               <rank>20</rank>
             </item>
-            <item id="status">
-              <rank>30</rank>
-            </item>
           </items>
         </list>
         <search>
@@ -384,9 +372,6 @@
             </item>
             <item id="user_id">
               <rank>20</rank>
-            </item>
-            <item id="status">
-              <rank>30</rank>
             </item>
           </items>
         </search>

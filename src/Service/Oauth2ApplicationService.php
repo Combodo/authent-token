@@ -25,11 +25,11 @@ class Oauth2ApplicationService {
 
 	public function GenerateClientId() : string
 	{
-		return random_bytes(24);
+		return base64_encode(random_bytes(24));
 	}
 
 	public function GenerateClientSecret() : string
 	{
-		return random_bytes(24);
+		return base64_encode(random_bytes(24));
 	}
 }

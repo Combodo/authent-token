@@ -4,7 +4,7 @@
  *
  * @copyright Copyright (C) 2010-2024 Combodo SAS
  * @license    https://opensource.org/licenses/AGPL-3.0
- * 
+ *
  */
 /**
  *
@@ -12,6 +12,7 @@
 Dict::Add('FR FR', 'French', 'Français', [
 	'AuthentToken:CopyToken' => 'Les identifiants que vous aurez à fournir sont :<p>auth_token=<a>%1$s</a></p>Notez les maintenant, vous ne pourrez plus les afficher ensuite !',
 	'AuthentToken:Message:DeleteTokenConfirmation' => 'Voulez-vous supprimer le jeton <a>%1$s</a>?',
+	'AuthentToken:ClientSecret' => 'Client secret %1$s',
 	'AuthentToken:RebuildToken' => 'Régénérer le jeton',
 	'AuthentToken:RebuildToken+' => 'Le jeton d\'authentification sera régénéré, ATTENTION le précédent sera perdu et ne pourra plus être utilisé',
 	'AuthentToken:Title:DeleteTokenConfirmation' => 'Confirmation',

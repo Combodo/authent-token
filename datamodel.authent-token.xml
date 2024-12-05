@@ -61,20 +61,101 @@
           <is_null_allowed>false</is_null_allowed>
         </field>
       </fields>
+      <event_listeners>
+        <event_listener id="EVENT_DB_BEFORE_WRITE">
+          <event>EVENT_DB_BEFORE_WRITE</event>
+          <callback>EvtBeforeWriteOauth2Application</callback>
+          <rank>0</rank>
+        </event_listener>
+        <event_listener id="EVENT_DB_AFTER_WRITE">
+          <event>EVENT_DB_AFTER_WRITE</event>
+          <callback>EvtAfterWriteOauth2Application</callback>
+          <rank>0</rank>
+        </event_listener>
+        <event_listener id="EVENT_DB_SET_ATTRIBUTES_FLAGS">
+          <event>EVENT_DB_SET_ATTRIBUTES_FLAGS</event>
+          <callback>EvtSetAttributeFlagsOauth2Application</callback>
+          <rank>0</rank>
+        </event_listener>
+        <event_listener id="EVENT_DB_SET_INITIAL_ATTRIBUTES_FLAGS">
+          <event>EVENT_DB_SET_INITIAL_ATTRIBUTES_FLAGS</event>
+          <callback>EvtSetInitialAttributeFlagsOauth2Application</callback>
+          <rank>0</rank>
+        </event_listener>
+      </event_listeners>
       <methods>
-        <method id="PrefillCreationForm">
+        <method id="EvtBeforeWriteOauth2Application">
+        <comment>/**
+          * Event Listener for EVENT_DB_BEFORE_WRITE
+          * An object is about to be written into the database.
+          * The object can be modified.
+          *
+          * @param Combodo\iTop\Service\Events\EventData $oEventData Event data object
+          */
+        </comment>
+        <static>false</static>
+        <access>public</access>
+        <type>EventListener</type>
+        <code><![CDATA[	public function EvtBeforeWriteOauth2Application(Combodo\iTop\Service\Events\EventData $oEventData)
+          {
+            if ($oEventData->Get('is_new')) {
+		          $this->Set('client_secret', Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService::GetInstance()->GenerateClientSecret());
+		          $this->Set('client_id', Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService::GetInstance()->GenerateClientId());
+            }
+          }]]></code>
+      </method>
+        <method id="EvtAfterWriteOauth2Application">
+          <comment>/**
+            * Event Listener for EVENT_DB_BEFORE_WRITE
+            * An object is about to be written into the database.
+            * The object can be modified.
+            *
+            * @param Combodo\iTop\Service\Events\EventData $oEventData Event data object
+            */
+          </comment>
           <static>false</static>
           <access>public</access>
-          <type>Overload-DBObject</type>
+          <type>EventListener</type>
+          <code><![CDATA[	public function EvtAfterWriteOauth2Application(Combodo\iTop\Service\Events\EventData $oEventData)
+          {
+            if ($oEventData->Get('is_new')) {
+              $sSecret = $this->Get('client_secret')->GetPassword();
+              $sMessage = \Dict::Format('AuthentToken:ClientSecret', $sSecret);
+              self::SetSessionMessage(get_class($this), $this->GetKey(), 1, $sMessage, WebPage::ENUM_SESSION_MESSAGE_SEVERITY_OK, 1);
+            }
+          }]]></code>
+        </method>
+        <method id="EvtSetAttributeFlagsOauth2Application">
+          <comment>/**
+            *
+            * @param Combodo\iTop\Service\Events\EventData $oEventData Event data object
+            */
+          </comment>
+          <static>false</static>
+          <access>public</access>
+          <type>EventListener</type>
           <code><![CDATA[
-	public function PrefillCreationForm(&$aContextParam)
-	{
-		$this->Set('client_id', Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService::GetInstance()->GenerateClientId());
-		$this->Set('client_secret', Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService::GetInstance()->GenerateClientSecret());
-
-		parent::PrefillCreationForm($aContextParam);
-	}
-]]></code>
+	        public function EvtSetAttributeFlagsOauth2Application(Combodo\iTop\Service\Events\EventData $oEventData)
+          {
+                $this->AddAttributeFlags('client_secret', OPT_ATT_READONLY);
+                $this->AddAttributeFlags('client_id', OPT_ATT_READONLY);
+          }]]></code>
+        </method>
+        <method id="EvtSetInitialAttributeFlagsOauth2Application">
+          <comment>/**
+            *
+            * @param Combodo\iTop\Service\Events\EventData $oEventData Event data object
+            */
+          </comment>
+          <static>false</static>
+          <access>public</access>
+          <type>EventListener</type>
+          <code><![CDATA[
+	        public function EvtSetInitialAttributeFlagsOauth2Application(Combodo\iTop\Service\Events\EventData $oEventData)
+          {
+                $this->AddInitialAttributeFlags('client_secret', OPT_ATT_READONLY);
+                $this->AddInitialAttributeFlags('client_id', OPT_ATT_READONLY);
+          }]]></code>
         </method>
       </methods>
       <presentation>

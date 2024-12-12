@@ -27,6 +27,10 @@ Dict::Add('EN US', 'English', 'English', array(
     'Menu:SearchPersonalTokens' => 'Personal tokens',
     'Menu:SearchPersonalTokens+' => 'Personal tokens, usable on webservices import, export, rest and datasynchro',
 
+	'AuthentToken:Oauth2:Autorize:Title' => 'Authorize Oauth2 Application',
+	'AuthentToken:Oauth2:Autorize:Question' => 'Do you want to authorize `$1%s` application ?',
+	'AuthentToken:Oauth2:Autorize:ButtonCancel' => 'Cancel',
+	'AuthentToken:Oauth2:Autorize:ButtonOk' => 'Authorize',
 ));
 
 

@@ -74,8 +74,8 @@ Dict::Add('FR FR', 'French', 'Français', [
 	'UI:MyAccount' => 'Mon compte',
 	'authent-token/Operation:MainPage/Title' => 'Mon compte',
 
-	'AuthentToken:Oauth2:Autorize:Title' => 'Authorize Oauth2 Application',
-	'AuthentToken:Oauth2:Autorize:Question' => 'Do you want to authorize `$1%s` application ?',
-	'AuthentToken:Oauth2:Autorize:ButtonCancel' => 'Cancel',
-	'AuthentToken:Oauth2:Autorize:ButtonOk' => 'Authorize',
+	'AuthentToken:Oauth2:Authorize:Title' => 'Authorize Oauth2 Application',
+	'AuthentToken:Oauth2:Authorize:Question' => 'Do you want to authorize `$1%s` application ?',
+	'AuthentToken:Oauth2:Authorize:ButtonCancel' => 'Cancel',
+	'AuthentToken:Oauth2:Authorize:ButtonOk' => 'Authorize',
 ]);

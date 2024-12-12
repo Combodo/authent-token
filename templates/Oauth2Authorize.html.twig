@@ -1,12 +1,14 @@
 {# @copyright   Copyright (C) 2010-2024 Combodo SARL #}
 {# @license     http://opensource.org/licenses/AGPL-3.0 #}
 
-{% UIFieldSet Standard { sLegend:'AuthentToken:Oauth2:Autorize:Title'|dict_s } %}
+{% UIFieldSet Standard { sLegend:'AuthentToken:Oauth2:Authorize:Title'|dict_s } %}
     {% UIForm Standard {sId:"totp_form"} %}
-        {% UIField Small { sLabel:'AuthentToken:Oauth2:Autorize:Question'|dict_format(sApplication) } %}
+        {% UIField Small { sLabel:'AuthentToken:Oauth2:Authorize:Question'|dict_format(sApplication) } %}
             <input type="hidden" name="transaction_id" value="{{ sTransactionId }}">
-            {% UIButton ForSecondaryAction { sLabel:'AuthentToken:Oauth2:Autorize:ButtonCancel'|dict_s, sValue: 'Cancel' , sName : 'Cancel', bIsSubmit:true } %}
-            {% UIButton ForPrimaryAction { sLabel:'AuthentToken:Oauth2:Autorize:ButtonOk'|dict_s, sValue: 'OK' , sName : 'OK', bIsSubmit:true } %}
+            <input type="hidden" name="application_id" value="{{ iApplicationId }}">
+            <input type="hidden" name="operation" value="DoAuthorize">
+            {% UIButton ForSecondaryAction { sLabel:'AuthentToken:Oauth2:Authorize:ButtonCancel'|dict_s, sValue: 'disallow' , sName : 'decision', bIsSubmit:true } %}
+            {% UIButton ForPrimaryAction { sLabel:'AuthentToken:Oauth2:Authorize:ButtonOk'|dict_s, sValue: 'allow' , sName : 'decision', bIsSubmit:true } %}
         {% EndUIField %}
 
     {% EndUIForm %}

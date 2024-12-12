@@ -5,12 +5,9 @@
  *
  */
 
-use Combodo\iTop\Application\Helper\Session;
 use Combodo\iTop\AuthentToken\Controller\Oauth2AuthorizeController;
-use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
-use Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService;
 
 require_once('../../approot.inc.php');
 require_once(APPROOT.'bootstrap.inc.php');
@@ -19,48 +16,13 @@ require_once(APPROOT.'application/startup.inc.php');
 TokenAuthLog::Enable();
 $oP = new JsonPage();
 
-$sAppId = Session::Get(Oauth2ApplicationService::APPLICATION_ID, null);
 
-try{
-	if (is_null($sAppId)){
-		if ($_SERVER['CONTENT_TYPE'] == 'application/json') {
-			$sEntityBody = file_get_contents('php://input');
-			$oOauth2Application = Oauth2ApplicationService::GetInstance()->DecodeAutorizationRequest($sEntityBody);
+LoginWebPage::DoLogin();
 
-			Session::Set(Oauth2ApplicationService::APPLICATION_ID, $oOauth2Application->GetKey());
-		} else {
-			throw new TokenAuthException();
-		}
-	}
+$oController = new Oauth2AuthorizeController(__DIR__.'/templates', TokenAuthHelper::MODULE_NAME);
+$oController->SetDefaultOperation('Oauth2Authorize');
+$oController->HandleOperation();
 
-	LoginWebPage::DoLogin();
-
-	$oController = new Oauth2AuthorizeController(__DIR__.'/templates', TokenAuthHelper::MODULE_NAME);
-	$oController->SetDefaultOperation('Oauth2Authorize');
-	$oController->SetApplication($oOauth2Application);
-	$oController->HandleOperation();
-
-	//generer les tokens
-	//formater la reponse
-	//envoyer à la redirect_url
-} catch (TokenAuthException $e) {
-	$oJsonIssue = new RestResult();
-	$oJsonIssue->code = $e->getCode();
-	$oJsonIssue->message = $e->getMessage();
-	$aResponse = json_decode(json_encode($oJsonIssue), true);
-	http_response_code($e->getCode());
-	foreach ($e->GetHeaders() as $sHeader) {
-		header($sHeader);
-	}
-} catch (Exception $e) {
-	$oJsonIssue = new RestResult();
-	$oJsonIssue->code = $e->getCode();
-	$oJsonIssue->message = $e->getMessage();
-	$aResponse = json_decode(json_encode($oJsonIssue), true);
-	http_response_code(500);
-}
-
-$oP->add_header('Access-Control-Allow-Origin: *');
-$oP->SetContentType('application/json');
-$oP->SetData($aResponse);
-$oP->Output();
+//generer les tokens
+//formater la reponse
+//envoyer à la redirect_url

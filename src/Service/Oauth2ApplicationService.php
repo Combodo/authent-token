@@ -3,6 +3,11 @@
 namespace Combodo\iTop\AuthentToken\Service;
 
 use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
+use DBObjectSearch;
+use DBObjectSet;
+use Exception;
+use Oauth2Application;
+use utils;
 
 class Oauth2ApplicationService {
 	const CONSENT = "OAUTH2_SERVER_CONSENT";
@@ -38,27 +43,45 @@ class Oauth2ApplicationService {
 		return base64_encode(random_bytes(24));
 	}
 
-	public function DecodeAutorizationRequest($sJsonBody) : \Oauth2Application
+	public function DecodeAuthorizationRequest() : Oauth2Application
 	{
-		$aReq = json_decode($sJsonBody, true);
-		if (false === $aReq) {
-			throw new TokenAuthException("Invalid Json");
-		}
-
-		$sGrantType = $aReq['grant_type'] ?? '';
+		$sGrantType = utils::ReadParam('grant_type', null);
 		if ($sGrantType !== 'authorization_code') {
 			throw new TokenAuthException("Incorrect authorize grant_type");
 		}
 
-		$sClientId = $aReq['client_id'] ?? null;
-		$sClientSecret = $aReq['client_secret'] ?? null;
-		$oApplication = $this->GetApplication($sClientId, $sClientSecret);
+		$sClientId = utils::ReadParam('client_id', null);
+		$sRedirectUri = utils::ReadParam('redirect_uri', null);
+		$sScope = utils::ReadParam('scope', null);
+		$sPrompt = utils::ReadParam('prompt', null);
+		$sAccessType = utils::ReadParam('access_type', null);
+
+		$oApplication = $this->GetApplication($sClientId);
 
 		return $oApplication;
 	}
 
-	public function GetApplication(string $sClientId, string $sClientSecret) : \Oauth2Application
+	/**
+	 * @param string $sClientId
+	 *
+	 * @return \Oauth2Application
+	 */
+	public function GetApplication(string $sClientId) : Oauth2Application
 	{
+		try {
+			$sFilter = "SELECT Oauth2Application WHERE client_id = :client_id";
+			$oSet = new DBObjectSet(DBObjectSearch::FromOQL($sFilter));
+			/** @var Oauth2Application $oOauth2Application */
+			$oOauth2Application = $oSet->Fetch();
+			if ($oOauth2Application === null) {
+				throw new TokenAuthException("Invalid client_id");
+			}
 
+			return $oOauth2Application;
+		} catch (TokenAuthException $e) {
+			throw $e;
+		} catch (Exception $e) {
+			throw new TokenAuthException("Internal Server Error", 500, $e);
+		}
 	}
 }

@@ -27,6 +27,7 @@ class ComposerStaticInit2dc5f289d4f7cd17bc210cd38fdd5ef1
 
     public static $classMap = array (
         'Combodo\\iTop\\AuthentToken\\Controller\\AuthentTokenAjaxController' => __DIR__ . '/../..' . '/src/Controller/AuthentTokenAjaxController.php',
+        'Combodo\\iTop\\AuthentToken\\Controller\\Oauth2AuthorizeController' => __DIR__ . '/../..' . '/src/Controller/Oauth2AuthorizeController.php',
         'Combodo\\iTop\\AuthentToken\\Exception\\TokenAuthException' => __DIR__ . '/../..' . '/src/Exception/TokenAuthException.php',
         'Combodo\\iTop\\AuthentToken\\Helper\\TokenAuthConfig' => __DIR__ . '/../..' . '/src/Helper/TokenAuthConfig.php',
         'Combodo\\iTop\\AuthentToken\\Helper\\TokenAuthHelper' => __DIR__ . '/../..' . '/src/Helper/TokenAuthHelper.php',

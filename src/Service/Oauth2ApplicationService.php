@@ -43,20 +43,9 @@ class Oauth2ApplicationService {
 		return base64_encode(random_bytes(24));
 	}
 
-	public function DecodeAuthorizationRequest() : Oauth2Application
+	public function DecodeAuthorizationRequest(string $sClientId, string $sRedirectUri) : Oauth2Application
 	{
-		$sGrantType = utils::ReadParam('grant_type', null);
-		if ($sGrantType !== 'authorization_code') {
-			throw new TokenAuthException("Incorrect authorize grant_type");
-		}
-
-		$sClientId = utils::ReadParam('client_id', null);
-		$sRedirectUri = utils::ReadParam('redirect_uri', null);
-		$sScope = utils::ReadParam('scope', null);
-		$sPrompt = utils::ReadParam('prompt', null);
-		$sAccessType = utils::ReadParam('access_type', null);
-
-		$oApplication = $this->GetApplication($sClientId);
+		$oApplication = $this->GetApplication($sClientId, $sRedirectUri);
 
 		return $oApplication;
 	}
@@ -66,11 +55,14 @@ class Oauth2ApplicationService {
 	 *
 	 * @return \Oauth2Application
 	 */
-	public function GetApplication(string $sClientId) : Oauth2Application
+	public function GetApplication(string $sClientId, string $sRedirectUri) : Oauth2Application
 	{
 		try {
-			$sFilter = "SELECT Oauth2Application WHERE client_id = :client_id";
-			$oSet = new DBObjectSet(DBObjectSearch::FromOQL($sFilter));
+			$sFilter = "SELECT Oauth2Application WHERE client_id = :client_id AND redirect_url=:redirect_url";
+			$oSet = new DBObjectSet(DBObjectSearch::FromOQL($sFilter), [], [
+				'client_id' => $sClientId,
+				'redirect_url' => $sRedirectUri,
+			]);
 			/** @var Oauth2Application $oOauth2Application */
 			$oOauth2Application = $oSet->Fetch();
 			if ($oOauth2Application === null) {

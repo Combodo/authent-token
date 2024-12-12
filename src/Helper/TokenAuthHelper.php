@@ -14,4 +14,19 @@ class TokenAuthHelper
 	{
 		TokenAuthLog::Enable(APPROOT.'log/error.log');
 	}
+
+	public static function GenerateUrl(string $sUrl, array $aUrlParameters)
+	{
+		if (count($aUrlParameters) === 0){
+			return $sUrl;
+		}
+
+		$sUrl .= '?';
+
+		foreach ($aUrlParameters as $sKey => $sValue) {
+			$sUrl .= "$sKey=" . urlencode($sValue) . "&";
+		}
+
+		return $sUrl;
+	}
 }

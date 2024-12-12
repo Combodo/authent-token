@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Combodo\\iTop\\AuthentToken\\Controller\\AuthentTokenAjaxController' => $baseDir . '/src/Controller/AuthentTokenAjaxController.php',
+    'Combodo\\iTop\\AuthentToken\\Controller\\Oauth2AuthorizeController' => $baseDir . '/src/Controller/Oauth2AuthorizeController.php',
     'Combodo\\iTop\\AuthentToken\\Exception\\TokenAuthException' => $baseDir . '/src/Exception/TokenAuthException.php',
     'Combodo\\iTop\\AuthentToken\\Helper\\TokenAuthConfig' => $baseDir . '/src/Helper/TokenAuthConfig.php',
     'Combodo\\iTop\\AuthentToken\\Helper\\TokenAuthHelper' => $baseDir . '/src/Helper/TokenAuthHelper.php',

@@ -3,9 +3,11 @@
 
 {% UIFieldSet Standard { sLegend:'AuthentToken:Oauth2:Authorize:Title'|dict_s } %}
     {% UIForm Standard {sId:"totp_form"} %}
-        {% UIField Small { sLabel:'AuthentToken:Oauth2:Authorize:Question'|dict_format(sApplication) } %}
+        {% UIField Small { sLabel:'AuthentToken:Oauth2:Authorize:Question'|dict_format(sApplication, sScope) } %}
             <input type="hidden" name="transaction_id" value="{{ sTransactionId }}">
             <input type="hidden" name="application_id" value="{{ iApplicationId }}">
+            <input type="hidden" name="state" value="{{ sState }}">
+            <input type="hidden" name="scope" value="{{ sScope }}">
             <input type="hidden" name="operation" value="DoAuthorize">
             {% UIButton ForSecondaryAction { sLabel:'AuthentToken:Oauth2:Authorize:ButtonCancel'|dict_s, sValue: 'disallow' , sName : 'decision', bIsSubmit:true } %}
             {% UIButton ForPrimaryAction { sLabel:'AuthentToken:Oauth2:Authorize:ButtonOk'|dict_s, sValue: 'allow' , sName : 'decision', bIsSubmit:true } %}

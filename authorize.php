@@ -22,7 +22,3 @@ LoginWebPage::DoLogin();
 $oController = new Oauth2AuthorizeController(__DIR__.'/templates', TokenAuthHelper::MODULE_NAME);
 $oController->SetDefaultOperation('Oauth2Authorize');
 $oController->HandleOperation();
-
-//generer les tokens
-//formater la reponse
-//envoyer à la redirect_url

@@ -21,7 +21,12 @@ class TokenAuthHelper
 			return $sUrl;
 		}
 
-		$sUrl .= '?';
+		if (false === strpos($sUrl, '?')){
+			$sUrl .= '?';
+		} else {
+			$sUrl .= '&';
+		}
+
 
 		foreach ($aUrlParameters as $sKey => $sValue) {
 			$sUrl .= "$sKey=" . urlencode($sValue) . "&";

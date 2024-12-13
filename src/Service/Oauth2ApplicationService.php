@@ -76,4 +76,11 @@ class Oauth2ApplicationService {
 			throw new TokenAuthException("Internal Server Error", 500, $e);
 		}
 	}
+
+	public function SaveCode(\Oauth2Application $oOauth2Application, string $sCode) : void
+	{
+		$oOauth2Application->Set('code', $sCode);
+		$oOauth2Application->AllowWrite();
+		$oOauth2Application->DBWrite();
+	}
 }

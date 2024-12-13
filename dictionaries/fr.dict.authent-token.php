@@ -75,7 +75,7 @@ Dict::Add('FR FR', 'French', 'Français', [
 	'authent-token/Operation:MainPage/Title' => 'Mon compte',
 
 	'AuthentToken:Oauth2:Authorize:Title' => 'Authorize Oauth2 Application',
-	'AuthentToken:Oauth2:Authorize:Question' => 'Do you want to authorize `$1%s` application ?',
+	'AuthentToken:Oauth2:Authorize:Question' => 'Do you want to authorize `%1$s` application to access to scopes [%2$s]?',
 	'AuthentToken:Oauth2:Authorize:ButtonCancel' => 'Cancel',
 	'AuthentToken:Oauth2:Authorize:ButtonOk' => 'Authorize',
 ]);

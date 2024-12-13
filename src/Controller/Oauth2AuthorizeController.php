@@ -15,10 +15,10 @@ class Oauth2AuthorizeController extends Controller
 {
 	public function OperationOauth2Authorize(): void
 	{
-		$sClientId = utils::ReadParam('client_id', null);
-		$sState = utils::ReadParam('state', null);
-		$sRedirectUri = utils::ReadParam('redirect_uri', null, false, utils::ENUM_SANITIZATION_FILTER_URL);
-		$sScope = utils::ReadParam('scope', null);
+		$sClientId = utils::ReadParam('client_id', '', false, utils::ENUM_SANITIZATION_FILTER_STRING);
+		$sState = utils::ReadParam('state', '', false, utils::ENUM_SANITIZATION_FILTER_STRING);
+		$sRedirectUri = utils::ReadParam('redirect_uri', '', false, utils::ENUM_SANITIZATION_FILTER_URL);
+		$sScope = utils::ReadParam('scope', '', false, utils::ENUM_SANITIZATION_FILTER_STRING);
 
 		$oOauth2Application = Oauth2ApplicationService::GetInstance()->DecodeAuthorizationRequest($sClientId, $sRedirectUri, $sScope);
 

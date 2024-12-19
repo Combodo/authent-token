@@ -5,7 +5,7 @@
 
 SetupWebPage::AddModule(
 	__FILE__, // Path to the current file, all other file names are relative to the directory containing this file
-	'authent-token/2.2.0',
+	'authent-token/2.2.1',
 	[
 		// Identification
 		//
@@ -16,6 +16,7 @@ SetupWebPage::AddModule(
 		//
 		'dependencies' => [
 			'combodo-my-account/1.0.0',
+            'itop-profiles-itil/3.2.0',
 		],
 		'mandatory' => false,
 		'visible' => true,

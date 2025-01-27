@@ -9,7 +9,7 @@
 	},
 	"autoload-dev": {
 		"psr-4": {
-			"Combodo\\iTop\\AuthentToken\\Test\\": "test/"
+			"Combodo\\iTop\\AuthentToken\\Test\\": "tests/php-unit-tests"
 		}
 	},
 	"name" : "combodo/authent-token",

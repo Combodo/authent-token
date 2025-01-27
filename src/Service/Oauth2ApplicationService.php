@@ -59,14 +59,15 @@ class Oauth2ApplicationService {
 	{
 		try {
 			$sFilter = "SELECT Oauth2Application WHERE client_id = :client_id AND redirect_url=:redirect_url";
-			$oSet = new DBObjectSet(DBObjectSearch::FromOQL($sFilter), [], [
+			$aParams = [
 				'client_id' => $sClientId,
 				'redirect_url' => $sRedirectUri,
-			]);
+			];
+			$oSet = new DBObjectSet(DBObjectSearch::FromOQL($sFilter), [], $aParams);
 			/** @var Oauth2Application $oOauth2Application */
 			$oOauth2Application = $oSet->Fetch();
 			if ($oOauth2Application === null) {
-				throw new TokenAuthException("Invalid client_id");
+				throw new TokenAuthException("Invalid client_id/redirect_url", 400, null, $aParams);
 			}
 
 			return $oOauth2Application;

@@ -1,5 +1,5 @@
 <?php
-namespace Combodo\iTop\AuthentToken\Test;
+namespace Combodo\iTop\AuthentToken\Test\integration;
 
 require_once __DIR__.'/AbstractTokenRest.php';
 
@@ -35,7 +35,7 @@ class PersonalTokenRestTest extends AbstractTokenRest
 	protected function setUp(): void
 	{
 		parent::setUp();
-		
+
 		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
 		$this->InitLoginMode(TokenLoginExtension::LOGIN_TYPE);
 

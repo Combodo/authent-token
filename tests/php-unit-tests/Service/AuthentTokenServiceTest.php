@@ -1,6 +1,6 @@
 <?php
 
-namespace Combodo\iTop\AuthentToken\Test;
+namespace Combodo\iTop\AuthentToken\Test\Service;
 
 use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
 use Combodo\iTop\AuthentToken\Service\MetaModelService;

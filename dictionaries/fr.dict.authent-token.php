@@ -78,4 +78,5 @@ Dict::Add('FR FR', 'French', 'Français', [
 	'AuthentToken:Oauth2:Authorize:Question' => 'Do you want to authorize `%1$s` application to access to scopes [%2$s]?',
 	'AuthentToken:Oauth2:Authorize:ButtonCancel' => 'Cancel',
 	'AuthentToken:Oauth2:Authorize:ButtonOk' => 'Authorize',
+	'AuthentToken:Oauth2:Authorize:Error:InvalidTransactionId' => 'You are not authorized to perform this action',
 ]);

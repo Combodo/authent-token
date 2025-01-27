@@ -1,6 +1,6 @@
 <?php
 
-namespace Combodo\iTop\AuthentToken\Test;
+namespace Combodo\iTop\AuthentToken\Test\integration;
 
 use Combodo\iTop\Test\UnitTest\ItopDataTestCase;
 use Config;

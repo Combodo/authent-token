@@ -1,8 +1,9 @@
 <?php
-namespace Combodo\iTop\AuthentToken\Test;
+namespace Combodo\iTop\AuthentToken\Test\integration;
 
 require_once __DIR__.'/AbstractRest.php';
 
+use Combodo\iTop\AuthentToken\Test\Exception;
 use MetaModel;
 
 /**
@@ -34,7 +35,7 @@ class Rest extends AbstractRest
 			}
 		}
 	}
-	
+
 	protected function GetPostParameters($sContext=null){
 		return [
 			'version' => '1.3',

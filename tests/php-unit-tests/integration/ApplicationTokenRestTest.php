@@ -1,6 +1,6 @@
 <?php
 
-namespace Combodo\iTop\AuthentToken\Test;
+namespace Combodo\iTop\AuthentToken\Test\integration;
 
 require_once __DIR__.'/AbstractTokenRest.php';
 
@@ -11,6 +11,7 @@ use Exception;
 use MetaModel;
 use URP_UserProfile;
 use UserToken;
+use const Combodo\iTop\AuthentToken\Test\APPROOT;
 
 
 /**

@@ -1,12 +1,13 @@
 <?php
 
-namespace Combodo\iTop\AuthentToken\Test;
+namespace Combodo\iTop\AuthentToken\Test\Controller;
 
 use Combodo\iTop\AuthentToken\Controller\AuthentTokenAjaxController;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
 use Combodo\iTop\AuthentToken\Service\PersonalTokenService;
 use Combodo\iTop\Test\UnitTest\ItopDataTestCase;
 use MetaModel;
+use const Combodo\iTop\AuthentToken\Test\APPROOT;
 
 /**
  * @myaccount

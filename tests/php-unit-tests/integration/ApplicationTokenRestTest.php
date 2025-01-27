@@ -35,7 +35,7 @@ class ApplicationTokenRestTest extends AbstractTokenRest
 	{
 		parent::setUp();
 
-		@require_once(APPROOT.'env-production/authent-token/vendor/autoload.php');
+		$this->RequireOnceItopFile('env-production/authent-token/vendor/autoload.php');
 
 		$this->InitLoginMode(TokenLoginExtension::LEGACY_LOGIN_TYPE);
 

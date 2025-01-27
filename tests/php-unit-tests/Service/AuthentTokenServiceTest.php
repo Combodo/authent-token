@@ -11,6 +11,12 @@ use URP_UserProfile;
 use UserToken;
 
 class AuthentTokenServiceTest extends ItopDataTestCase {
+
+	protected function setUp(): void {
+		parent::setUp();
+		$this->RequireOnceItopFile('env-production/authent-token/vendor/autoload.php');
+	}
+
 	private function CreateUserToken() : \DBObject {
 		$oAdminProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'Administrator'), true);
 		$oUserProfile = new URP_UserProfile();

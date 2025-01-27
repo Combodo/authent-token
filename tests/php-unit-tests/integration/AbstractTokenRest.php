@@ -30,7 +30,7 @@ abstract class AbstractTokenRest extends AbstractRest
 	protected function setUp(): void
 	{
 		parent::setUp();
-		@require_once(APPROOT.'env-production/authent-token/vendor/autoload.php');
+		$this->RequireOnceItopFile('env-production/authent-token/vendor/autoload.php');
 	}
 
 	protected function InitLoginMode($sLoginMode)

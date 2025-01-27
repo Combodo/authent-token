@@ -6,7 +6,6 @@ require_once __DIR__.'/AbstractRest.php';
 
 use Exception;
 use MetaModel;
-use const Combodo\iTop\AuthentToken\Test\APPROOT;
 
 
 /**

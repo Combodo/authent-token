@@ -11,7 +11,6 @@ use Exception;
 use MetaModel;
 use URP_UserProfile;
 use UserToken;
-use const Combodo\iTop\AuthentToken\Test\APPROOT;
 
 
 /**
@@ -34,8 +33,6 @@ class ApplicationTokenRestTest extends AbstractTokenRest
 	protected function setUp(): void
 	{
 		parent::setUp();
-
-		$this->RequireOnceItopFile('env-production/authent-token/vendor/autoload.php');
 
 		$this->InitLoginMode(TokenLoginExtension::LEGACY_LOGIN_TYPE);
 

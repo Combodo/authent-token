@@ -55,13 +55,18 @@
           <default_value/>
           <is_null_allowed>false</is_null_allowed>
         </field>
-        <field id="redirect_url" xsi:type="AttributeURL">
-          <sql>redirect_url</sql>
+        <field id="redirect_uri" xsi:type="AttributeURL">
+          <sql>redirect_uri</sql>
           <default_value/>
           <is_null_allowed>false</is_null_allowed>
         </field>
         <field id="code" xsi:type="AttributeString">
           <sql>code</sql>
+          <default_value/>
+          <is_null_allowed>true</is_null_allowed>
+        </field>
+        <field id="authorization_state" xsi:type="AttributeString">
+          <sql>authorization_state</sql>
           <default_value/>
           <is_null_allowed>true</is_null_allowed>
         </field>
@@ -191,7 +196,7 @@
             <item id="realm">
               <rank>40</rank>
             </item>
-            <item id="redirect_url">
+            <item id="redirect_uri">
               <rank>50</rank>
             </item>
             <item id="code">

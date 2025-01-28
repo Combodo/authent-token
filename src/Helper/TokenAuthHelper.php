@@ -29,7 +29,12 @@ class TokenAuthHelper
 
 
 		foreach ($aUrlParameters as $sKey => $sValue) {
-			$sUrl .= "$sKey=" . urlencode($sValue) . "&";
+			$sLastChar = substr($sUrl, strlen($sUrl), 1);
+			if ('&' === $sLastChar || '?' === $sLastChar) {
+				$sUrl .= "$sKey=".urlencode($sValue);
+			} else {
+				$sUrl .= "&$sKey=".urlencode($sValue);
+			}
 		}
 
 		return $sUrl;

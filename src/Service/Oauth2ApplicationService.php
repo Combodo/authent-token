@@ -58,16 +58,19 @@ class Oauth2ApplicationService {
 	public function GetApplication(string $sClientId, string $sRedirectUri) : Oauth2Application
 	{
 		try {
-			$sFilter = "SELECT Oauth2Application WHERE client_id = :client_id AND redirect_url=:redirect_url";
-			$aParams = [
-				'client_id' => $sClientId,
-				'redirect_url' => $sRedirectUri,
-			];
-			$oSet = new DBObjectSet(DBObjectSearch::FromOQL($sFilter), [], $aParams);
+			$oSearch = DBObjectSearch::FromOQL("SELECT Oauth2Application WHERE client_id =:client_id AND redirect_uri=:redirect_uri",
+				[ 'client_id' => $sClientId, 'redirect_uri' => $sRedirectUri ]);
+			$oSearch->AllowAllData();
+			$oSet = new DBObjectSet($oSearch);
+
 			/** @var Oauth2Application $oOauth2Application */
 			$oOauth2Application = $oSet->Fetch();
 			if ($oOauth2Application === null) {
-				throw new TokenAuthException("Invalid client_id/redirect_url", 400, null, $aParams);
+				$aParams = [
+					'client_id' => $sClientId,
+					'redirect_uri' => $sRedirectUri,
+				];
+				throw new TokenAuthException("Invalid client_id/redirect_uri", 400, null, $aParams);
 			}
 
 			return $oOauth2Application;
@@ -78,9 +81,10 @@ class Oauth2ApplicationService {
 		}
 	}
 
-	public function SaveCode(\Oauth2Application $oOauth2Application, string $sCode) : void
+	public function SaveCode(\Oauth2Application $oOauth2Application, string $sCode, string $state) : void
 	{
 		$oOauth2Application->Set('code', $sCode);
+		$oOauth2Application->Set('authorization_state', $state);
 		$oOauth2Application->AllowWrite();
 		$oOauth2Application->DBWrite();
 	}

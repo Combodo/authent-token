@@ -5,6 +5,7 @@ namespace Combodo\iTop\AuthentToken\Controller;
 use Combodo\iTop\Application\TwigBase\Controller\Controller;
 use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
+use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService;
 use Dict;
 use Exception;
@@ -47,9 +48,9 @@ class Oauth2AuthorizeController extends Controller
 				throw new TokenAuthException(Dict::S('UI:Error:InvalidTransactionId'), 400);
 			}
 
-			$sApplicationId = utils::ReadPostedParam('application_id', '', 'transaction_id');
-			$oOauth2Application = \MetaModel::GetObject(Oauth2Application::class,$sApplicationId);
-			$sUrl = $oOauth2Application->Get('redirect_url');
+			$sApplicationId = utils::ReadPostedParam('application_id', '');
+			$oOauth2Application = \MetaModel::GetObject(Oauth2Application::class, $sApplicationId);
+			$sUrl = $oOauth2Application->Get('redirect_uri');
 
 			$sScope = utils::ReadPostedParam('scope', '');
 			$sState = utils::ReadPostedParam('state', '');
@@ -64,13 +65,15 @@ class Oauth2AuthorizeController extends Controller
 				$aUrlParameters['error'] =  'access_denied';
 			} else {
 				$sCode = base64_encode(random_bytes(24));
-				Oauth2ApplicationService::GetInstance()->SaveCode($oOauth2Application, $sCode);
+				Oauth2ApplicationService::GetInstance()->SaveCode($oOauth2Application, $sCode, $sState);
 				$aUrlParameters['code'] = $sCode;
 			}
 
 			$aParams = [
 				'sURL' => TokenAuthHelper::GenerateUrl($sUrl, $aUrlParameters),
 			];
+
+			TokenAuthLog::Info("Redirection to oauth client uri", null, $aParams);
 
 			$this->DisplayPage($aParams);
 		} catch (TokenAuthException $e) {

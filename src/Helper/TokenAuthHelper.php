@@ -9,6 +9,7 @@ namespace Combodo\iTop\AuthentToken\Helper;
 class TokenAuthHelper
 {
 	const MODULE_NAME = 'authent-token';
+	const TAG_TOKEN = "Oauth/Token";
 
 	public function __construct()
 	{

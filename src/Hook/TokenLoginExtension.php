@@ -7,12 +7,15 @@ use AbstractLoginFSMExtension;
 use Combodo\iTop\Application\Helper\Session;
 use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthConfig;
+use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Model\iToken;
 use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
+use Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService;
 use LoginWebPage;
 use MetaModel;
 use utils;
+use ContextTag;
 
 /**
  * Class TokenLoginExtension
@@ -28,6 +31,7 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 	const SUPPORTED_LOGIN_MODES = [ self::LOGIN_TYPE , self::LEGACY_LOGIN_TYPE ];
 	// Avoid saving token into the session, keep it in memory
 	private static $sAuthToken = '';
+	private static $bIsOauthToken = false;
 
 	public function __construct()
 	{
@@ -59,16 +63,43 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 		return in_array($sLoginMode,self::SUPPORTED_LOGIN_MODES);
 	}
 
+	public static function IsOauthToken() : bool {
+		if (isset($_SERVER['Authorization'])) {
+			if (preg_match('/Bearer (.*)/', $_SERVER['Authorization'], $aMatches)){
+				self::$sAuthToken = $aMatches[1];
+				return true;
+			}
+		}
+
+		if (! ContextTag::Check(TokenAuthHelper::TAG_TOKEN)){
+			return false;
+		}
+
+		self::$sAuthToken = utils::ReadPostedParam('code', null, utils::ENUM_SANITIZATION_FILTER_RAW_DATA);
+		if (! is_null(self::$sAuthToken)){
+			return true;
+		}
+
+		self::$sAuthToken = utils::ReadPostedParam('refresh_token', null, utils::ENUM_SANITIZATION_FILTER_RAW_DATA);
+		if (! is_null(self::$sAuthToken)){
+			return true;
+		}
+
+		return false;
+	}
+
 	protected function OnModeDetection(&$iErrorCode)
 	{
 		if ($this->bErrorOccurred){
 			return LoginWebPage::LOGIN_FSM_CONTINUE;
 		}
 
-		if (isset($_SERVER['HTTP_AUTH_TOKEN'])) {
-			self::$sAuthToken = $_SERVER['HTTP_AUTH_TOKEN'];
-		} else {
-			self::$sAuthToken = utils::ReadParam('auth_token', null, false, 'raw_data');
+		if (! $this->IsOauthToken()){
+			if (isset($_SERVER['HTTP_AUTH_TOKEN'])) {
+				self::$sAuthToken = $_SERVER['HTTP_AUTH_TOKEN'];
+			} else {
+				self::$sAuthToken = utils::ReadParam('auth_token', null, false, 'raw_data');
+			}
 		}
 
 		$sSessionLoginMode = Session::Get('login_mode');
@@ -107,7 +138,11 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 		if ($this->IsLoginModeSupported(Session::Get('login_mode')))
 		{
 			try{
-				$oToken = self::GetToken(self::$sAuthToken);
+				if (self::$bIsOauthToken){
+					$oToken = self::GetOauthToken(self::$sAuthToken);
+				} else {
+					$oToken = self::GetToken(self::$sAuthToken);
+				}
 			}
 			catch(\Exception $e)
 			{
@@ -181,6 +216,23 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 			return LoginWebPage::CheckLoggedUser($iErrorCode);
 		}
 		return LoginWebPage::LOGIN_FSM_CONTINUE;
+	}
+
+
+	/**
+	 * @param $sToken
+	 *
+	 * @return \Combodo\iTop\AuthentToken\Model\iToken
+	 * @throws \Combodo\iTop\AuthentToken\Exception\TokenAuthException
+	 * @throws \CoreException
+	 * @throws \MySQLException
+	 */
+	public static function GetOauthToken($sToken) : iToken
+	{
+		return Oauth2ApplicationService::GetInstance()->GetOauthToken($sToken);
+
+		// Not decrypted
+		throw new TokenAuthException('invalid_token');
 	}
 
 	/**

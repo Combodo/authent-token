@@ -60,16 +60,6 @@
           <default_value/>
           <is_null_allowed>false</is_null_allowed>
         </field>
-        <field id="code" xsi:type="AttributeString">
-          <sql>code</sql>
-          <default_value/>
-          <is_null_allowed>true</is_null_allowed>
-        </field>
-        <field id="authorization_state" xsi:type="AttributeString">
-          <sql>authorization_state</sql>
-          <default_value/>
-          <is_null_allowed>true</is_null_allowed>
-        </field>
         <field id="client_secret" xsi:type="AttributeEncryptedPassword">
           <sql>client_secret</sql>
           <default_value/>
@@ -159,8 +149,8 @@
           <code><![CDATA[
 	        public function EvtSetAttributeFlagsOauth2Application(Combodo\iTop\Service\Events\EventData $oEventData)
           {
-                $this->AddAttributeFlags('client_secret', OPT_ATT_READONLY);
                 $this->AddAttributeFlags('client_id', OPT_ATT_READONLY);
+                $this->AddAttributeFlags('client_secret', OPT_ATT_READONLY);
           }]]></code>
         </method>
         <method id="EvtSetInitialAttributeFlagsOauth2Application">
@@ -175,9 +165,8 @@
           <code><![CDATA[
 	        public function EvtSetInitialAttributeFlagsOauth2Application(Combodo\iTop\Service\Events\EventData $oEventData)
           {
-                $this->AddInitialAttributeFlags('code', OPT_ATT_READONLY);
-                $this->AddInitialAttributeFlags('client_secret', OPT_ATT_READONLY);
                 $this->AddInitialAttributeFlags('client_id', OPT_ATT_READONLY);
+                $this->AddInitialAttributeFlags('client_secret', OPT_ATT_READONLY);
           }]]></code>
         </method>
       </methods>
@@ -252,6 +241,9 @@
     </class>
     <class id="lnkOauth2ApplicationToUser" _delta="define">
       <parent>cmdbAbstractObject</parent>
+      <php_parent>
+        <name>AbstractOauthToken</name>
+      </php_parent>
       <properties>
         <category>addon/authentication,grant_by_profile</category>
         <abstract>false</abstract>
@@ -322,6 +314,11 @@
           <is_null_allowed>true</is_null_allowed>
           <tracking_level>none</tracking_level>
         </field>
+        <field id="code" xsi:type="AttributeString">
+          <sql>code</sql>
+          <default_value/>
+          <is_null_allowed>true</is_null_allowed>
+        </field>
         <field id="token_type" xsi:type="AttributeString">
           <sql>token_type</sql>
           <default_value/>
@@ -329,7 +326,109 @@
           <tracking_level>none</tracking_level>
         </field>
       </fields>
-      <methods/>
+      <event_listeners>
+        <event_listener id="EVENT_DB_BEFORE_WRITE">
+          <event>EVENT_DB_BEFORE_WRITE</event>
+          <callback>EvtBeforeWritelnkOauth2ApplicationToUser</callback>
+          <rank>0</rank>
+        </event_listener>
+        <event_listener id="EVENT_DB_AFTER_WRITE">
+          <event>EVENT_DB_AFTER_WRITE</event>
+          <callback>EvtAfterWritelnkOauth2ApplicationToUser</callback>
+          <rank>0</rank>
+        </event_listener>
+        <event_listener id="EVENT_DB_SET_ATTRIBUTES_FLAGS">
+          <event>EVENT_DB_SET_ATTRIBUTES_FLAGS</event>
+          <callback>EvtSetAttributeFlagslnkOauth2ApplicationToUser</callback>
+          <rank>0</rank>
+        </event_listener>
+        <event_listener id="EVENT_DB_SET_INITIAL_ATTRIBUTES_FLAGS">
+          <event>EVENT_DB_SET_INITIAL_ATTRIBUTES_FLAGS</event>
+          <callback>EvtSetInitialAttributeFlagslnkOauth2ApplicationToUser</callback>
+          <rank>0</rank>
+        </event_listener>
+      </event_listeners>
+      <methods>
+        <method id="EvtBeforeWritelnkOauth2ApplicationToUser">
+        <comment>/**
+          * Event Listener for EVENT_DB_BEFORE_WRITE
+          * An object is about to be written into the database.
+          * The object can be modified.
+          *
+          * @param Combodo\iTop\Service\Events\EventData $oEventData Event data object
+          */
+        </comment>
+        <static>false</static>
+        <access>public</access>
+        <type>EventListener</type>
+        <code><![CDATA[	public function EvtBeforeWritelnkOauth2ApplicationToUser(Combodo\iTop\Service\Events\EventData $oEventData)
+          {
+            if ($oEventData->Get('is_new')) {
+		          $this->Set('token_type', 'bearer');
+            }
+          }]]></code>
+      </method>
+        <method id="EvtAfterWritelnkOauth2ApplicationToUser">
+          <comment>/**
+            * Event Listener for EVENT_DB_BEFORE_WRITE
+            * An object is about to be written into the database.
+            * The object can be modified.
+            *
+            * @param Combodo\iTop\Service\Events\EventData $oEventData Event data object
+            */
+          </comment>
+          <static>false</static>
+          <access>public</access>
+          <type>EventListener</type>
+          <code><![CDATA[	public function EvtAfterWritelnkOauth2ApplicationToUser(Combodo\iTop\Service\Events\EventData $oEventData)
+          {
+            //if ($oEventData->Get('is_new')) {
+            //  $sSecret = $this->Get('client_secret')->GetPassword();
+            //  $sMessage = \Dict::Format('AuthentToken:ClientSecret', $sSecret);
+            //  self::SetSessionMessage(get_class($this), $this->GetKey(), 1, $sMessage, WebPage::ENUM_SESSION_MESSAGE_SEVERITY_OK, 1);
+            //}
+          }]]></code>
+        </method>
+        <method id="EvtSetAttributeFlagslnkOauth2ApplicationToUser">
+          <comment>/**
+            *
+            * @param Combodo\iTop\Service\Events\EventData $oEventData Event data object
+            */
+          </comment>
+          <static>false</static>
+          <access>public</access>
+          <type>EventListener</type>
+          <code><![CDATA[
+	        public function EvtSetAttributeFlagslnkOauth2ApplicationToUser(Combodo\iTop\Service\Events\EventData $oEventData)
+          {
+                $this->AddAttributeFlags('refresh_token', OPT_ATT_READONLY);
+                $this->AddAttributeFlags('access_token', OPT_ATT_READONLY);
+                $this->AddAttributeFlags('authorization_state', OPT_ATT_READONLY);
+                $this->AddAttributeFlags('code', OPT_ATT_READONLY);
+          }]]></code>
+        </method>
+        <method id="EvtSetInitialAttributeFlagslnkOauth2ApplicationToUser">
+          <comment>/**
+            *
+            * @param Combodo\iTop\Service\Events\EventData $oEventData Event data object
+            */
+          </comment>
+          <static>false</static>
+          <access>public</access>
+          <type>EventListener</type>
+          <code><![CDATA[
+	        public function EvtSetInitialAttributeFlagslnkOauth2ApplicationToUser(Combodo\iTop\Service\Events\EventData $oEventData)
+          {
+                $this->AddInitialAttributeFlags('refresh_token', OPT_ATT_READONLY);
+                $this->AddInitialAttributeFlags('refresh_token_expiration', OPT_ATT_READONLY);
+                $this->AddInitialAttributeFlags('access_token', OPT_ATT_READONLY);
+                $this->AddInitialAttributeFlags('access_token_expiration', OPT_ATT_READONLY);
+                $this->AddInitialAttributeFlags('authorization_state', OPT_ATT_READONLY);
+                $this->AddInitialAttributeFlags('code', OPT_ATT_READONLY);
+                $this->AddInitialAttributeFlags('token_type', OPT_ATT_READONLY);
+          }]]></code>
+        </method>
+      </methods>
       <presentation>
         <details>
           <items>
@@ -341,9 +440,6 @@
                 </item>
                 <item id="user_id">
                   <rank>20</rank>
-                </item>
-                <item id="status">
-                  <rank>30</rank>
                 </item>
               </items>
             </item>
@@ -668,9 +764,6 @@
                     <item id="language">
                       <rank>50</rank>
                     </item>
-                    <item id="status">
-                      <rank>60</rank>
-                    </item>
                   </items>
                 </item>
               </items>
@@ -706,9 +799,6 @@
             </item>
             <item id="email">
               <rank>30</rank>
-            </item>
-            <item id="status">
-              <rank>40</rank>
             </item>
           </items>
         </list>

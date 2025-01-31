@@ -17,7 +17,7 @@ class ComposerStaticInit2dc5f289d4f7cd17bc210cd38fdd5ef1
     public static $prefixDirsPsr4 = array (
         'Combodo\\iTop\\AuthentToken\\Test\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/test',
+            0 => __DIR__ . '/../..' . '/tests/php-unit-tests',
         ),
         'Combodo\\iTop\\AuthentToken\\' => 
         array (
@@ -36,19 +36,22 @@ class ComposerStaticInit2dc5f289d4f7cd17bc210cd38fdd5ef1
         'Combodo\\iTop\\AuthentToken\\Hook\\MyAccountSectionTabContentExtension' => __DIR__ . '/../..' . '/src/Hook/MyAccountSectionTabContentExtension.php',
         'Combodo\\iTop\\AuthentToken\\Hook\\MyAccountTabExtension' => __DIR__ . '/../..' . '/src/Hook/MyAccountTabExtension.php',
         'Combodo\\iTop\\AuthentToken\\Hook\\TokenLoginExtension' => __DIR__ . '/../..' . '/src/Hook/TokenLoginExtension.php',
+        'Combodo\\iTop\\AuthentToken\\Model\\AbstractOauthToken' => __DIR__ . '/../..' . '/src/Model/AbstractOauthToken.php',
+        'Combodo\\iTop\\AuthentToken\\Model\\Oauth2UserApplication' => __DIR__ . '/../..' . '/src/Model/Oauth2UserApplication.php',
         'Combodo\\iTop\\AuthentToken\\Model\\PersonalTokenMenu' => __DIR__ . '/../..' . '/src/Model/PersonalTokenMenu.php',
         'Combodo\\iTop\\AuthentToken\\Model\\iToken' => __DIR__ . '/../..' . '/src/Model/iToken.php',
         'Combodo\\iTop\\AuthentToken\\Service\\AuthentTokenService' => __DIR__ . '/../..' . '/src/Service/AuthentTokenService.php',
         'Combodo\\iTop\\AuthentToken\\Service\\MetaModelService' => __DIR__ . '/../..' . '/src/Service/MetaModelService.php',
         'Combodo\\iTop\\AuthentToken\\Service\\Oauth2ApplicationService' => __DIR__ . '/../..' . '/src/Service/Oauth2ApplicationService.php',
         'Combodo\\iTop\\AuthentToken\\Service\\PersonalTokenService' => __DIR__ . '/../..' . '/src/Service/PersonalTokenService.php',
-        'Combodo\\iTop\\AuthentToken\\Test\\AbstractRest' => __DIR__ . '/../..' . '/test/AbstractRest.php',
-        'Combodo\\iTop\\AuthentToken\\Test\\AbstractTokenRest' => __DIR__ . '/../..' . '/test/AbstractTokenRest.php',
-        'Combodo\\iTop\\AuthentToken\\Test\\ApplicationTokenRestTest' => __DIR__ . '/../..' . '/test/ApplicationTokenRestTest.php',
-        'Combodo\\iTop\\AuthentToken\\Test\\AuthentTokenServiceTest' => __DIR__ . '/../..' . '/test/AuthentTokenServiceTest.php',
-        'Combodo\\iTop\\AuthentToken\\Test\\MyAccountControllerTest' => __DIR__ . '/../..' . '/test/MyAccountControllerTest.php',
-        'Combodo\\iTop\\AuthentToken\\Test\\PersonalTokenRestTest' => __DIR__ . '/../..' . '/test/PersonalTokenRestTest.php',
-        'Combodo\\iTop\\AuthentToken\\Test\\Rest' => __DIR__ . '/../..' . '/test/Rest.php',
+        'Combodo\\iTop\\AuthentToken\\Test\\Controller\\MyAccountControllerTest' => __DIR__ . '/../..' . '/tests/php-unit-tests/Controller/MyAccountControllerTest.php',
+        'Combodo\\iTop\\AuthentToken\\Test\\Service\\AuthentTokenServiceTest' => __DIR__ . '/../..' . '/tests/php-unit-tests/Service/AuthentTokenServiceTest.php',
+        'Combodo\\iTop\\AuthentToken\\Test\\integration\\AbstractRest' => __DIR__ . '/../..' . '/tests/php-unit-tests/integration/AbstractRest.php',
+        'Combodo\\iTop\\AuthentToken\\Test\\integration\\AbstractTokenRest' => __DIR__ . '/../..' . '/tests/php-unit-tests/integration/AbstractTokenRest.php',
+        'Combodo\\iTop\\AuthentToken\\Test\\integration\\ApplicationTokenRestTest' => __DIR__ . '/../..' . '/tests/php-unit-tests/integration/ApplicationTokenRestTest.php',
+        'Combodo\\iTop\\AuthentToken\\Test\\integration\\Oauth2ServerTest' => __DIR__ . '/../..' . '/tests/php-unit-tests/integration/Oauth2ServerTest.php',
+        'Combodo\\iTop\\AuthentToken\\Test\\integration\\PersonalTokenRestTest' => __DIR__ . '/../..' . '/tests/php-unit-tests/integration/PersonalTokenRestTest.php',
+        'Combodo\\iTop\\AuthentToken\\Test\\integration\\Rest' => __DIR__ . '/../..' . '/tests/php-unit-tests/integration/Rest.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
     );
 

@@ -2,14 +2,18 @@
 
 namespace Combodo\iTop\AuthentToken\Test\integration;
 
+use AttributeDateTime;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
 use Combodo\iTop\AuthentToken\Service\MetaModelService;
+use Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService;
 use Combodo\iTop\Test\UnitTest\ItopDataTestCase;
+use DateTime;
 use Oauth2Application;
 use MetaModel;
 use Dict;
 use User;
 use ApplicationContext;
+use lnkOauth2ApplicationToUser;
 
 class Oauth2ServerTest extends ItopDataTestCase {
 	//iTop called from outside
@@ -72,6 +76,12 @@ class Oauth2ServerTest extends ItopDataTestCase {
 		$oOauth2Application->Reload();
 		$sClientId = $oOauth2Application->Get('client_id');
 
+		/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser */
+		$oLnkOauth2ApplicationToUser = $this->createObject(lnkOauth2ApplicationToUser::class, [
+			'application_id' => $oOauth2Application->GetKey(),
+			'user_id' => $this->oUser->GetKey(),
+		]);
+
 		$sState = 'state_' . $this->sUniqId;
 		$sScope = 'scope_' . $this->sUniqId;
 		$aAuthorizeArgs = [
@@ -107,14 +117,31 @@ class Oauth2ServerTest extends ItopDataTestCase {
 			"redirect_uri" => $sRedirectUri,
 		]);
 
-		$sRedirectUri = ApplicationContext::MakeObjectUrl(Oauth2Application::class, $oOauth2Application->GetKey());
-		$oOauth2Application = $this->updateObject(Oauth2Application::class, $oOauth2Application->GetKey(), [
-			"redirect_uri" => $sRedirectUri,
+
+		/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser */
+		$oLnkOauth2ApplicationToUser = $this->createObject(lnkOauth2ApplicationToUser::class, [
+			'application_id' => $oOauth2Application->GetKey(),
+			'user_id' => $this->oUser->GetKey(),
 		]);
 
-		$oOauth2Application->Reload();
-		$this->assertEquals('', $oOauth2Application->Get('code'), 'code should be empty');
+		$oLnkOauth2ApplicationToUser->Reload();
+		$aEmptyFields = [
+			"refresh_token_expiration",
+			"access_token_expiration",
+			"code",
+			"authorization_state",
+		];
+		foreach ($aEmptyFields as $sField){
+			$this->assertEquals('', $oLnkOauth2ApplicationToUser->Get($sField), "$sField should be empty");
+		}
 
+		$aPwdFields = [
+			"refresh_token",
+			"access_token",
+		];
+		foreach ($aPwdFields as $sField){
+			$this->assertEquals('', $oLnkOauth2ApplicationToUser->Get($sField)->GetPassword(), "$sField should be empty");
+		}
 
 		$aAuthorizeArgs = [
 			"operation" => "DoAuthorize",
@@ -133,13 +160,83 @@ class Oauth2ServerTest extends ItopDataTestCase {
 			'transaction_id' => $this->GetNewGeneratedTransId(),
 			'decision' => 'allow',
 		];
-		$sOutput = $this->CallItopUrl($sUrl, $aPostParams);
 
+		$this->CallItopUrl($sUrl, $aPostParams);
+		$oLnkOauth2ApplicationToUser->Reload();
+
+		foreach ($aEmptyFields as $sField){
+			$this->assertNotEquals('', $oLnkOauth2ApplicationToUser->Get($sField), "$sField should NOT be empty");
+		}
+		foreach ($aPwdFields as $sField){
+			$this->assertNotEquals('', $oLnkOauth2ApplicationToUser->Get($sField), "$sField should NOT be empty");
+		}
+
+		$this->assertNotEquals(
+			$oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword(),
+			$oLnkOauth2ApplicationToUser->Get('refresh_token')->GetPassword(),
+			"access_token / refresh_token should NOT be the same");
+
+		$this->CheckExpirationField($oLnkOauth2ApplicationToUser, 'access_token_expiration', Oauth2ApplicationService::ACCESS_TOKEN_EXPIRATION_IN_SECONDS);
+		$this->CheckExpirationField($oLnkOauth2ApplicationToUser, 'refresh_token_expiration', Oauth2ApplicationService::REFRESH_TOKEN_EXPIRATION_IN_SECONDS);
+
+		$this->assertEquals($sState, $oLnkOauth2ApplicationToUser->Get('authorization_state'), 'authorization_state should have been saved');
+	}
+
+	public function testFetchAccessTokenByCodeAfterAuthorize() {
+		$oOrg = $this->CreateOrganization($this->sUniqId);
+
+		$sRedirectUri = "https://testu.rd";
+
+		/** @var Oauth2Application $oOauth2Application */
+		$oOauth2Application = $this->createObject(Oauth2Application::class, [
+			'org_id' => $oOrg->GetKey(),
+			"application" => "test",
+			"redirect_uri" => $sRedirectUri,
+		]);
 		$oOauth2Application->Reload();
 		$sClientId = $oOauth2Application->Get('client_id');
+		$sClientSecret = $oOauth2Application->Get('client_secret');
 
-		$this->assertNotEquals('', $oOauth2Application->Get('code'), 'code should have been filled in (and returned when redirecting)');
-		$this->assertEquals($sState, $oOauth2Application->Get('authorization_state'), 'authorization_state should have been saved');
+		$sAccessTokenExpiration = date(AttributeDateTime::GetSQLFormat(), time()+60);
+		$sRefreshTokenExpiration = date(AttributeDateTime::GetSQLFormat(), time() + Oauth2ApplicationService::REFRESH_TOKEN_EXPIRATION_IN_SECONDS);
+		/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser */
+		$oLnkOauth2ApplicationToUser = $this->createObject(lnkOauth2ApplicationToUser::class, [
+			'application_id' => $oOauth2Application->GetKey(),
+			'user_id' => $this->oUser->GetKey(),
+			'access_token' => 'access_token123',
+			'code' => 'code123',
+			'refresh_token' => 'refresh_token123',
+			'access_token_expiration' => $sAccessTokenExpiration,
+			'refresh_token_expiration' => $sRefreshTokenExpiration,
+		]);
+
+
+		$sUrl = TokenAuthHelper::GenerateUrl(\utils::GetAbsoluteUrlModulesRoot() . TokenAuthHelper::MODULE_NAME . '/token.php', []);
+
+		$sState = "state_".$this->sUniqId;
+		$aPostParams = [
+			"application_id" => $oOauth2Application->GetKey(),
+			"scope" => "scope_" . $this->sUniqId,
+			"client_id" => $sClientId,
+			'code' => 'code123',
+			"client_secret" => $sClientSecret,
+			"grant_type" => 'authorization_code',
+			"redirect_uri" => $sRedirectUri,
+		];
+
+		$sOutput = $this->CallItopUrl($sUrl, $aPostParams);
+		$aJson = json_decode($sOutput, true);
+		$this->assertNotEquals(false, $aJson, $sOutput);
+		var_dump($aJson);
+
+		$this->assertEquals($oLnkOauth2ApplicationToUser->Get('token_type'), $aJson['token_type'] ?? null, 'check token_type');
+		$this->assertEquals($oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword(), $aJson['access_token'] ?? null, 'check access_token');
+		$this->assertEquals($oLnkOauth2ApplicationToUser->Get('refresh_token')->GetPassword(), $aJson['refresh_token'] ?? null, 'check refresh_token');
+
+		$this->assertNotNull($aJson['expires_in'] ?? null, 'check expires_in');
+		$siExpireIn = (int) $aJson['expires_in'];
+		$this->assertTrue($siExpireIn > 50, 'check expires_in value > 50');
+		$this->assertTrue($siExpireIn < 61, 'check expires_in value < 61');
 	}
 
 	protected function AssertStringContains($sNeedle, $sHaystack, $sMessage): void
@@ -164,5 +261,18 @@ class Oauth2ServerTest extends ItopDataTestCase {
 		\UserRights::_ResetSessionCache();
 
 		return $sTransId;
+	}
+
+	private function CheckExpirationField(lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser, string $sField,
+		int $iExpirationInSeconds) : void {
+
+		$oAttDateTime = $oLnkOauth2ApplicationToUser->Get($sField);
+		$this->assertNotNull($oAttDateTime, "$sField not null");
+		$oExpirationFieldDateTime = DateTime::createFromFormat(AttributeDateTime::GetSQLFormat(), $oAttDateTime);
+
+		$iExpirationTime = strtotime("+$iExpirationInSeconds SECONDS") - 10;
+		$oExpirationTimeDateTimeCheck = date(AttributeDateTime::GetSQLFormat(), $iExpirationTime);
+
+		$this->assertTrue($iExpirationTime < $oExpirationFieldDateTime->getTimestamp(), "expiration check $iExpirationInSeconds: $oExpirationTimeDateTimeCheck < $oAttDateTime");
 	}
 }

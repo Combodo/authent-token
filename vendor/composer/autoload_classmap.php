@@ -16,7 +16,6 @@ return array(
     'Combodo\\iTop\\AuthentToken\\Hook\\MyAccountSectionTabContentExtension' => $baseDir . '/src/Hook/MyAccountSectionTabContentExtension.php',
     'Combodo\\iTop\\AuthentToken\\Hook\\MyAccountTabExtension' => $baseDir . '/src/Hook/MyAccountTabExtension.php',
     'Combodo\\iTop\\AuthentToken\\Hook\\TokenLoginExtension' => $baseDir . '/src/Hook/TokenLoginExtension.php',
-    'Combodo\\iTop\\AuthentToken\\Model\\AbstractOauthToken' => $baseDir . '/src/Model/AbstractOauthToken.php',
     'Combodo\\iTop\\AuthentToken\\Model\\Oauth2UserApplication' => $baseDir . '/src/Model/Oauth2UserApplication.php',
     'Combodo\\iTop\\AuthentToken\\Model\\PersonalTokenMenu' => $baseDir . '/src/Model/PersonalTokenMenu.php',
     'Combodo\\iTop\\AuthentToken\\Model\\iToken' => $baseDir . '/src/Model/iToken.php',

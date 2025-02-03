@@ -1,30 +1,118 @@
 <?php
 
-use Combodo\iTop\Application\UI\Base\Component\Button\ButtonUIBlockFactory;
-use Combodo\iTop\Application\UI\Base\Component\Form\FormUIBlockFactory;
+use cmdbAbstractObject;
+use CMDBObject;
 use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Model\iToken;
 use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
 use Combodo\iTop\AuthentToken\Service\PersonalTokenService;
+use ContextTag;
+use Dict;
+use MetaModel;
+use ormSet;
+use utils;
+use WebPage;
 
 /**
  * @copyright   Copyright (C) 2010-2024 Combodo SAS
  * @license     http://opensource.org/licenses/AGPL-3.0
  */
-
-abstract class AbstractPersonalToken extends cmdbAbstractObject  implements iToken
-{
+abstract class AbstractPersonalToken extends cmdbAbstractObject implements iToken {
+	protected $sToken;
+	protected $bCanEditUserId = true;
 	private $aContext;
 
-	public function GetUser() : \User
-	{
+	/**
+	 * @return string : get token value only when refreshing its value
+	 */
+	public function GetToken(): ?string {
+		return $this->sToken;
+	}
+
+	public function DisplayDetails(WebPage $oPage, $bEditMode = false) {
+		//N°6452 - Auto-lock: 2 regenerate buttons
+		static $bBlockReentrance = false;
+		parent::DisplayDetails($oPage, $bEditMode);
+
+		if ($bBlockReentrance === false) {
+			$bBlockReentrance = true;
+			$oPage->SetCurrentTab('UI:PropertiesTab');
+
+			if (version_compare(ITOP_DESIGN_LATEST_VERSION, '2.7', '<=')) {
+				$sButtonLabel = Dict::S('AuthentToken:RebuildToken');
+				$sButtonTooltipLabel = Dict::S('AuthentToken:RebuildToken+');
+				$sHtml = <<<HTML
+<form method="post">
+	<button type="submit" name="rebuild_Token" value="1" title="{$sButtonTooltipLabel}">{$sButtonLabel}</button>
+</form>
+HTML;
+				$oPage->add($sHtml);
+			} else {
+				$oForm = FormUIBlockFactory::MakeStandard();
+				$oButton = ButtonUIBlockFactory::MakeForPositiveAction(Dict::S('AuthentToken:RebuildToken'), 'rebuild_Token', 1, true);
+				$oButton->SetTooltip(Dict::S('AuthentToken:RebuildToken+'));
+				$oForm->AddSubBlock($oButton);
+				$oPage->AddSubBlock($oForm);
+			}
+		}
+	}
+
+	private function CreateNewToken(): void {
+		$oService = new AuthentTokenService();
+		$this->sToken = $oService->CreateNewToken($this);
+		$oPassword = $oService->CreatePassword($this->sToken);
+		$this->Set('auth_token', $oPassword);
+	}
+
+	public function AfterInsert() {
+		$this->CreateNewToken();
+		$this->DBWrite();
+
+		$sMessage = Dict::Format('PersonalToken:CopyToken', $this->sToken);
+		$this::SetSessionMessage(get_class($this), $this->GetKey(), 1, $sMessage, 'INFO', 1);
+		parent::AfterInsert();
+	}
+
+	public function GetInitialStateAttributeFlags($sAttCode, &$aReasons = array()) {
+		if (in_array($sAttCode, ['auth_token', 'use_count', 'last_use_date'])) {
+			return OPT_ATT_HIDDEN;
+		} else {
+			if ($sAttCode == 'user_id' && !$this->GetCanEditUserId()) {
+				return OPT_ATT_READONLY;
+			}
+		}
+
+		return parent::GetInitialStateAttributeFlags($sAttCode, $aReasons);
+	}
+
+	public function GetAttributeFlags($sAttCode, &$aReasons = array(), $sTargetState = '') {
+		if (in_array($sAttCode, ['auth_token', 'use_count', 'last_use_date'])) {
+			return OPT_ATT_HIDDEN;
+		} else {
+			if ($sAttCode == 'user_id' && !$this->GetCanEditUserId()) {
+				return OPT_ATT_READONLY;
+			}
+		}
+
+		return parent::GetAttributeFlags($sAttCode, $aReasons, $sTargetState);
+	}
+
+	public function GetAsHTML($sAttCode, $bLocalize = true) {
+		if ($sAttCode == 'auth_token') {
+			return '****';
+		}
+
+		return parent::GetAsHTML($sAttCode, $bLocalize);
+	}
+
+	public function GetUser(): \User {
 		/** @var \User $oUser */
 		$oUser = MetaModel::GetObject(\User::class, $this->Get('user_id'));
 		$this->aContext = [
 			'token' => get_class($this),
-			'token_id' => $this->GetKey(),
-			'user_class' => get_class($oUser),
+			'token_id' => $this->GetKey($oUser),
+			'class' => get_class($oUser),
 			'user_id' => $oUser->GetKey(),
 			'login' => $oUser->Get('login'),
 		];
@@ -38,8 +126,8 @@ abstract class AbstractPersonalToken extends cmdbAbstractObject  implements iTok
 		return $oUser;
 	}
 
-	private function GetContextParams() : array {
-		if (is_null($this->aContext)){
+	private function GetContextParams(): array {
+		if (is_null($this->aContext)) {
 			$this->aContext = [
 				'token' => get_class($this),
 				'token_id' => $this->GetKey(),
@@ -49,10 +137,9 @@ abstract class AbstractPersonalToken extends cmdbAbstractObject  implements iTok
 		return $this->aContext;
 	}
 
-	public function CheckValidity(string $sToken): void
-	{
+	public function CheckValidity(string $sToken): void {
 		$oUser = $this->GetUser();
-		if (! PersonalTokenService::GetInstance()->IsPersonalTokenManagementAllowed($oUser)){
+		if (!PersonalTokenService::GetInstance()->IsPersonalTokenManagementAllowed($oUser)) {
 			if (MetaModel::GetConfig()->Get('login_debug')) {
 				$aProfiles = PersonalTokenService::GetInstance()->GetAuthorizedProfiles();
 				$sMessage = sprintf('Current user has not the Personal Token allowed profiles (%s).', implode(',', $aProfiles));
@@ -62,7 +149,7 @@ abstract class AbstractPersonalToken extends cmdbAbstractObject  implements iTok
 		}
 
 		$oPassword = $this->Get('auth_token');
-		if (! $oPassword->CheckPassword($sToken)) {
+		if (!$oPassword->CheckPassword($sToken)) {
 			if (MetaModel::GetConfig()->Get('login_debug')) {
 				TokenAuthLog::Info("Invalid token", null, $this->GetContextParams());
 			}
@@ -70,7 +157,7 @@ abstract class AbstractPersonalToken extends cmdbAbstractObject  implements iTok
 		}
 
 		$sTokenValidity = $this->Get('expiration_date');
-		if (! is_null($sTokenValidity)) {
+		if (!is_null($sTokenValidity)) {
 			$oNowDateTime = new DateTime();
 			$iNowUnixSeconds = $oNowDateTime->format('U');
 
@@ -98,16 +185,17 @@ abstract class AbstractPersonalToken extends cmdbAbstractObject  implements iTok
 	 * @throws \Combodo\iTop\AuthentToken\Exception\TokenAuthException
 	 * @throws \CoreException
 	 */
-	public function CheckScopes(): void
-	{
-		$aScopeValues = explode(' ', $this->Get('scope'));
+	public function CheckScopes(): void {
+		/** @var ormSet $oScope */
+		$oScope = $this->Get('scope');
+		$aScopeValues = $oScope->GetValues();
 		foreach ($aScopeValues as $sScope) {
 			if (\ContextTag::Check($sScope)) {
 				return;
 			}
 		}
 
-		if (MetaModel::GetConfig()->Get('login_debug')){
+		if (MetaModel::GetConfig()->Get('login_debug')) {
 			TokenAuthLog::Info(sprintf(
 				"Current context (%s) does not match current Token allowed scopes: %s",
 				implode(',', \ContextTag::GetStack()),
@@ -122,8 +210,7 @@ abstract class AbstractPersonalToken extends cmdbAbstractObject  implements iTok
 	}
 
 
-	public function UpdateUsage(): void
-	{
+	public function UpdateUsage(): void {
 		$iUseCount = $this->Get('use_count') + 1;
 		$this->Set('use_count', $iUseCount);
 
@@ -135,9 +222,8 @@ abstract class AbstractPersonalToken extends cmdbAbstractObject  implements iTok
 
 		if (MetaModel::GetConfig()->Get('allow_rest_services_via_tokens')
 			&&
-			(ContextTag::Check(ContextTag::TAG_REST) || ContextTag::Check(ContextTag::TAG_SYNCHRO)))
-		{
-			if (MetaModel::GetConfig()->Get('login_debug')){
+			(ContextTag::Check(ContextTag::TAG_REST) || ContextTag::Check(ContextTag::TAG_SYNCHRO))) {
+			if (MetaModel::GetConfig()->Get('login_debug')) {
 				TokenAuthLog::Info("Rest profiles can be bypassed with 'allow_rest_services_via_tokens' enabled ('secure_rest_services' disabled once).",
 					null,
 					$this->GetContextParams()

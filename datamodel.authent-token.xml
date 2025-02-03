@@ -242,7 +242,7 @@
     <class id="lnkOauth2ApplicationToUser" _delta="define">
       <parent>cmdbAbstractObject</parent>
       <php_parent>
-        <name>AbstractOauthToken</name>
+        <name>AbstractOauth2Token</name>
       </php_parent>
       <properties>
         <category>addon/authentication,grant_by_profile</category>

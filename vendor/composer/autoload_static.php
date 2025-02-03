@@ -36,7 +36,6 @@ class ComposerStaticInit2dc5f289d4f7cd17bc210cd38fdd5ef1
         'Combodo\\iTop\\AuthentToken\\Hook\\MyAccountSectionTabContentExtension' => __DIR__ . '/../..' . '/src/Hook/MyAccountSectionTabContentExtension.php',
         'Combodo\\iTop\\AuthentToken\\Hook\\MyAccountTabExtension' => __DIR__ . '/../..' . '/src/Hook/MyAccountTabExtension.php',
         'Combodo\\iTop\\AuthentToken\\Hook\\TokenLoginExtension' => __DIR__ . '/../..' . '/src/Hook/TokenLoginExtension.php',
-        'Combodo\\iTop\\AuthentToken\\Model\\AbstractOauthToken' => __DIR__ . '/../..' . '/src/Model/AbstractOauthToken.php',
         'Combodo\\iTop\\AuthentToken\\Model\\Oauth2UserApplication' => __DIR__ . '/../..' . '/src/Model/Oauth2UserApplication.php',
         'Combodo\\iTop\\AuthentToken\\Model\\PersonalTokenMenu' => __DIR__ . '/../..' . '/src/Model/PersonalTokenMenu.php',
         'Combodo\\iTop\\AuthentToken\\Model\\iToken' => __DIR__ . '/../..' . '/src/Model/iToken.php',

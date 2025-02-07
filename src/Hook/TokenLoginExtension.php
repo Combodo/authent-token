@@ -5,9 +5,9 @@ namespace Combodo\iTop\AuthentToken\Hook;
 use AbstractApplicationToken;
 use AbstractLoginFSMExtension;
 use Combodo\iTop\Application\Helper\Session;
+use Combodo\iTop\AuthentToken\Controller\Oauth2AuthorizeController;
 use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthConfig;
-use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Model\iToken;
 use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
@@ -15,7 +15,6 @@ use Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService;
 use LoginWebPage;
 use MetaModel;
 use utils;
-use ContextTag;
 
 /**
  * Class TokenLoginExtension
@@ -31,6 +30,7 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 	const SUPPORTED_LOGIN_MODES = [ self::LOGIN_TYPE , self::LEGACY_LOGIN_TYPE ];
 	// Avoid saving token into the session, keep it in memory
 	private static $sAuthToken = '';
+
 	private static $bIsOauthToken = false;
 
 	public function __construct()
@@ -63,38 +63,16 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 		return in_array($sLoginMode,self::SUPPORTED_LOGIN_MODES);
 	}
 
-	public static function IsOauthToken() : bool {
-		if (isset($_SERVER['Authorization'])) {
-			if (preg_match('/Bearer (.*)/', $_SERVER['Authorization'], $aMatches)){
-				self::$sAuthToken = $aMatches[1];
-				return true;
-			}
-		}
-
-		if (! ContextTag::Check(TokenAuthHelper::TAG_TOKEN)){
-			return false;
-		}
-
-		self::$sAuthToken = utils::ReadPostedParam('code', null, utils::ENUM_SANITIZATION_FILTER_RAW_DATA);
-		if (! is_null(self::$sAuthToken)){
-			return true;
-		}
-
-		self::$sAuthToken = utils::ReadPostedParam('refresh_token', null, utils::ENUM_SANITIZATION_FILTER_RAW_DATA);
-		if (! is_null(self::$sAuthToken)){
-			return true;
-		}
-
-		return false;
-	}
-
 	protected function OnModeDetection(&$iErrorCode)
 	{
 		if ($this->bErrorOccurred){
 			return LoginWebPage::LOGIN_FSM_CONTINUE;
 		}
 
-		if (! $this->IsOauthToken()){
+		if (Oauth2AuthorizeController::GetInstance()->IsOauthToken()) {
+			self::$bIsOauthToken = true;
+			Session::Set('oauth_authentication', true);
+		} else {
 			if (isset($_SERVER['HTTP_AUTH_TOKEN'])) {
 				self::$sAuthToken = $_SERVER['HTTP_AUTH_TOKEN'];
 			} else {
@@ -104,7 +82,7 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 
 		$sSessionLoginMode = Session::Get('login_mode');
 		// Note: We don't use \utils::IsNullOrEmptyString() as it is not available in iTop 2.7
-		if (strlen(self::$sAuthToken ?? '') === 0)
+		if (self::$bIsOauthToken || strlen(self::$sAuthToken ?? '') === 0)
 		{
 			if ($this->IsLoginModeSupported($sSessionLoginMode)){
 				//login_mode forced and no token. exit to stop login automata
@@ -139,7 +117,7 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 		{
 			try{
 				if (self::$bIsOauthToken){
-					$oToken = self::GetOauthToken(self::$sAuthToken);
+					$oToken = Oauth2AuthorizeController::GetInstance()->AuthenticateViaOauth();
 				} else {
 					$oToken = self::GetToken(self::$sAuthToken);
 				}
@@ -148,6 +126,7 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 			{
 				TokenAuthLog::Error("OnCheckCredentials: " . $e->getMessage());
 				Session::Unset('token_id');
+				Session::Unset('oauth_authentication');
 				Session::Unset('token_class');
 
 				$iErrorCode = LoginWebPage::EXIT_CODE_WRONGCREDENTIALS;
@@ -157,7 +136,6 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 			Session::Set('token_id', $oToken->GetKey());
 			Session::Set('token_class', get_class($oToken));
 		}
-		Session::Unset('login_temp_auth_token');
 		return LoginWebPage::LOGIN_FSM_CONTINUE;
 	}
 
@@ -216,23 +194,6 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 			return LoginWebPage::CheckLoggedUser($iErrorCode);
 		}
 		return LoginWebPage::LOGIN_FSM_CONTINUE;
-	}
-
-
-	/**
-	 * @param $sToken
-	 *
-	 * @return \Combodo\iTop\AuthentToken\Model\iToken
-	 * @throws \Combodo\iTop\AuthentToken\Exception\TokenAuthException
-	 * @throws \CoreException
-	 * @throws \MySQLException
-	 */
-	public static function GetOauthToken($sToken) : iToken
-	{
-		return Oauth2ApplicationService::GetInstance()->GetOauthToken($sToken);
-
-		// Not decrypted
-		throw new TokenAuthException('invalid_token');
 	}
 
 	/**

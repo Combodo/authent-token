@@ -24,6 +24,7 @@ abstract class AbstractRest extends ItopDataTestCase
 	protected $sConfigTmpBackupFile;
 	protected $oUser;
 	protected $sOrgName;
+	protected string $sUniqId;
 
 	/**
 	 * @throws Exception
@@ -39,9 +40,9 @@ abstract class AbstractRest extends ItopDataTestCase
 		$sFilePermOutput = substr(sprintf('%o', fileperms('/etc/passwd')), -4);
 		echo sprintf("rights via fileperms on %s:\n %s \n", $sConfigPath, $sFilePermOutput);
 
-		$sUid = date('dmYHis');
-		$this->sLogin = "rest-user-".$sUid;
-		$this->sOrgName = "Org-$sUid";
+		$this->sUniqId = "AUTHENTTOKEN_" . date('dmYHis');
+		$this->sLogin = "rest-user-".$this->sUniqId;
+		$this->sOrgName = "Org-$this->sUniqId";
 		$this->CreateOrganization($this->sOrgName);
 
 		if (0 !== strlen($this->sTmpFile)) {

@@ -16,7 +16,7 @@ require_once(APPROOT.'application/startup.inc.php');
 TokenAuthLog::Enable();
 $oP = new JsonPage();
 
-$oCtx = new ContextTag(TokenAuthHelper::TAG_TOKEN);
+$oCtx = new ContextTag(TokenAuthHelper::TAG_OAUTH2_ENDPOINT);
 LoginWebPage::DoLogin();
 
 $oController = new Oauth2AuthorizeController(__DIR__.'/templates', TokenAuthHelper::MODULE_NAME);

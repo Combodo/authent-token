@@ -1,18 +1,10 @@
 <?php
 
-use cmdbAbstractObject;
-use CMDBObject;
 use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Model\iToken;
 use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
 use Combodo\iTop\AuthentToken\Service\PersonalTokenService;
-use ContextTag;
-use Dict;
-use MetaModel;
-use ormSet;
-use utils;
-use WebPage;
 
 /**
  * @copyright   Copyright (C) 2010-2024 Combodo SAS

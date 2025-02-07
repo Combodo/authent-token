@@ -25,6 +25,7 @@ return array(
     'Combodo\\iTop\\AuthentToken\\Service\\PersonalTokenService' => $baseDir . '/src/Service/PersonalTokenService.php',
     'Combodo\\iTop\\AuthentToken\\Test\\Controller\\MyAccountControllerTest' => $baseDir . '/tests/php-unit-tests/Controller/MyAccountControllerTest.php',
     'Combodo\\iTop\\AuthentToken\\Test\\Service\\AuthentTokenServiceTest' => $baseDir . '/tests/php-unit-tests/Service/AuthentTokenServiceTest.php',
+    'Combodo\\iTop\\AuthentToken\\Test\\Service\\Oauth2ApplicationServiceTest' => $baseDir . '/tests/php-unit-tests/Service/Oauth2ApplicationServiceTest.php',
     'Combodo\\iTop\\AuthentToken\\Test\\integration\\AbstractRest' => $baseDir . '/tests/php-unit-tests/integration/AbstractRest.php',
     'Combodo\\iTop\\AuthentToken\\Test\\integration\\AbstractTokenRest' => $baseDir . '/tests/php-unit-tests/integration/AbstractTokenRest.php',
     'Combodo\\iTop\\AuthentToken\\Test\\integration\\ApplicationTokenRestTest' => $baseDir . '/tests/php-unit-tests/integration/ApplicationTokenRestTest.php',

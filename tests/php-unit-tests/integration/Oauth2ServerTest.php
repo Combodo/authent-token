@@ -4,6 +4,7 @@ namespace Combodo\iTop\AuthentToken\Test\integration;
 
 use AttributeDateTime;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
+use Combodo\iTop\AuthentToken\Hook\TokenLoginExtension;
 use Combodo\iTop\AuthentToken\Service\MetaModelService;
 use Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService;
 use Combodo\iTop\Test\UnitTest\ItopDataTestCase;
@@ -15,14 +16,10 @@ use User;
 use ApplicationContext;
 use lnkOauth2ApplicationToUser;
 
-class Oauth2ServerTest extends ItopDataTestCase {
+class Oauth2ServerTest extends AbstractTokenRest {
 	//iTop called from outside
 	//users need to be persisted in DB
 	const USE_TRANSACTION = false;
-
-	protected string $sPassword;
-	protected User $oUser;
-	protected string $sUniqId;
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -30,14 +27,28 @@ class Oauth2ServerTest extends ItopDataTestCase {
 
 		clearstatcache();
 
-		$this->sUniqId = "OAUTH2_AUTHENTTOKEN_" . uniqid();
-		$this->sPassword = "abCDEF12345@";
 		/** @var User oUser */
-		$this->oUser = $this->CreateContactlessUser($this->sUniqId,
+		$this->oUser = $this->CreateContactlessUser($this->sLogin,
 			ItopDataTestCase::$aURP_Profiles['Service Desk Agent'],
 			$this->sPassword
 		);
+
+		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
+		$this->InitLoginMode(TokenLoginExtension::LOGIN_TYPE);
+
+		MetaModel::GetConfig()->Set('secure_rest_services', true, 'auth-token');
+		MetaModel::GetConfig()->Set('allow_rest_services_via_tokens', true, 'auth-token');
+		MetaModel::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Administrator', 'Service Desk Agent']);
+
+		MetaModel::GetConfig()->WriteToFile();
+		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
 	}
+
+	protected function GetAuthToken($sContext = null)
+	{
+		return null;
+	}
+
 
 	protected function CallItopUrl($sUrl, ?array $aPostFields = null, $bIsPost=true)
 	{
@@ -213,7 +224,6 @@ class Oauth2ServerTest extends ItopDataTestCase {
 
 		$sUrl = TokenAuthHelper::GenerateUrl(\utils::GetAbsoluteUrlModulesRoot() . TokenAuthHelper::MODULE_NAME . '/token.php', []);
 
-		$sState = "state_".$this->sUniqId;
 		$aPostParams = [
 			"application_id" => $oOauth2Application->GetKey(),
 			"scope" => "scope_" . $this->sUniqId,
@@ -274,5 +284,30 @@ class Oauth2ServerTest extends ItopDataTestCase {
 		$oExpirationTimeDateTimeCheck = date(AttributeDateTime::GetSQLFormat(), $iExpirationTime);
 
 		$this->assertTrue($iExpirationTime < $oExpirationFieldDateTime->getTimestamp(), "expiration check $iExpirationInSeconds: $oExpirationTimeDateTimeCheck < $oAttDateTime");
+	}
+
+
+	/**
+	 * @dataProvider BasicTokenProvider
+	 */
+	public function testCreateApiViaToken($iJsonDataMode, $bTokenInPost)
+	{
+		$this->markTestSkipped();
+	}
+
+	/**
+	 * @dataProvider BasicTokenProvider
+	 */
+	public function testUpdateApiViaToken($iJsonDataMode, $bTokenInPost)
+	{
+		$this->markTestSkipped();
+	}
+
+	/**
+	 * @dataProvider BasicTokenProvider
+	 */
+	public function testDeleteApiViaToken($iJsonDataMode, $bTokenInPost)
+	{
+		$this->markTestSkipped();
 	}
 }

@@ -28,6 +28,7 @@ class Oauth2ApplicationService {
 
 	protected function __construct()
 	{
+		TokenAuthLog::Enable(APPROOT.'log/error.log');
 	}
 
 	final public static function GetInstance(): Oauth2ApplicationService
@@ -44,9 +45,9 @@ class Oauth2ApplicationService {
 		static::$oInstance = $oInstance;
 	}
 
-	public function GenerateToken() : string
+	public function GenerateToken(LnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser) : string
 	{
-		return base64_encode(random_bytes(24));
+		return AuthentTokenService::GetInstance()->CreateNewToken($oLnkOauth2ApplicationToUser, 24);
 	}
 
 	public function GenerateClientId() : string
@@ -105,7 +106,7 @@ OQL;
 	/**
 	 * @param string $sClientId
 	 *
-	 * @return \Oauth2Application
+	 * @return Oauth2Application
 	 */
 	public function DecodeAuthorizationRequest(string $sClientId, string $sRedirectUri) : Oauth2UserApplication
 	{
@@ -156,8 +157,8 @@ OQL;
 	{
 		$oLnkOauth2ApplicationToUser->Set('code', $sCode);
 		$oLnkOauth2ApplicationToUser->Set('authorization_state', $state);
-		$oLnkOauth2ApplicationToUser->Set('refresh_token', Oauth2ApplicationService::GetInstance()->GenerateToken());
-		$oLnkOauth2ApplicationToUser->Set('access_token', Oauth2ApplicationService::GetInstance()->GenerateToken());
+		$oLnkOauth2ApplicationToUser->Set('refresh_token', Oauth2ApplicationService::GetInstance()->GenerateToken($oLnkOauth2ApplicationToUser));
+		$oLnkOauth2ApplicationToUser->Set('access_token', Oauth2ApplicationService::GetInstance()->GenerateToken($oLnkOauth2ApplicationToUser));
 
 		$sExpireAt = date(AttributeDateTime::GetSQLFormat(), time() + self::ACCESS_TOKEN_EXPIRATION_IN_SECONDS);
 		$oLnkOauth2ApplicationToUser->Set('access_token_expiration', $sExpireAt);
@@ -169,18 +170,13 @@ OQL;
 		$oLnkOauth2ApplicationToUser->DBWrite();
 	}
 
-	public function GetLnkOauth2ApplicationToUserByAccesToken(string $sAccessToken) : lnkOauth2ApplicationToUser
+	public function GetLnkOauth2ApplicationToUserByAccessToken(string $sAccessToken) : lnkOauth2ApplicationToUser
 	{
 		try {
-			$sOQL = <<<OQL
-SELECT lnkOauth2ApplicationToUser AS l 
-OQL;
+			/** @var ?lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser */
+			$oLnkOauth2ApplicationToUser = AuthentTokenService::GetInstance()->DecryptToken($sAccessToken);
 
-			$oSearch = DBObjectSearch::FromOQL($sOQL, []);
-			$oSearch->AllowAllData();
-			$oSet = new DBObjectSet($oSearch);
-			/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser */
-			while ($oLnkOauth2ApplicationToUser = $oSet->Fetch()) {
+			if (! is_null($oLnkOauth2ApplicationToUser)){
 				$sFetchedAccessToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
 				TokenAuthLog::Debug(__METHOD__, null,
 					[
@@ -202,15 +198,46 @@ OQL;
 
 	public function GetLnkOauth2ApplicationToUserByRefreshToken(string $sClientId, string $sClientSecret, string $sRedirectUri, string $sRefreshToken) : lnkOauth2ApplicationToUser
 	{
-		return $this->GetLnkOauth2ApplicationToUserBy($sClientId, $sClientSecret, $sRedirectUri, 'refresh_token', $sRefreshToken);
+		try {
+			/** @var ?lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser */
+			$oLnkOauth2ApplicationToUser = AuthentTokenService::GetInstance()->DecryptToken($sRefreshToken);
+
+			if (! is_null($oLnkOauth2ApplicationToUser)){
+				$sFetchedRefreshToken = $oLnkOauth2ApplicationToUser->Get('refresh_token')->GetPassword();
+				TokenAuthLog::Debug(__METHOD__, null,
+					[
+						'refresh_token'       => $sRefreshToken,
+						'fetch_access_token' => $sFetchedRefreshToken,
+					]
+				);
+
+				if ($sFetchedRefreshToken !== $sRefreshToken) {
+					throw new TokenAuthException("Overwritten refresh_token used", 400, null, []);
+				}
+
+				/** @var Oauth2Application $oOauth2Application */
+				$oOauth2Application = \MetaModel::GetObject(Oauth2Application::class, $oLnkOauth2ApplicationToUser->Get('application_id'));
+
+				if ($oOauth2Application->Get('client_secret')->GetPassword() !== $sClientSecret){
+					throw new TokenAuthException("Invalid client_secret provided", 400, null,
+						[
+							'application_id' => $oOauth2Application->GetKey(),
+							'client_id' => $sClientId,
+							'redirect_uri' => $sRedirectUri,
+						]
+					);
+				}
+
+				return $oLnkOauth2ApplicationToUser;
+			}
+		} catch (Exception $e) {
+			throw new TokenAuthException("Internal Server Error", 500, $e);
+		}
+
+		throw new TokenAuthException("Invalid refresh_token", 400, null, []);
 	}
 
 	public function GetLnkOauth2ApplicationToUserByCode(string $sClientId, string $sClientSecret, string $sRedirectUri, string $sCode) : lnkOauth2ApplicationToUser
-	{
-		return $this->GetLnkOauth2ApplicationToUserBy($sClientId, $sClientSecret, $sRedirectUri, 'code', $sCode);
-	}
-
-	private function GetLnkOauth2ApplicationToUserBy(string $sClientId, string $sClientSecret, string $sRedirectUri, string $sFieldName, string $sFieldValue) : lnkOauth2ApplicationToUser
 	{
 		try {
 			$sOQL = <<<OQL
@@ -220,6 +247,7 @@ SELECT l,a FROM
 	WHERE 
 	a.client_id =:client_id 
 	AND a.redirect_uri=:redirect_uri
+	AND l.code = :code
 OQL;
 
 			$oSearch = DBObjectSearch::FromOQL($sOQL,
@@ -227,47 +255,40 @@ OQL;
 					'client_id' => $sClientId,
 					'client_secret' => $sClientSecret,
 					'redirect_uri' => $sRedirectUri,
+					'code' => $sCode
 				]);
 			$oSearch->AllowAllData();
 			$oSet = new DBObjectSet($oSearch);
 
-			while ($aObjects = $oSet->FetchAssoc()){
-				/** @var Oauth2Application $oOauth2Application */
-				$oOauth2Application = $aObjects['a'];
-
-				/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser */
-				$oLnkOauth2ApplicationToUser = $aObjects['l'];
-
-				if ($oOauth2Application->Get('client_secret')->GetPassword() !== $sClientSecret){
-					throw new TokenAuthException("Invalid client_secret", 400, null,
-						[
-							'application_id' => $oOauth2Application->GetKey(),
-							'client_id' => $sClientId,
-							'redirect_uri' => $sRedirectUri,
-						]
-					);
-				}
-
-				$oValue = $oLnkOauth2ApplicationToUser->Get($sFieldName);
-				if (is_string($oValue)){
-					$sValue = $oValue;
-				} else {
-					$sValue = $oValue->GetPassword();
-				}
-
-				if ($sValue === $sFieldValue){
-					return $oLnkOauth2ApplicationToUser;
-				}
-
+			if ($oSet->Count() !== 1){
+				throw new TokenAuthException("Invalid code provided", 400, null,
+					[
+						'client_id' => $sClientId,
+						'redirect_uri' => $sRedirectUri,
+						'code' => $sCode,
+					]
+				);
 			}
 
-			throw new TokenAuthException("Cannot find lnkOauth2Application by provided $sFieldName", 400, null,
-				[
-					'field' => $sFieldName,
-					'client_id' => $sClientId,
-					'redirect_uri' => $sRedirectUri,
-				]
-			);
+			$aObjects = $oSet->FetchAssoc();
+
+			/** @var Oauth2Application $oOauth2Application */
+			$oOauth2Application = $aObjects['a'];
+
+			/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser */
+			$oLnkOauth2ApplicationToUser = $aObjects['l'];
+
+			if ($oOauth2Application->Get('client_secret')->GetPassword() !== $sClientSecret){
+				throw new TokenAuthException("Invalid client_secret", 400, null,
+					[
+						'application_id' => $oOauth2Application->GetKey(),
+						'client_id' => $sClientId,
+						'redirect_uri' => $sRedirectUri,
+					]
+				);
+			}
+
+			return $oLnkOauth2ApplicationToUser;
 		} catch (TokenAuthException $e) {
 			throw $e;
 		} catch (Exception $e) {

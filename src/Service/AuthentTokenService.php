@@ -19,6 +19,22 @@ class AuthentTokenService {
 	/** @var \Combodo\iTop\AuthentToken\Service\MetaModelService $oMetaModelService */
 	private $oMetaModelService;
 
+	private static AuthentTokenService $oInstance;
+
+	final public static function GetInstance(): AuthentTokenService
+	{
+		if (!isset(static::$oInstance)) {
+			static::$oInstance = new static();
+		}
+
+		return static::$oInstance;
+	}
+
+	final public static function SetInstance(?AuthentTokenService $oInstance): void
+	{
+		static::$oInstance = $oInstance;
+	}
+
 	public function __construct(?MetaModelService $oMetaModelService=null)
 	{
 		TokenAuthLog::Enable(APPROOT.'log/error.log');
@@ -169,10 +185,10 @@ class AuthentTokenService {
 		return null;
 	}
 
-	public function CreateNewToken(DBObject $oObject): string
+	public function CreateNewToken(DBObject $oObject, int $iSize=8): string
 	{
 		$sTokenBeforeEncryption = sprintf("%s:%s:%s",
-			$oObject->GetKey(), get_class($oObject), random_bytes(8)
+			$oObject->GetKey(), get_class($oObject), random_bytes($iSize)
 		);
 
 		$sPPrivateKey = $this->GetPrivateKey();

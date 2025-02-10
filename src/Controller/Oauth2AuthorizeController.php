@@ -130,7 +130,7 @@ class Oauth2AuthorizeController extends Controller
 					$sAccessToken = $aMatches[1];
 					TokenAuthLog::Debug(__METHOD__ . ": try Oauth2 by access_token", null,
 						['access_token' => $sAccessToken]);
-					$olnkOauth2ApplicationToUser = Oauth2ApplicationService::GetInstance()->GetLnkOauth2ApplicationToUserByAccesToken($sAccessToken);
+					$olnkOauth2ApplicationToUser = Oauth2ApplicationService::GetInstance()->GetLnkOauth2ApplicationToUserByAccessToken($sAccessToken);
 
 					TokenAuthLog::Debug(__METHOD__ . ": check access_token_expiration", null,
 						['id' => $olnkOauth2ApplicationToUser->GetKey(), 'access_token_expiration' => $olnkOauth2ApplicationToUser->Get('access_token_expiration')]);

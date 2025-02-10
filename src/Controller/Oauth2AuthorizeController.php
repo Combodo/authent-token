@@ -37,6 +37,7 @@ class Oauth2AuthorizeController extends Controller
 
 	public function OperationOauth2Authorize(): void
 	{
+		TokenAuthLog::Enable();
 		$sClientId = utils::ReadParam('client_id', '', false, utils::ENUM_SANITIZATION_FILTER_STRING);
 		$sState = utils::ReadParam('state', '', false, utils::ENUM_SANITIZATION_FILTER_STRING);
 		$sRedirectUri = utils::ReadParam('redirect_uri', '', false, utils::ENUM_SANITIZATION_FILTER_URL);
@@ -65,6 +66,7 @@ class Oauth2AuthorizeController extends Controller
 	public function OperationDoAuthorize(): void
 	{
 		try {
+			TokenAuthLog::Enable();
 			$sTransactionId = utils::ReadPostedParam('transaction_id', '', utils::ENUM_SANITIZATION_FILTER_TRANSACTION_ID);
 
 			if (!utils::IsTransactionValid($sTransactionId)) {
@@ -122,11 +124,17 @@ class Oauth2AuthorizeController extends Controller
 
 	public function AuthenticateViaOauth() : lnkOauth2ApplicationToUser {
 		try {
+			TokenAuthLog::Enable();
 			if (isset($_SERVER['Authorization'])) {
 				if (preg_match('/Bearer (.*)/', $_SERVER['Authorization'], $aMatches)) {
 					$sAccessToken = $aMatches[1];
-					TokenAuthLog::Debug("try Oauth2 by access_token", null, ['access_token' => $sAccessToken]);
+					TokenAuthLog::Debug(__METHOD__ . ": try Oauth2 by access_token", null,
+						['access_token' => $sAccessToken]);
 					$olnkOauth2ApplicationToUser = Oauth2ApplicationService::GetInstance()->GetLnkOauth2ApplicationToUserByAccesToken($sAccessToken);
+
+					TokenAuthLog::Debug(__METHOD__ . ": check access_token_expiration", null,
+						['id' => $olnkOauth2ApplicationToUser->GetKey(), 'access_token_expiration' => $olnkOauth2ApplicationToUser->Get('access_token_expiration')]);
+
 					$iExpireIn = $this->GetExpiredInSeconds($olnkOauth2ApplicationToUser, 'access_token_expiration');
 					if ($iExpireIn == 0){
 						throw new TokenAuthException('Expired access_token must be refreshed', 400, null,
@@ -181,12 +189,17 @@ class Oauth2AuthorizeController extends Controller
 			}
 
 			throw new TokenAuthException('No Oauth token found. No Oauth Bearer token provider in the header /Specific token endpoint not reached.', 400, null);
+
+		} catch(TokenAuthException $e){
+			throw $e;
 		} catch(\Exception $e){
 			throw new TokenAuthException('invalid_token', 400, $e);
 		}
 	}
 
-	public function Oauth2Token(): void {
+	public function OperationOauth2Token(): string {
+		TokenAuthLog::Enable();
+
 		//TokenLoginExtension handled whole authentication and stored token_id in the session
 		$sTokenId = Session::Get('token_id');
 		$oLnkOauth2ApplicationToUser = \MetaModel::GetObject(lnkOauth2ApplicationToUser::class, $sTokenId);
@@ -200,7 +213,9 @@ class Oauth2AuthorizeController extends Controller
 			'expires_in' => $iExpireIn,
 		];
 
-		echo json_encode($aParams, JSON_PRETTY_PRINT);
+		$sJson = json_encode($aParams, JSON_PRETTY_PRINT);
+		echo $sJson;
+		return $sJson;
 	}
 
 	public function GetExpiredInSeconds(lnkOauth2ApplicationToUser $olnkOauth2ApplicationToUser, string $sExpirationDateFieldName) : int

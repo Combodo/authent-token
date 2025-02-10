@@ -206,7 +206,7 @@ class Oauth2ServerTest extends AbstractTokenRest {
 		]);
 		$oOauth2Application->Reload();
 		$sClientId = $oOauth2Application->Get('client_id');
-		$sClientSecret = $oOauth2Application->Get('client_secret');
+		$sClientSecret = $oOauth2Application->Get('client_secret')->GetPassword();
 
 		$sAccessTokenExpiration = date(AttributeDateTime::GetSQLFormat(), time()+60);
 		$sRefreshTokenExpiration = date(AttributeDateTime::GetSQLFormat(), time() + Oauth2ApplicationService::REFRESH_TOKEN_EXPIRATION_IN_SECONDS);

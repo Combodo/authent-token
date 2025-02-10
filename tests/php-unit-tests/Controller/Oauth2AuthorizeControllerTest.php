@@ -1,0 +1,276 @@
+<?php
+
+namespace Combodo\iTop\AuthentToken\Test\Service;
+
+use AttributeDateTime;
+use Combodo\iTop\AuthentToken\Controller\Oauth2AuthorizeController;
+use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
+use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
+use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
+use Combodo\iTop\AuthentToken\Model\Oauth2UserApplication;
+use Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService;
+use Combodo\iTop\Test\UnitTest\ItopDataTestCase;
+use User;
+use Oauth2Application;
+use lnkOauth2ApplicationToUser;
+
+class Oauth2AuthorizeControllerTest extends ItopDataTestCase
+{
+	protected string $sUniqId;
+	protected string $sLogin;
+	protected User $oUser;
+	protected $sPassword = "Iuytrez9876543ç_è-(";
+
+	protected function setUp(): void
+	{
+		parent::setUp();
+		$this->RequireOnceItopFile('env-production/authent-token/vendor/autoload.php');
+
+		$this->sUniqId = "AUTHENTTOKEN_".date('dmYHis');
+		$this->sLogin = "oauth-user-".$this->sUniqId;
+
+		/** @var \User $oUser */
+		$this->oUser = $this->CreateContactlessUser($this->sLogin,
+			ItopDataTestCase::$aURP_Profiles['Service Desk Agent'],
+			$this->sPassword
+		);
+	}
+
+
+	protected function CreateOauth2UserApplication(): Oauth2UserApplication
+	{
+		$oOrg = $this->CreateOrganization("org-".$this->sUniqId);
+
+		/** @var Oauth2Application $oOauth2Application */
+		$oOauth2Application = $this->createObject(Oauth2Application::class, [
+			'org_id'       => $oOrg->GetKey(),
+			"application"  => "test",
+			"redirect_uri" => "https://testu.rd",
+		]);
+
+		/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser */
+		$oLnkOauth2ApplicationToUser = $this->createObject(lnkOauth2ApplicationToUser::class, [
+			'application_id' => $oOauth2Application->GetKey(),
+			'user_id'        => $this->oUser->GetKey(),
+		]);
+
+		return new Oauth2UserApplication($oOauth2Application, $oLnkOauth2ApplicationToUser);
+	}
+
+	public function testIsOauthToken_BearerTokenPassedInHeader()
+	{
+		$_SERVER = [
+			'Authorization' => 'Bearer gabuzomeu',
+		];
+
+		$this->assertTrue(Oauth2AuthorizeController::GetInstance()->IsOauthToken());
+	}
+
+	public function testIsOauthToken_Oauth2EndPoint()
+	{
+		\ContextTag::AddContext(TokenAuthHelper::TAG_OAUTH2_ENDPOINT);
+
+		$this->assertTrue(Oauth2AuthorizeController::GetInstance()->IsOauthToken());
+	}
+
+	public function testAuthenticateViaOauth_NoToken()
+	{
+		$this->expectException(TokenAuthException::class);
+		Oauth2AuthorizeController::GetInstance()->AuthenticateViaOauth();
+	}
+
+	public function testAuthenticateViaOauth_BearerTokenPassedInHeader()
+	{
+		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
+
+		$sState = "STATE-123";
+		$sCode = "CODE-456";
+		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
+		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
+		$oLnkOauth2ApplicationToUser->Reload();
+
+		$sAccessToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
+		$_SERVER = [
+			'Authorization' => 'Bearer '.$sAccessToken,
+		];
+
+		$oFoundLnkOauth2ApplicationToUser = Oauth2AuthorizeController::GetInstance()->AuthenticateViaOauth();
+		$this->assertEquals($oLnkOauth2ApplicationToUser->GetKey(), $oFoundLnkOauth2ApplicationToUser->GetKey());
+	}
+
+	public function testAuthenticateViaOauth_BearerExpiredTokenPassedInHeader()
+	{
+		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
+
+		$sState = "STATE-123";
+		$sCode = "CODE-456";
+		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
+		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
+		$oLnkOauth2ApplicationToUser->Reload();
+
+		$sExpireAt = date(AttributeDateTime::GetSQLFormat(), time() - 10);
+		$oLnkOauth2ApplicationToUser->Set('access_token_expiration', $sExpireAt);
+		$oLnkOauth2ApplicationToUser->DBWrite();
+
+		$sAccessToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
+		$_SERVER = [
+			'Authorization' => 'Bearer '.$sAccessToken,
+		];
+
+		$this->expectException(TokenAuthException::class);
+		$this->expectExceptionMessage("Expired access_token must be refreshed");
+		$oFoundLnkOauth2ApplicationToUser = Oauth2AuthorizeController::GetInstance()->AuthenticateViaOauth();
+		$this->assertEquals($oLnkOauth2ApplicationToUser->GetKey(), $oFoundLnkOauth2ApplicationToUser->GetKey());
+	}
+
+	public function testAuthenticateViaOauth_AuthorizeOk()
+	{
+		\ContextTag::AddContext(TokenAuthHelper::TAG_OAUTH2_ENDPOINT);
+
+		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
+
+		$sState = "STATE-123";
+		$sCode = "CODE-456";
+		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
+		$oOauth2Application = $oExpectedOauth2UserApplication->oOauth2Application;
+		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
+		$oLnkOauth2ApplicationToUser->Reload();
+
+
+		$_POST = [
+			'client_id'     => $oOauth2Application->Get('client_id'),
+			'client_secret' => $oOauth2Application->Get('client_secret')->GetPassword(),
+			'grant_type'    => 'authorization_code',
+			'redirect_uri'  => $oOauth2Application->Get('redirect_uri'),
+			'code'          => $oLnkOauth2ApplicationToUser->Get('code'),
+		];
+		$oFoundLnkOauth2ApplicationToUser = Oauth2AuthorizeController::GetInstance()->AuthenticateViaOauth();
+		$this->assertEquals($oLnkOauth2ApplicationToUser->GetKey(), $oFoundLnkOauth2ApplicationToUser->GetKey());
+	}
+
+	public function testAuthenticateViaOauth_RefreshTokenOk()
+	{
+		\ContextTag::AddContext(TokenAuthHelper::TAG_OAUTH2_ENDPOINT);
+
+		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
+
+		$sState = "STATE-123";
+		$sCode = "CODE-456";
+		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
+		$oOauth2Application = $oExpectedOauth2UserApplication->oOauth2Application;
+		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
+		$oLnkOauth2ApplicationToUser->Reload();
+
+
+		$_POST = [
+			'client_id'     => $oOauth2Application->Get('client_id'),
+			'client_secret' => $oOauth2Application->Get('client_secret')->GetPassword(),
+			'grant_type'    => 'refresh_token',
+			'redirect_uri'  => $oOauth2Application->Get('redirect_uri'),
+			'refresh_token' => $oLnkOauth2ApplicationToUser->Get('refresh_token')->GetPassword(),
+		];
+		$oFoundLnkOauth2ApplicationToUser = Oauth2AuthorizeController::GetInstance()->AuthenticateViaOauth();
+		$this->assertEquals($oLnkOauth2ApplicationToUser->GetKey(), $oFoundLnkOauth2ApplicationToUser->GetKey());
+	}
+
+	public function testAuthenticateViaOauth_ExpiredRefreshTokenOk()
+	{
+		\ContextTag::AddContext(TokenAuthHelper::TAG_OAUTH2_ENDPOINT);
+
+		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
+
+		$sState = "STATE-123";
+		$sCode = "CODE-456";
+		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
+		$oOauth2Application = $oExpectedOauth2UserApplication->oOauth2Application;
+		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
+		$oLnkOauth2ApplicationToUser->Reload();
+
+		$sExpireAt = date(AttributeDateTime::GetSQLFormat(), time() - 10);
+		$oLnkOauth2ApplicationToUser->Set('refresh_token_expiration', $sExpireAt);
+		$oLnkOauth2ApplicationToUser->DBWrite();
+
+		$_POST = [
+			'client_id'     => $oOauth2Application->Get('client_id'),
+			'client_secret' => $oOauth2Application->Get('client_secret')->GetPassword(),
+			'grant_type'    => 'refresh_token',
+			'redirect_uri'  => $oOauth2Application->Get('redirect_uri'),
+			'refresh_token' => $oLnkOauth2ApplicationToUser->Get('refresh_token')->GetPassword(),
+		];
+
+		$this->expectException(TokenAuthException::class);
+		$this->expectExceptionMessage("Expired refresh_token");
+		$oFoundLnkOauth2ApplicationToUser = Oauth2AuthorizeController::GetInstance()->AuthenticateViaOauth();
+		$this->assertEquals($oLnkOauth2ApplicationToUser->GetKey(), $oFoundLnkOauth2ApplicationToUser->GetKey());
+	}
+
+	public function testOperationOauth2Token()
+	{
+		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
+
+		$sState = "STATE-123";
+		$sCode = "CODE-456";
+		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
+		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
+		$oLnkOauth2ApplicationToUser->Reload();
+
+		$_SESSION = [
+			'token_id' => $oLnkOauth2ApplicationToUser->GetKey(),
+		];
+
+		$sJson = Oauth2AuthorizeController::GetInstance()->OperationOauth2Token();
+		$aJson = json_decode($sJson, true);
+		$this->assertNotEquals(false, $aJson);
+		$this->assertEquals($oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword(), $aJson['access_token'] ?? null, 'access_token');
+		$this->assertEquals($oLnkOauth2ApplicationToUser->Get('refresh_token')->GetPassword(), $aJson['refresh_token'] ?? null, 'refresh_token');
+		$this->assertEquals($oLnkOauth2ApplicationToUser->Get('token_type'), $aJson['token_type'] ?? null, 'token_type');
+
+		$iAccessTokenExpiredIn = Oauth2AuthorizeController::GetInstance()->GetExpiredInSeconds($oLnkOauth2ApplicationToUser, 'access_token_expiration');
+		$this->assertTrue($iAccessTokenExpiredIn + 5 > Oauth2ApplicationService::ACCESS_TOKEN_EXPIRATION_IN_SECONDS, "(modulo 5s) $iAccessTokenExpiredIn  . > ".Oauth2ApplicationService::ACCESS_TOKEN_EXPIRATION_IN_SECONDS);
+	}
+
+	public static function GetExpiredInSecondsProvider()
+	{
+		return [
+			'access_token_expiration'  => ['access_token_expiration'],
+			'refresh_token_expiration' => ['refresh_token_expiration'],
+		];
+	}
+
+	/**
+	 * @param $sField
+	 *
+	 * @dataProvider GetExpiredInSecondsProvider
+	 */
+	public function testGetExpiredInSeconds_UpToDate($sField)
+	{
+		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
+		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
+
+		$sExpireAt = date(AttributeDateTime::GetSQLFormat(), time() + 2);
+		$oLnkOauth2ApplicationToUser->Set($sField, $sExpireAt);
+		$oLnkOauth2ApplicationToUser->DBWrite();
+
+		$iExpiredIn = Oauth2AuthorizeController::GetInstance()->GetExpiredInSeconds($oLnkOauth2ApplicationToUser, $sField);
+		$this->assertTrue($iExpiredIn <= 2);
+		$this->assertTrue($iExpiredIn > 1);
+	}
+
+	/**
+	 * @param $sField
+	 *
+	 * @dataProvider GetExpiredInSecondsProvider
+	 */
+	public function testGetExpiredInSeconds_Expired($sField)
+	{
+		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
+		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
+
+		$sExpireAt = date(AttributeDateTime::GetSQLFormat(), time() );
+		$oLnkOauth2ApplicationToUser->Set($sField, $sExpireAt);
+		$oLnkOauth2ApplicationToUser->DBWrite();
+
+		$iExpiredIn = Oauth2AuthorizeController::GetInstance()->GetExpiredInSeconds($oLnkOauth2ApplicationToUser, $sField);
+		$this->assertEquals(0, $iExpiredIn);
+	}
+}

@@ -174,31 +174,30 @@ OQL;
 		try {
 			$sOQL = <<<OQL
 SELECT lnkOauth2ApplicationToUser AS l 
-	WHERE l.access_token=:access_token
 OQL;
 
-			$oSearch = DBObjectSearch::FromOQL($sOQL,
-				[ 'access_token' => $sAccessToken]);
+			$oSearch = DBObjectSearch::FromOQL($sOQL, []);
 			$oSearch->AllowAllData();
 			$oSet = new DBObjectSet($oSearch);
+			/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser */
+			while ($oLnkOauth2ApplicationToUser = $oSet->Fetch()) {
+				$sFetchedAccessToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
+				TokenAuthLog::Debug(__METHOD__, null,
+					[
+						'access_token'       => $sAccessToken,
+						'fetch_access_token' => $sFetchedAccessToken,
+					]
+				);
 
-			$iCount = $oSet->Count();
-			if ($iCount !== 1) {
-				throw new TokenAuthException("Invalid access_token", 400, null, ['count' => $iCount]);
+				if ($sFetchedAccessToken === $sAccessToken) {
+					return $oLnkOauth2ApplicationToUser;
+				}
 			}
-
-			/* @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser*/
-			$oLnkOauth2ApplicationToUser = $oSet->Fetch();
-
-			//TODO check expiration
-
-			return $oLnkOauth2ApplicationToUser;
-
-		} catch (TokenAuthException $e) {
-			throw $e;
 		} catch (Exception $e) {
 			throw new TokenAuthException("Internal Server Error", 500, $e);
 		}
+
+		throw new TokenAuthException("Invalid access_token", 400, null, []);
 	}
 
 	public function GetLnkOauth2ApplicationToUserByRefreshToken(string $sClientId, string $sClientSecret, string $sRedirectUri, string $sRefreshToken) : lnkOauth2ApplicationToUser

@@ -3,6 +3,7 @@
 use Combodo\iTop\Application\UI\Base\Component\Button\ButtonUIBlockFactory;
 use Combodo\iTop\Application\UI\Base\Component\Form\FormUIBlockFactory;
 use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
+use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Model\iToken;
 use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
@@ -100,6 +101,10 @@ abstract class AbstractOauth2Token extends cmdbAbstractObject  implements iToken
 	 */
 	public function CheckScopes(): void
 	{
+		if (\ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_ENDPOINT)) {
+			return;
+		}
+
 		$aScopeValues = explode(' ', $this->Get('scope'));
 		foreach ($aScopeValues as $sScope) {
 			if (\ContextTag::Check($sScope)) {
@@ -124,6 +129,10 @@ abstract class AbstractOauth2Token extends cmdbAbstractObject  implements iToken
 
 	public function UpdateUsage(): void
 	{
+		if (\ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_ENDPOINT)) {
+			return;
+		}
+
 		$iUseCount = $this->Get('use_count') + 1;
 		$this->Set('use_count', $iUseCount);
 

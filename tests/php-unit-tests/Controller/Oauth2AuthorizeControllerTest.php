@@ -36,7 +36,6 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		);
 	}
 
-
 	protected function CreateOauth2UserApplication(): Oauth2UserApplication
 	{
 		$oOrg = $this->CreateOrganization("org-".$this->sUniqId);

@@ -112,10 +112,22 @@ class Oauth2AuthorizeController extends Controller
 		}
 	}
 
+	private function GetHeaderAuthorization(): ?string
+	{
+		$aHeaders = getallheaders();
+		return $aHeaders['Authorization'] ?? null;
+	}
+
 	public function IsOauthToken() : bool {
-		if (isset($_SERVER['Authorization'])) {
-			if (preg_match('/Bearer (.*)/', $_SERVER['Authorization'], $aMatches)){
+		TokenAuthLog::Debug(__METHOD__ . ": header received for Oauth2 check", null, getallheaders());
+
+		$sAuthorization = $this->GetHeaderAuthorization();
+		if (! is_null($sAuthorization)) {
+			if (preg_match('/Bearer (.*)/', $sAuthorization, $aMatches)){
 				return true;
+			} else {
+				TokenAuthLog::Debug(__METHOD__ . ": Authorization header does not match Oauth2 authentication", null,
+					['Authorization Header' => $sAuthorization]);
 			}
 		}
 
@@ -125,8 +137,9 @@ class Oauth2AuthorizeController extends Controller
 	public function AuthenticateViaOauth() : lnkOauth2ApplicationToUser {
 		try {
 			TokenAuthLog::Enable();
-			if (isset($_SERVER['Authorization'])) {
-				if (preg_match('/Bearer (.*)/', $_SERVER['Authorization'], $aMatches)) {
+			$sAuthorization = $this->GetHeaderAuthorization();
+			if (! is_null($sAuthorization)) {
+				if (preg_match('/Bearer (.*)/', $sAuthorization, $aMatches)) {
 					$sAccessToken = $aMatches[1];
 					TokenAuthLog::Debug(__METHOD__ . ": try Oauth2 by access_token", null,
 						['access_token' => $sAccessToken]);
@@ -141,6 +154,9 @@ class Oauth2AuthorizeController extends Controller
 							['lnk_id' => $olnkOauth2ApplicationToUser, 'application_id' => $olnkOauth2ApplicationToUser->Get('application_id')]);
 					}
 					return $olnkOauth2ApplicationToUser;
+				} else {
+					TokenAuthLog::Debug(__METHOD__ . ": Authorization header does not match Oauth2 authentication", null,
+						['Authorization Header' => $sAuthorization]);
 				}
 			}
 

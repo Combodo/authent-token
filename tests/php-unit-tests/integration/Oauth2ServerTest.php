@@ -2,10 +2,11 @@
 
 namespace Combodo\iTop\AuthentToken\Test\integration;
 
+require_once __DIR__.'/AbstractTokenRest.php';
 use AttributeDateTime;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
 use Combodo\iTop\AuthentToken\Hook\TokenLoginExtension;
-use Combodo\iTop\AuthentToken\Service\MetaModelService;
+use Combodo\iTop\AuthentToken\Model\Oauth2UserApplication;
 use Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService;
 use Combodo\iTop\Test\UnitTest\ItopDataTestCase;
 use DateTime;
@@ -20,6 +21,10 @@ class Oauth2ServerTest extends AbstractTokenRest {
 	//iTop called from outside
 	//users need to be persisted in DB
 	const USE_TRANSACTION = false;
+
+	private ?string $sToken;
+	protected string $sUniqId;
+	protected $sPassword = "Iuytrez9876543ç_è-(";
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -40,17 +45,52 @@ class Oauth2ServerTest extends AbstractTokenRest {
 		MetaModel::GetConfig()->Set('allow_rest_services_via_tokens', true, 'auth-token');
 		MetaModel::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Administrator', 'Service Desk Agent']);
 
+		//\MetaModel::GetConfig()->Set('log_level_min', ['Token' => 'Debug']);
+		//\MetaModel::GetConfig()->Set('login_debug', true);
+
 		MetaModel::GetConfig()->WriteToFile();
 		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
+
+		$this->sToken = null;
 	}
 
-	protected function GetAuthToken($sContext = null)
+	protected function CreateOauth2UserApplication(): Oauth2UserApplication
 	{
-		return null;
+		$oOrg = $this->CreateOrganization("org-".$this->sUniqId);
+
+		/** @var Oauth2Application $oOauth2Application */
+		$oOauth2Application = $this->createObject(Oauth2Application::class, [
+			'org_id'       => $oOrg->GetKey(),
+			"application"  => "test",
+			"redirect_uri" => "https://testu.rd",
+		]);
+
+		/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser */
+		$oLnkOauth2ApplicationToUser = $this->createObject(lnkOauth2ApplicationToUser::class, [
+			'application_id' => $oOauth2Application->GetKey(),
+			'user_id'        => $this->oUser->GetKey(),
+		]);
+
+		return new Oauth2UserApplication($oOauth2Application, $oLnkOauth2ApplicationToUser);
 	}
 
+	protected function GetHeadersParam($sContext = null)
+	{
+		if (is_null($this->sToken) || $this->bTokenInPost) {
+			return [];
+		}
 
-	protected function CallItopUrl($sUrl, ?array $aPostFields = null, $bIsPost=true)
+		return [
+			'Content-Type: application/json',
+			'Authorization: Bearer '. $this->sToken,
+		];
+	}
+
+	protected function GetAuthToken($sContext=null){
+		return $this->sToken;
+	}
+
+	private function CallItopUrl($sUrl, ?array $aPostFields = null, $bIsPost=true)
 	{
 		$ch = curl_init();
 
@@ -74,30 +114,16 @@ class Oauth2ServerTest extends AbstractTokenRest {
 	}
 
 	public function testDisplayOauth2AuthorizeForm() {
-		$oOrg = $this->CreateOrganization($this->sUniqId);
-
-		$sRedirectUri = "https://testu.rd";
-
-		/** @var Oauth2Application $oOauth2Application */
-		$oOauth2Application = $this->createObject(Oauth2Application::class, [
-			'org_id' => $oOrg->GetKey(),
-			"application" => "test",
-			"redirect_uri" => $sRedirectUri,
-		]);
+		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
+		$oOauth2Application = $oExpectedOauth2UserApplication->oOauth2Application;
 		$oOauth2Application->Reload();
 		$sClientId = $oOauth2Application->Get('client_id');
-
-		/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser */
-		$oLnkOauth2ApplicationToUser = $this->createObject(lnkOauth2ApplicationToUser::class, [
-			'application_id' => $oOauth2Application->GetKey(),
-			'user_id' => $this->oUser->GetKey(),
-		]);
 
 		$sState = 'state_' . $this->sUniqId;
 		$sScope = 'scope_' . $this->sUniqId;
 		$aAuthorizeArgs = [
 			"client_id" => $sClientId,
-			"redirect_uri" => $sRedirectUri,
+			"redirect_uri" => $oOauth2Application->Get('redirect_uri'),
 			'state' => $sState,
 			'scope' => $sScope,
 		] ;
@@ -117,24 +143,9 @@ class Oauth2ServerTest extends AbstractTokenRest {
 	}
 
 	public function testDoAuthorizeOk() {
-		$oOrg = $this->CreateOrganization($this->sUniqId);
-
-		$sRedirectUri = "https://testu.rd";
-
-		/** @var Oauth2Application $oOauth2Application */
-		$oOauth2Application = $this->createObject(Oauth2Application::class, [
-			'org_id' => $oOrg->GetKey(),
-			"application" => "test",
-			"redirect_uri" => $sRedirectUri,
-		]);
-
-
-		/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser */
-		$oLnkOauth2ApplicationToUser = $this->createObject(lnkOauth2ApplicationToUser::class, [
-			'application_id' => $oOauth2Application->GetKey(),
-			'user_id' => $this->oUser->GetKey(),
-		]);
-
+		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
+		$oOauth2Application = $oExpectedOauth2UserApplication->oOauth2Application;
+		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
 		$oLnkOauth2ApplicationToUser->Reload();
 		$aEmptyFields = [
 			"refresh_token_expiration",
@@ -194,16 +205,8 @@ class Oauth2ServerTest extends AbstractTokenRest {
 	}
 
 	public function testFetchAccessTokenByCodeAfterAuthorize() {
-		$oOrg = $this->CreateOrganization($this->sUniqId);
-
-		$sRedirectUri = "https://testu.rd";
-
-		/** @var Oauth2Application $oOauth2Application */
-		$oOauth2Application = $this->createObject(Oauth2Application::class, [
-			'org_id' => $oOrg->GetKey(),
-			"application" => "test",
-			"redirect_uri" => $sRedirectUri,
-		]);
+		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
+		$oOauth2Application = $oExpectedOauth2UserApplication->oOauth2Application;
 		$oOauth2Application->Reload();
 		$sClientId = $oOauth2Application->Get('client_id');
 		$sClientSecret = $oOauth2Application->Get('client_secret')->GetPassword();
@@ -211,15 +214,17 @@ class Oauth2ServerTest extends AbstractTokenRest {
 		$sAccessTokenExpiration = date(AttributeDateTime::GetSQLFormat(), time()+60);
 		$sRefreshTokenExpiration = date(AttributeDateTime::GetSQLFormat(), time() + Oauth2ApplicationService::REFRESH_TOKEN_EXPIRATION_IN_SECONDS);
 		/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser */
-		$oLnkOauth2ApplicationToUser = $this->createObject(lnkOauth2ApplicationToUser::class, [
-			'application_id' => $oOauth2Application->GetKey(),
-			'user_id' => $this->oUser->GetKey(),
-			'access_token' => 'access_token123',
-			'code' => 'code123',
-			'refresh_token' => 'refresh_token123',
-			'access_token_expiration' => $sAccessTokenExpiration,
-			'refresh_token_expiration' => $sRefreshTokenExpiration,
-		]);
+		$oLnkOauth2ApplicationToUser = $this->updateObject(lnkOauth2ApplicationToUser::class, $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser->GetKey(),
+			[
+				'application_id' => $oOauth2Application->GetKey(),
+				'user_id' => $this->oUser->GetKey(),
+				'access_token' => 'access_token123',
+				'code' => 'code123',
+				'refresh_token' => 'refresh_token123',
+				'access_token_expiration' => $sAccessTokenExpiration,
+				'refresh_token_expiration' => $sRefreshTokenExpiration,
+			]
+		);
 
 
 		$sUrl = TokenAuthHelper::GenerateUrl(\utils::GetAbsoluteUrlModulesRoot() . TokenAuthHelper::MODULE_NAME . '/token.php', []);
@@ -231,7 +236,7 @@ class Oauth2ServerTest extends AbstractTokenRest {
 			'code' => 'code123',
 			"client_secret" => $sClientSecret,
 			"grant_type" => 'authorization_code',
-			"redirect_uri" => $sRedirectUri,
+			"redirect_uri" => $oOauth2Application->Get('redirect_uri'),
 		];
 
 		$sOutput = $this->CallItopUrl($sUrl, $aPostParams);
@@ -292,7 +297,22 @@ class Oauth2ServerTest extends AbstractTokenRest {
 	 */
 	public function testCreateApiViaToken($iJsonDataMode, $bTokenInPost)
 	{
-		$this->markTestSkipped();
+		if ($bTokenInPost){
+			$this->markTestSkipped();
+		}
+
+
+		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
+		$oOauth2Application = $oExpectedOauth2UserApplication->oOauth2Application;
+		$sState = "STATE-123";
+		$sCode = "CODE-456";
+		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
+		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
+		$oLnkOauth2ApplicationToUser->Reload();
+		$this->sToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
+
+
+		parent::testCreateApiViaToken($iJsonDataMode, false);
 	}
 
 	/**
@@ -300,7 +320,9 @@ class Oauth2ServerTest extends AbstractTokenRest {
 	 */
 	public function testUpdateApiViaToken($iJsonDataMode, $bTokenInPost)
 	{
-		$this->markTestSkipped();
+		//if ($bTokenInPost){
+			$this->markTestSkipped();
+		//}
 	}
 
 	/**
@@ -308,6 +330,8 @@ class Oauth2ServerTest extends AbstractTokenRest {
 	 */
 	public function testDeleteApiViaToken($iJsonDataMode, $bTokenInPost)
 	{
-		$this->markTestSkipped();
+		//if ($bTokenInPost){
+			$this->markTestSkipped();
+		//}
 	}
 }

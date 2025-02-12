@@ -137,7 +137,7 @@ class Oauth2AuthorizeController extends Controller
 			return true;
 		}
 
-		return \ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_ENDPOINT);
+		return \ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT);
 	}
 
 	public function AuthenticateViaOauth() : lnkOauth2ApplicationToUser {
@@ -154,13 +154,13 @@ class Oauth2AuthorizeController extends Controller
 
 				$iExpireIn = $this->GetExpiredInSeconds($olnkOauth2ApplicationToUser, 'access_token_expiration');
 				if ($iExpireIn == 0){
-					throw new TokenAuthException('Expired access_token must be refreshed', 400, null,
+					throw new TokenAuthException('Expired access_token must be refreshed', 498, null,
 						['lnk_id' => $olnkOauth2ApplicationToUser, 'application_id' => $olnkOauth2ApplicationToUser->Get('application_id')]);
 				}
 				return $olnkOauth2ApplicationToUser;
 			}
 
-			if (\ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_ENDPOINT)) {
+			if (\ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT)) {
 				$sClientId = utils::ReadPostedParam('client_id', null, utils::ENUM_SANITIZATION_FILTER_STRING);
 				$sClientSecret = utils::ReadPostedParam('client_secret', null, utils::ENUM_SANITIZATION_FILTER_STRING);
 				$sGrantType = utils::ReadPostedParam('grant_type', null, utils::ENUM_SANITIZATION_FILTER_STRING);
@@ -191,7 +191,7 @@ class Oauth2AuthorizeController extends Controller
 
 						$iExpireIn = $this->GetExpiredInSeconds($olnkOauth2ApplicationToUser, 'refresh_token_expiration');
 						if ($iExpireIn == 0){
-							throw new TokenAuthException('Expired refresh_token', 400, null,
+							throw new TokenAuthException('Expired refresh_token', 498, null,
 								['lnk_id' => $olnkOauth2ApplicationToUser, 'application_id' => $olnkOauth2ApplicationToUser->Get('application_id')]);
 						}
 
@@ -209,7 +209,7 @@ class Oauth2AuthorizeController extends Controller
 		} catch(TokenAuthException $e){
 			throw $e;
 		} catch(\Exception $e){
-			throw new TokenAuthException('invalid_token', 400, $e);
+			throw new TokenAuthException('invalid_token', 500, $e);
 		}
 	}
 
@@ -232,6 +232,36 @@ class Oauth2AuthorizeController extends Controller
 		$sJson = json_encode($aParams, JSON_PRETTY_PRINT);
 		echo $sJson;
 		return $sJson;
+	}
+
+	public function Oauth2GetUser(): string {
+		TokenAuthLog::Enable();
+
+		$aParams = $this->GetUserFields();
+		$sJson = json_encode($aParams, JSON_PRETTY_PRINT);
+		echo $sJson;
+
+		return $sJson;
+	}
+
+	public function GetUserFields() : array
+	{
+		$oUser = \UserRights::GetUserObject();
+		if (is_null($oUser)){
+			http_response_code(500);
+		}
+
+		$sLogin = $oUser->Get('login');
+		$oContact = \UserRights::GetContactObject();
+		return [
+			'email' => 	$oUser->Get('email'),
+			'firstName' => 	\UserRights::GetContactFirstname() ?? '',
+			'organization' => 	\UserRights::GetContactOrganizationFriendlyname() ?? '',
+			'lastName' => 	! is_null($oContact) ? $oUser->Get('last_name') : '',
+			'displayName' => 	\UserRights::GetContactFriendlyname() ?? $sLogin,
+			'identifier' => $sLogin,
+			'language' => 	$oUser->Get('language'),
+		];
 	}
 
 	public function GetExpiredInSeconds(lnkOauth2ApplicationToUser $olnkOauth2ApplicationToUser, string $sExpirationDateFieldName) : int

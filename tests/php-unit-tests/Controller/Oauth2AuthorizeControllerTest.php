@@ -75,7 +75,7 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 
 	public function testIsOauthToken_Oauth2EndPoint()
 	{
-		\ContextTag::AddContext(TokenAuthHelper::TAG_OAUTH2_ENDPOINT);
+		\ContextTag::AddContext(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT);
 
 		$this->assertTrue(Oauth2AuthorizeController::GetInstance()->IsOauthToken());
 	}
@@ -134,7 +134,7 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 
 	public function testAuthenticateViaOauth_AuthorizeOk()
 	{
-		\ContextTag::AddContext(TokenAuthHelper::TAG_OAUTH2_ENDPOINT);
+		\ContextTag::AddContext(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT);
 
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
 
@@ -160,7 +160,7 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 
 	public function testAuthenticateViaOauth_RefreshTokenOk()
 	{
-		\ContextTag::AddContext(TokenAuthHelper::TAG_OAUTH2_ENDPOINT);
+		\ContextTag::AddContext(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT);
 
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
 
@@ -185,7 +185,7 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 
 	public function testAuthenticateViaOauth_ExpiredRefreshTokenOk()
 	{
-		\ContextTag::AddContext(TokenAuthHelper::TAG_OAUTH2_ENDPOINT);
+		\ContextTag::AddContext(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT);
 
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
 

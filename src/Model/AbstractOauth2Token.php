@@ -101,7 +101,7 @@ abstract class AbstractOauth2Token extends cmdbAbstractObject  implements iToken
 	 */
 	public function CheckScopes(): void
 	{
-		if (\ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_ENDPOINT)) {
+		if (\ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT)) {
 			return;
 		}
 
@@ -129,7 +129,7 @@ abstract class AbstractOauth2Token extends cmdbAbstractObject  implements iToken
 
 	public function UpdateUsage(): void
 	{
-		if (\ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_ENDPOINT)) {
+		if (\ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT)) {
 			return;
 		}
 

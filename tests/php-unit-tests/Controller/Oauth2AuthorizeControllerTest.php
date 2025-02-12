@@ -8,6 +8,7 @@ use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Model\Oauth2UserApplication;
+use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
 use Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService;
 use Combodo\iTop\Test\UnitTest\ItopDataTestCase;
 use User;
@@ -94,7 +95,6 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		$sCode = "CODE-456";
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
 		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
-		$oLnkOauth2ApplicationToUser->Reload();
 
 		$sAccessToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
 		$aHeaders = [
@@ -114,7 +114,6 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		$sCode = "CODE-456";
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
 		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
-		$oLnkOauth2ApplicationToUser->Reload();
 
 		$sExpireAt = date(AttributeDateTime::GetSQLFormat(), time() - 10);
 		$oLnkOauth2ApplicationToUser->Set('access_token_expiration', $sExpireAt);
@@ -128,8 +127,13 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 
 		$this->expectException(TokenAuthException::class);
 		$this->expectExceptionMessage("Expired access_token must be refreshed");
-		$oFoundLnkOauth2ApplicationToUser = Oauth2AuthorizeController::GetInstance()->AuthenticateViaOauth();
-		$this->assertEquals($oLnkOauth2ApplicationToUser->GetKey(), $oFoundLnkOauth2ApplicationToUser->GetKey());
+
+		try{
+			Oauth2AuthorizeController::GetInstance()->AuthenticateViaOauth();
+		} catch(TokenAuthException $e) {
+			$this->assertEquals(498, $e->getCode());
+			throw $e;
+		}
 	}
 
 	public function testAuthenticateViaOauth_AuthorizeOk()
@@ -143,8 +147,6 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
 		$oOauth2Application = $oExpectedOauth2UserApplication->oOauth2Application;
 		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
-		$oLnkOauth2ApplicationToUser->Reload();
-
 
 		$_SESSION=[];
 		$_POST = [
@@ -169,18 +171,42 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
 		$oOauth2Application = $oExpectedOauth2UserApplication->oOauth2Application;
 		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
+
+		/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser */
+		$oLnkOauth2ApplicationToUser = $this->updateObject(lnkOauth2ApplicationToUser::class, $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser->GetKey(),
+			[
+				'access_token_expiration' => date(AttributeDateTime::GetSQLFormat(), time()-1),
+			]
+		);
+
 		$oLnkOauth2ApplicationToUser->Reload();
+		$iAccessTokenExpiredIn = Oauth2AuthorizeController::GetInstance()->GetExpiredInSeconds($oLnkOauth2ApplicationToUser, 'access_token_expiration');
+		$this->assertEquals(0, $iAccessTokenExpiredIn);
 
 		$_SESSION=[];
+		$sRefreshToken = $oLnkOauth2ApplicationToUser->Get('refresh_token')->GetPassword();
+		$sOldRefreshTokenExpirationDate = $oLnkOauth2ApplicationToUser->Get('refresh_token_expiration');
+		$sOldAccessToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
 		$_POST = [
 			'client_id'     => $oOauth2Application->Get('client_id'),
 			'client_secret' => $oOauth2Application->Get('client_secret')->GetPassword(),
 			'grant_type'    => 'refresh_token',
 			'redirect_uri'  => $oOauth2Application->Get('redirect_uri'),
-			'refresh_token' => $oLnkOauth2ApplicationToUser->Get('refresh_token')->GetPassword(),
+			'refresh_token' => $sRefreshToken,
 		];
 		$oFoundLnkOauth2ApplicationToUser = Oauth2AuthorizeController::GetInstance()->AuthenticateViaOauth();
 		$this->assertEquals($oLnkOauth2ApplicationToUser->GetKey(), $oFoundLnkOauth2ApplicationToUser->GetKey());
+
+		$this->assertEquals($sRefreshToken, $oFoundLnkOauth2ApplicationToUser->Get('refresh_token')->GetPassword());
+		$this->assertEquals($sOldRefreshTokenExpirationDate, $oFoundLnkOauth2ApplicationToUser->Get('refresh_token_expiration'));
+		$sNewAccessToken = $oFoundLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
+		$this->assertNotEquals($sOldAccessToken, $sNewAccessToken, "refresh_token should have changed");
+
+		$iAccessTokenExpiredIn = Oauth2AuthorizeController::GetInstance()->GetExpiredInSeconds($oFoundLnkOauth2ApplicationToUser, 'access_token_expiration');
+		$this->assertTrue($iAccessTokenExpiredIn + 5 > Oauth2ApplicationService::ACCESS_TOKEN_EXPIRATION_IN_SECONDS, "(modulo 5s) $iAccessTokenExpiredIn  . > ".Oauth2ApplicationService::ACCESS_TOKEN_EXPIRATION_IN_SECONDS);
+
+		$this->assertNotNull(AuthentTokenService::GetInstance()->DecryptToken($sNewAccessToken), "renewed access token should work to fetch Oauth2 token again afterwhile");
+
 	}
 
 	public function testAuthenticateViaOauth_ExpiredRefreshTokenOk()
@@ -194,7 +220,6 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
 		$oOauth2Application = $oExpectedOauth2UserApplication->oOauth2Application;
 		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
-		$oLnkOauth2ApplicationToUser->Reload();
 
 		$sExpireAt = date(AttributeDateTime::GetSQLFormat(), time() - 10);
 		$oLnkOauth2ApplicationToUser->Set('refresh_token_expiration', $sExpireAt);
@@ -211,8 +236,13 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 
 		$this->expectException(TokenAuthException::class);
 		$this->expectExceptionMessage("Expired refresh_token");
-		$oFoundLnkOauth2ApplicationToUser = Oauth2AuthorizeController::GetInstance()->AuthenticateViaOauth();
-		$this->assertEquals($oLnkOauth2ApplicationToUser->GetKey(), $oFoundLnkOauth2ApplicationToUser->GetKey());
+
+		try{
+			Oauth2AuthorizeController::GetInstance()->AuthenticateViaOauth();
+		} catch(TokenAuthException $e) {
+			$this->assertEquals(498, $e->getCode());
+			throw $e;
+		}
 	}
 
 	public function testOperationOauth2Token()
@@ -223,7 +253,6 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		$sCode = "CODE-456";
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
 		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
-		$oLnkOauth2ApplicationToUser->Reload();
 
 		$_SESSION = [
 			'token_id' => $oLnkOauth2ApplicationToUser->GetKey(),

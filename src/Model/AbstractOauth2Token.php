@@ -101,13 +101,13 @@ abstract class AbstractOauth2Token extends cmdbAbstractObject  implements iToken
 	 */
 	public function CheckScopes(): void
 	{
-		if (\ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT)) {
+		if (ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT)) {
 			return;
 		}
 
 		$aScopeValues = explode(' ', $this->Get('scope'));
 		foreach ($aScopeValues as $sScope) {
-			if (\ContextTag::Check($sScope)) {
+			if (ContextTag::Check($sScope)) {
 				return;
 			}
 		}
@@ -115,7 +115,7 @@ abstract class AbstractOauth2Token extends cmdbAbstractObject  implements iToken
 		if (MetaModel::GetConfig()->Get('login_debug')){
 			TokenAuthLog::Info(sprintf(
 				"Current context (%s) does not match current Token allowed scopes: %s",
-				implode(',', \ContextTag::GetStack()),
+				implode(',', ContextTag::GetStack()),
 				implode(",", $aScopeValues)
 			),
 				null,
@@ -129,7 +129,7 @@ abstract class AbstractOauth2Token extends cmdbAbstractObject  implements iToken
 
 	public function UpdateUsage(): void
 	{
-		if (\ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT)) {
+		if (ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT)) {
 			return;
 		}
 

@@ -11,7 +11,6 @@ use URP_UserProfile;
 use UserToken;
 
 class AuthentTokenServiceTest extends ItopDataTestCase {
-
 	protected function setUp(): void {
 		parent::setUp();
 		$this->RequireOnceItopFile('env-production/authent-token/vendor/autoload.php');
@@ -68,7 +67,7 @@ class AuthentTokenServiceTest extends ItopDataTestCase {
 			$oToken = $oAuthentTokenService->DecryptToken($sTruncatedToken);
 			if (!is_null($oToken)) {
 				$bFailed = true;
-				$aTrace = ['Token length' => strlen($sTruncatedToken), 'Token' => $sTruncatedToken];
+				$aTrace = ['Token length' => strlen($sTruncatedToken), 'Token' => $sTruncatedToken, 'class' => get_class($oToken)];
 				$sPrivateKey = $this->InvokeNonPublicMethod(get_class($oAuthentTokenService), 'GetPrivateKey', $oAuthentTokenService);
 				$aTrace['Private key'] = $sPrivateKey;
 				$aTrace['Encryption'] = MetaModel::GetConfig()->GetEncryptionLibrary();
@@ -78,7 +77,7 @@ class AuthentTokenServiceTest extends ItopDataTestCase {
 				var_dump($aTrace);
 			}
 		}
-		$this->assertFalse($bFailed, 'The truncated token must not be decoded');
+		$this->assertFalse($bFailed, "The truncated token must not be decoded");
 	}
 
 	public function GetLegacyTokenProvider(){

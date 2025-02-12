@@ -168,6 +168,20 @@ OQL;
 
 		$oLnkOauth2ApplicationToUser->AllowWrite();
 		$oLnkOauth2ApplicationToUser->DBWrite();
+		$oLnkOauth2ApplicationToUser->Reload();
+	}
+
+	public function RenewAccessToken(lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser) : void
+	{
+		$sNewAccessToken = Oauth2ApplicationService::GetInstance()->GenerateToken($oLnkOauth2ApplicationToUser);
+		$oLnkOauth2ApplicationToUser->Set('access_token', $sNewAccessToken);
+
+		$sExpireAt = date(AttributeDateTime::GetSQLFormat(), time() + self::ACCESS_TOKEN_EXPIRATION_IN_SECONDS);
+		$oLnkOauth2ApplicationToUser->Set('access_token_expiration', $sExpireAt);
+
+		$oLnkOauth2ApplicationToUser->AllowWrite();
+		$oLnkOauth2ApplicationToUser->DBWrite();
+		$oLnkOauth2ApplicationToUser->Reload();
 	}
 
 	public function GetLnkOauth2ApplicationToUserByAccessToken(string $sAccessToken) : lnkOauth2ApplicationToUser

@@ -4,9 +4,11 @@ namespace Combodo\iTop\AuthentToken\Test\integration;
 
 require_once __DIR__.'/AbstractTokenRest.php';
 use AttributeDateTime;
+use Combodo\iTop\AuthentToken\Controller\Oauth2AuthorizeController;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
 use Combodo\iTop\AuthentToken\Hook\TokenLoginExtension;
 use Combodo\iTop\AuthentToken\Model\Oauth2UserApplication;
+use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
 use Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService;
 use Combodo\iTop\Test\UnitTest\ItopDataTestCase;
 use DateTime;
@@ -16,6 +18,7 @@ use Dict;
 use User;
 use ApplicationContext;
 use lnkOauth2ApplicationToUser;
+use utils;
 
 class Oauth2ServerTest extends AbstractTokenRest {
 	//iTop called from outside
@@ -126,7 +129,7 @@ class Oauth2ServerTest extends AbstractTokenRest {
 		] ;
 
 		//$sUrl = \utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'authorize.php', $aAuthorizeArgs);
-		$sUrl = TokenAuthHelper::GenerateUrl(\utils::GetAbsoluteUrlModulesRoot() . TokenAuthHelper::MODULE_NAME . '/authorize.php', $aAuthorizeArgs);
+		$sUrl = TokenAuthHelper::GenerateUrl(utils::GetAbsoluteUrlModulesRoot() . TokenAuthHelper::MODULE_NAME . '/authorize.php', $aAuthorizeArgs);
 
 		$aPostParams = [
 			'auth_user' => $this->oUser->Get('login'),
@@ -167,7 +170,7 @@ class Oauth2ServerTest extends AbstractTokenRest {
 		] ;
 
 		//$sUrl = \utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'authorize.php', $aAuthorizeArgs);
-		$sUrl = TokenAuthHelper::GenerateUrl(\utils::GetAbsoluteUrlModulesRoot() . TokenAuthHelper::MODULE_NAME . '/authorize.php', $aAuthorizeArgs);
+		$sUrl = TokenAuthHelper::GenerateUrl(utils::GetAbsoluteUrlModulesRoot() . TokenAuthHelper::MODULE_NAME . '/authorize.php', $aAuthorizeArgs);
 
 		$sState = "state_".$this->sUniqId;
 		$aPostParams = [
@@ -223,8 +226,7 @@ class Oauth2ServerTest extends AbstractTokenRest {
 			]
 		);
 
-
-		$sUrl = TokenAuthHelper::GenerateUrl(\utils::GetAbsoluteUrlModulesRoot() . TokenAuthHelper::MODULE_NAME . '/token.php', []);
+		$sUrl = TokenAuthHelper::GenerateUrl(utils::GetAbsoluteUrlModulesRoot() . TokenAuthHelper::MODULE_NAME . '/token.php', []);
 
 		$aPostParams = [
 			"application_id" => $oOauth2Application->GetKey(),
@@ -247,8 +249,69 @@ class Oauth2ServerTest extends AbstractTokenRest {
 
 		$this->assertNotNull($aJson['expires_in'] ?? null, 'check expires_in');
 		$siExpireIn = (int) $aJson['expires_in'];
-		$this->assertTrue($siExpireIn > 50, 'check expires_in value > 50');
-		$this->assertTrue($siExpireIn < 61, 'check expires_in value < 61');
+		$this->assertTrue($siExpireIn > 50, "$siExpireIn check expires_in value > 50");
+		$this->assertTrue($siExpireIn < 61, "$siExpireIn check expires_in value < 61");
+	}
+
+	public function testFetchRefreshAccessToken() {
+		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
+		$oOauth2Application = $oExpectedOauth2UserApplication->oOauth2Application;
+		$oOauth2Application->Reload();
+		$sClientId = $oOauth2Application->Get('client_id');
+		$sClientSecret = $oOauth2Application->Get('client_secret')->GetPassword();
+
+		$sAccessTokenExpiration = date(AttributeDateTime::GetSQLFormat(), time()-1);
+		$sRefreshToken = Oauth2ApplicationService::GetInstance()->GenerateToken($oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser);
+		$sRefreshTokenExpiration = date(AttributeDateTime::GetSQLFormat(), time() + Oauth2ApplicationService::REFRESH_TOKEN_EXPIRATION_IN_SECONDS);
+		/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser */
+		$oLnkOauth2ApplicationToUser = $this->updateObject(lnkOauth2ApplicationToUser::class, $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser->GetKey(),
+			[
+				'application_id' => $oOauth2Application->GetKey(),
+				'user_id' => $this->oUser->GetKey(),
+				'access_token' => 'access_token123',
+				'code' => 'code123',
+				'refresh_token' => $sRefreshToken,
+				'access_token_expiration' => $sAccessTokenExpiration,
+				'refresh_token_expiration' => $sRefreshTokenExpiration,
+			]
+		);
+
+
+		$sUrl = TokenAuthHelper::GenerateUrl(utils::GetAbsoluteUrlModulesRoot() . TokenAuthHelper::MODULE_NAME . '/token.php', []);
+
+		$aPostParams = [
+			"application_id" => $oOauth2Application->GetKey(),
+			"scope" => "scope_" . $this->sUniqId,
+			"client_id" => $sClientId,
+			'refresh_token' => $sRefreshToken,
+			"client_secret" => $sClientSecret,
+			"grant_type" => 'refresh_token',
+			"redirect_uri" => $oOauth2Application->Get('redirect_uri'),
+		];
+
+		$sOutput = $this->CallItopUrl($sUrl, $aPostParams);
+		$aJson = json_decode($sOutput, true);
+		$this->assertNotEquals(false, $aJson, $sOutput);
+		var_dump($aJson);
+
+		$this->assertEquals($oLnkOauth2ApplicationToUser->Get('token_type'), $aJson['token_type'] ?? null, 'check token_type');
+		$this->assertNotEquals($oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword(), $aJson['access_token'] ?? null, 'check access_token');
+		$this->assertEquals($sRefreshToken, $aJson['refresh_token'] ?? null, 'check refresh_token');
+
+		//make sure expiration has been extended as well !!!
+		$this->assertNotNull($aJson['expires_in'] ?? null, 'check expires_in');
+		$siExpireIn = (int) $aJson['expires_in'];
+		$this->assertTrue($siExpireIn + 5 > Oauth2ApplicationService::ACCESS_TOKEN_EXPIRATION_IN_SECONDS, "(modulo 5s) $siExpireIn  . > ".Oauth2ApplicationService::ACCESS_TOKEN_EXPIRATION_IN_SECONDS);
+
+		$oLnkOauth2ApplicationToUser->Reload();
+		$this->assertEquals($sRefreshToken, $oLnkOauth2ApplicationToUser->Get('refresh_token')->GetPassword());
+		$this->assertNotEquals($sAccessTokenExpiration, $oLnkOauth2ApplicationToUser->Get('access_token_expiration'));
+		$this->assertEquals($sRefreshTokenExpiration, $oLnkOauth2ApplicationToUser->Get('refresh_token_expiration'));
+
+		$iAccessTokenExpiredIn = Oauth2AuthorizeController::GetInstance()->GetExpiredInSeconds($oLnkOauth2ApplicationToUser, 'access_token_expiration');
+		$this->assertTrue($iAccessTokenExpiredIn + 5 > Oauth2ApplicationService::ACCESS_TOKEN_EXPIRATION_IN_SECONDS, "(modulo 5s) $iAccessTokenExpiredIn  . > ".Oauth2ApplicationService::ACCESS_TOKEN_EXPIRATION_IN_SECONDS);
+
+		$this->assertNotNull(AuthentTokenService::GetInstance()->DecryptToken($aJson['access_token']), "renewed access token should work to fetch Oauth2 token again afterwhile");
 	}
 
 	protected function AssertStringContains($sNeedle, $sHaystack, $sMessage): void
@@ -269,7 +332,7 @@ class Oauth2ServerTest extends AbstractTokenRest {
 
 	private function GetNewGeneratedTransId() {
 		\UserRights::Login($this->oUser->Get('login'));
-		$sTransId = \utils::GetNewTransactionId();
+		$sTransId = utils::GetNewTransactionId();
 		\UserRights::_ResetSessionCache();
 
 		return $sTransId;
@@ -298,14 +361,9 @@ class Oauth2ServerTest extends AbstractTokenRest {
 			$this->markTestSkipped();
 		}
 
-
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
-		$oOauth2Application = $oExpectedOauth2UserApplication->oOauth2Application;
-		$sState = "STATE-123";
-		$sCode = "CODE-456";
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
-		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
-		$oLnkOauth2ApplicationToUser->Reload();
+		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, "CODE-456", "STATE-123");
 		$this->sToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
 
 		$oLnkOauth2ApplicationToUser->Set('scope', \ContextTag::TAG_REST);
@@ -332,5 +390,59 @@ class Oauth2ServerTest extends AbstractTokenRest {
 		//if ($bTokenInPost){
 			$this->markTestSkipped();
 		//}
+	}
+
+	public function testGetToken()
+	{
+		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
+		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
+		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, "CODE-456", "STATE-123");
+		$this->sToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
+
+		$sUri = 'env-'.utils::GetCurrentEnvironment() . '/' . TokenAuthHelper::MODULE_NAME . '/token.php';
+
+		$sOutput =  $this->CallRestApi(json_encode([]), null, $sUri);
+		$aParams = json_decode($sOutput, true);
+		$this->assertNotEquals(false, $aParams, "invalid json: \n $sOutput");
+
+		$aExpected = [
+			'access_token' => $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword(),
+		    'token_type' => 'bearer',
+		    'refresh_token' => $oLnkOauth2ApplicationToUser->Get('refresh_token')->GetPassword(),
+		    'expires_in' => 14400,
+		];
+		$this->assertEquals($aExpected, $aParams);
+	}
+
+	public function testGetUserApi()
+	{
+		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
+		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
+		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, "CODE-456", "STATE-123");
+		$this->sToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
+
+		/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser */
+		$oLnkOauth2ApplicationToUser = $this->updateObject(lnkOauth2ApplicationToUser::class, $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser->GetKey(),
+			[
+				'scope' => TokenAuthHelper::TAG_OAUTH2_GETUSER_ENDPOINT,
+			]
+		);
+
+		$sUri = 'env-'.utils::GetCurrentEnvironment() . '/' . TokenAuthHelper::MODULE_NAME . '/get_user.php';
+
+		$sOutput =  $this->CallRestApi(json_encode([]), null, $sUri);
+		$aParams = json_decode($sOutput, true);
+		$this->assertNotEquals(false, $aParams, "invalid json: \n $sOutput");
+
+		$aExpected = [
+			'email' => '',
+		    'firstName' => '',
+		    'organization' => '',
+		    'lastName' => '',
+		    'displayName' => $this->sLogin,
+		    'identifier' => $this->sLogin,
+		    'language' => 'EN US',
+		];
+		$this->assertEquals($aExpected, $aParams);
 	}
 }

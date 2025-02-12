@@ -17,6 +17,7 @@ TokenAuthLog::Enable();
 $oP = new JsonPage();
 
 $oCtx = new ContextTag(TokenAuthHelper::TAG_OAUTH2_GETUSER_ENDPOINT);
+$oCtx = new ContextTag(ContextTag::TAG_REST);
 LoginWebPage::DoLogin();
 
 $oController = new Oauth2AuthorizeController(__DIR__.'/templates', TokenAuthHelper::MODULE_NAME);

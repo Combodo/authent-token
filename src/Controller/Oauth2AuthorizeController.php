@@ -9,6 +9,7 @@ use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService;
+use ContextTag;
 use DateTime;
 use Dict;
 use Exception;
@@ -137,7 +138,11 @@ class Oauth2AuthorizeController extends Controller
 			return true;
 		}
 
-		return \ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT);
+		if (ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT)) {
+			return true;
+		}
+
+		return false;
 	}
 
 	public function AuthenticateViaOauth() : lnkOauth2ApplicationToUser {
@@ -160,7 +165,7 @@ class Oauth2AuthorizeController extends Controller
 				return $olnkOauth2ApplicationToUser;
 			}
 
-			if (\ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT)) {
+			if (ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT)) {
 				$sClientId = utils::ReadPostedParam('client_id', null, utils::ENUM_SANITIZATION_FILTER_STRING);
 				$sClientSecret = utils::ReadPostedParam('client_secret', null, utils::ENUM_SANITIZATION_FILTER_STRING);
 				$sGrantType = utils::ReadPostedParam('grant_type', null, utils::ENUM_SANITIZATION_FILTER_STRING);
@@ -195,6 +200,7 @@ class Oauth2AuthorizeController extends Controller
 								['lnk_id' => $olnkOauth2ApplicationToUser, 'application_id' => $olnkOauth2ApplicationToUser->Get('application_id')]);
 						}
 
+						Oauth2ApplicationService::GetInstance()->RenewAccessToken($olnkOauth2ApplicationToUser);
 						return $olnkOauth2ApplicationToUser;
 					}
 
@@ -234,7 +240,7 @@ class Oauth2AuthorizeController extends Controller
 		return $sJson;
 	}
 
-	public function Oauth2GetUser(): string {
+	public function OperationOauth2GetUser(): string {
 		TokenAuthLog::Enable();
 
 		$aParams = $this->GetUserFields();

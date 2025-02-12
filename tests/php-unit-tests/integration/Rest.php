@@ -38,7 +38,6 @@ class Rest extends AbstractRest
 
 	protected function GetPostParameters($sContext=null){
 		return [
-			'version' => '1.3',
 			'auth_user' => $this->sLogin,
 			'auth_pwd' => $this->sPassword,
 		];

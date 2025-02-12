@@ -26,7 +26,7 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		parent::setUp();
 		$this->RequireOnceItopFile('env-production/authent-token/vendor/autoload.php');
 
-		$this->sUniqId = "AUTHENTTOKEN_".date('dmYHis');
+		$this->sUniqId = "AUTHENTTOKEN_". uniqid();
 		$this->sLogin = "oauth-user-".$this->sUniqId;
 
 		/** @var \User $oUser */
@@ -34,6 +34,12 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 			ItopDataTestCase::$aURP_Profiles['Service Desk Agent'],
 			$this->sPassword
 		);
+	}
+
+	protected function tearDown() : void
+	{
+		parent::tearDown();
+		$this->SetNonPublicProperty(Oauth2AuthorizeController::GetInstance(), 'aFakeAllHeadersForTest', null);
 	}
 
 	protected function CreateOauth2UserApplication(): Oauth2UserApplication
@@ -58,9 +64,11 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 
 	public function testIsOauthToken_BearerTokenPassedInHeader()
 	{
-		$_SERVER = [
+		$aHeaders = [
 			'Authorization' => 'Bearer gabuzomeu',
 		];
+
+		$this>$this->SetNonPublicProperty(Oauth2AuthorizeController::GetInstance(), 'aFakeAllHeadersForTest', $aHeaders);
 
 		$this->assertTrue(Oauth2AuthorizeController::GetInstance()->IsOauthToken());
 	}
@@ -89,9 +97,10 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		$oLnkOauth2ApplicationToUser->Reload();
 
 		$sAccessToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
-		$_SERVER = [
+		$aHeaders = [
 			'Authorization' => 'Bearer '.$sAccessToken,
 		];
+		$this>$this->SetNonPublicProperty(Oauth2AuthorizeController::GetInstance(), 'aFakeAllHeadersForTest', $aHeaders);
 
 		$oFoundLnkOauth2ApplicationToUser = Oauth2AuthorizeController::GetInstance()->AuthenticateViaOauth();
 		$this->assertEquals($oLnkOauth2ApplicationToUser->GetKey(), $oFoundLnkOauth2ApplicationToUser->GetKey());
@@ -112,9 +121,10 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		$oLnkOauth2ApplicationToUser->DBWrite();
 
 		$sAccessToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
-		$_SERVER = [
+		$aHeaders = [
 			'Authorization' => 'Bearer '.$sAccessToken,
 		];
+		$this>$this->SetNonPublicProperty(Oauth2AuthorizeController::GetInstance(), 'aFakeAllHeadersForTest', $aHeaders);
 
 		$this->expectException(TokenAuthException::class);
 		$this->expectExceptionMessage("Expired access_token must be refreshed");
@@ -136,6 +146,7 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		$oLnkOauth2ApplicationToUser->Reload();
 
 
+		$_SESSION=[];
 		$_POST = [
 			'client_id'     => $oOauth2Application->Get('client_id'),
 			'client_secret' => $oOauth2Application->Get('client_secret')->GetPassword(),
@@ -160,7 +171,7 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
 		$oLnkOauth2ApplicationToUser->Reload();
 
-
+		$_SESSION=[];
 		$_POST = [
 			'client_id'     => $oOauth2Application->Get('client_id'),
 			'client_secret' => $oOauth2Application->Get('client_secret')->GetPassword(),
@@ -189,6 +200,7 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		$oLnkOauth2ApplicationToUser->Set('refresh_token_expiration', $sExpireAt);
 		$oLnkOauth2ApplicationToUser->DBWrite();
 
+		$_SESSION=[];
 		$_POST = [
 			'client_id'     => $oOauth2Application->Get('client_id'),
 			'client_secret' => $oOauth2Application->Get('client_secret')->GetPassword(),

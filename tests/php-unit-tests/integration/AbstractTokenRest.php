@@ -63,7 +63,6 @@ abstract class AbstractTokenRest extends AbstractRest
 	protected function GetPostParameters($sContext = null)
 	{
 		$aParams = [
-			'version' => '1.3',
 		];
 
 		if ($this->bTokenInPost) {

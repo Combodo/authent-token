@@ -19,6 +19,7 @@ use \Combodo\iTop\AuthentToken\Model\Oauth2UserApplication;
 
 class Oauth2AuthorizeController extends Controller
 {
+	private ?array $aFakeAllHeadersForTest;
 	private static Oauth2AuthorizeController $oInstance;
 
 	final public static function GetInstance(): Oauth2AuthorizeController
@@ -112,23 +113,28 @@ class Oauth2AuthorizeController extends Controller
 		}
 	}
 
-	private function GetHeaderAuthorization(): ?string
+	private function GetBearerToken(): ?string
 	{
-		$aHeaders = getallheaders();
-		return $aHeaders['Authorization'] ?? null;
+		$aHeaders = isset($this->aFakeAllHeadersForTest) ? $this->aFakeAllHeadersForTest : getallheaders();
+		$sAuthorization = $aHeaders['Authorization'] ?? null;
+
+		if (is_null($sAuthorization)) {
+			return null;
+		}
+
+		if (preg_match("/^Bearer (?<token>.+)$/", $sAuthorization, $aMatches)) {
+			return trim($aMatches['token']);
+		}
+
+		TokenAuthLog::Debug(__METHOD__ . ": Header Authorization received ", null,
+			['Authorization' => $sAuthorization]);
+		return null;
 	}
 
 	public function IsOauthToken() : bool {
-		TokenAuthLog::Debug(__METHOD__ . ": header received for Oauth2 check", null, getallheaders());
-
-		$sAuthorization = $this->GetHeaderAuthorization();
-		if (! is_null($sAuthorization)) {
-			if (preg_match('/Bearer (.*)/', $sAuthorization, $aMatches)){
-				return true;
-			} else {
-				TokenAuthLog::Debug(__METHOD__ . ": Authorization header does not match Oauth2 authentication", null,
-					['Authorization Header' => $sAuthorization]);
-			}
+		$sBearerToken = $this->GetBearerToken();
+		if (! is_null($sBearerToken)) {
+			return true;
 		}
 
 		return \ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_ENDPOINT);
@@ -137,27 +143,21 @@ class Oauth2AuthorizeController extends Controller
 	public function AuthenticateViaOauth() : lnkOauth2ApplicationToUser {
 		try {
 			TokenAuthLog::Enable();
-			$sAuthorization = $this->GetHeaderAuthorization();
-			if (! is_null($sAuthorization)) {
-				if (preg_match('/Bearer (.*)/', $sAuthorization, $aMatches)) {
-					$sAccessToken = $aMatches[1];
-					TokenAuthLog::Debug(__METHOD__ . ": try Oauth2 by access_token", null,
-						['access_token' => $sAccessToken]);
-					$olnkOauth2ApplicationToUser = Oauth2ApplicationService::GetInstance()->GetLnkOauth2ApplicationToUserByAccessToken($sAccessToken);
+			$sBearerToken = $this->GetBearerToken();
+			if (! is_null($sBearerToken)) {
+				TokenAuthLog::Debug(__METHOD__ . ": Bearer token received", null,
+					['access_token' => $sBearerToken]);
+				$olnkOauth2ApplicationToUser = Oauth2ApplicationService::GetInstance()->GetLnkOauth2ApplicationToUserByAccessToken($sBearerToken);
 
-					TokenAuthLog::Debug(__METHOD__ . ": check access_token_expiration", null,
-						['id' => $olnkOauth2ApplicationToUser->GetKey(), 'access_token_expiration' => $olnkOauth2ApplicationToUser->Get('access_token_expiration')]);
+				TokenAuthLog::Debug(__METHOD__ . ": check access_token_expiration", null,
+					['id' => $olnkOauth2ApplicationToUser->GetKey(), 'access_token_expiration' => $olnkOauth2ApplicationToUser->Get('access_token_expiration')]);
 
-					$iExpireIn = $this->GetExpiredInSeconds($olnkOauth2ApplicationToUser, 'access_token_expiration');
-					if ($iExpireIn == 0){
-						throw new TokenAuthException('Expired access_token must be refreshed', 400, null,
-							['lnk_id' => $olnkOauth2ApplicationToUser, 'application_id' => $olnkOauth2ApplicationToUser->Get('application_id')]);
-					}
-					return $olnkOauth2ApplicationToUser;
-				} else {
-					TokenAuthLog::Debug(__METHOD__ . ": Authorization header does not match Oauth2 authentication", null,
-						['Authorization Header' => $sAuthorization]);
+				$iExpireIn = $this->GetExpiredInSeconds($olnkOauth2ApplicationToUser, 'access_token_expiration');
+				if ($iExpireIn == 0){
+					throw new TokenAuthException('Expired access_token must be refreshed', 400, null,
+						['lnk_id' => $olnkOauth2ApplicationToUser, 'application_id' => $olnkOauth2ApplicationToUser->Get('application_id')]);
 				}
+				return $olnkOauth2ApplicationToUser;
 			}
 
 			if (\ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_ENDPOINT)) {

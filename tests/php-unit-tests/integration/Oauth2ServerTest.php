@@ -23,7 +23,6 @@ class Oauth2ServerTest extends AbstractTokenRest {
 	const USE_TRANSACTION = false;
 
 	private ?string $sToken;
-	protected string $sUniqId;
 	protected $sPassword = "Iuytrez9876543ç_è-(";
 
 	protected function setUp(): void {
@@ -34,7 +33,7 @@ class Oauth2ServerTest extends AbstractTokenRest {
 
 		/** @var User oUser */
 		$this->oUser = $this->CreateContactlessUser($this->sLogin,
-			ItopDataTestCase::$aURP_Profiles['Service Desk Agent'],
+			ItopDataTestCase::$aURP_Profiles['Administrator'],
 			$this->sPassword
 		);
 
@@ -56,11 +55,9 @@ class Oauth2ServerTest extends AbstractTokenRest {
 
 	protected function CreateOauth2UserApplication(): Oauth2UserApplication
 	{
-		$oOrg = $this->CreateOrganization("org-".$this->sUniqId);
-
 		/** @var Oauth2Application $oOauth2Application */
 		$oOauth2Application = $this->createObject(Oauth2Application::class, [
-			'org_id'       => $oOrg->GetKey(),
+			'org_id'       => $this->sOrgId,
 			"application"  => "test",
 			"redirect_uri" => "https://testu.rd",
 		]);
@@ -81,7 +78,7 @@ class Oauth2ServerTest extends AbstractTokenRest {
 		}
 
 		return [
-			'Content-Type: application/json',
+			//'Content-Type: application/json',
 			'Authorization: Bearer '. $this->sToken,
 		];
 	}
@@ -311,6 +308,8 @@ class Oauth2ServerTest extends AbstractTokenRest {
 		$oLnkOauth2ApplicationToUser->Reload();
 		$this->sToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
 
+		$oLnkOauth2ApplicationToUser->Set('scope', \ContextTag::TAG_REST);
+		$this->updateObject(lnkOauth2ApplicationToUser::class, $oLnkOauth2ApplicationToUser->GetKey(), ['scope' => \ContextTag::TAG_REST] );
 
 		parent::testCreateApiViaToken($iJsonDataMode, false);
 	}

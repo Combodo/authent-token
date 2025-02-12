@@ -24,6 +24,7 @@ abstract class AbstractRest extends ItopDataTestCase
 	protected $sConfigTmpBackupFile;
 	protected $oUser;
 	protected $sOrgName;
+	protected $sOrgId;
 	protected string $sUniqId;
 
 	/**
@@ -40,10 +41,10 @@ abstract class AbstractRest extends ItopDataTestCase
 		$sFilePermOutput = substr(sprintf('%o', fileperms('/etc/passwd')), -4);
 		echo sprintf("rights via fileperms on %s:\n %s \n", $sConfigPath, $sFilePermOutput);
 
-		$this->sUniqId = "AUTHENTTOKEN_" . date('dmYHis');
+		$this->sUniqId = "AUTHENTTOKEN_" . uniqid();
 		$this->sLogin = "rest-user-".$this->sUniqId;
 		$this->sOrgName = "Org-$this->sUniqId";
-		$this->CreateOrganization($this->sOrgName);
+		$this->sOrgId = $this->CreateOrganization($this->sOrgName)->GetKey();
 
 		if (0 !== strlen($this->sTmpFile)) {
 			unlink($this->sTmpFile);
@@ -79,11 +80,10 @@ abstract class AbstractRest extends ItopDataTestCase
 		return [];
 	}
 
-	protected function CallRestApi($sJsonDataContent, $sContext = null, $sUri = 'webservices/rest.php')
+	protected function CallRestApi($sJsonDataContent, $sContext = null, $sUri = 'webservices/rest.php?version=1.3')
 	{
 		$ch = curl_init();
 		$aPostFields = $this->GetPostParameters($sContext);
-		var_dump($aPostFields);
 
 		if ($this->iJsonDataMode === self::MODE['JSONDATA_AS_STRING']) {
 			$this->sTmpFile = tempnam(sys_get_temp_dir(), 'jsondata_');
@@ -100,9 +100,11 @@ abstract class AbstractRest extends ItopDataTestCase
 		//curl_setopt($ch, CURLOPT_COOKIE, "XDEBUG_SESSION=phpstorm");
 
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $this->GetHeadersParam($sContext));
+		var_dump($this->GetHeadersParam($sContext));
 		curl_setopt($ch, CURLOPT_URL, "$this->sUrl/$sUri");
 		curl_setopt($ch, CURLOPT_POST, 1);// set post data to true
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $aPostFields);
+		var_dump($aPostFields);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);

@@ -22,7 +22,7 @@ class Oauth2ApplicationServiceTest extends ItopDataTestCase {
 		parent::setUp();
 		$this->RequireOnceItopFile('env-production/authent-token/vendor/autoload.php');
 
-		$this->sUniqId = "AUTHENTTOKEN_" . date('dmYHis');
+		$this->sUniqId = "AUTHENTTOKEN_" . uniqid();
 		$this->sLogin = "oauth-user-".$this->sUniqId;
 
 		/** @var \User $oUser */

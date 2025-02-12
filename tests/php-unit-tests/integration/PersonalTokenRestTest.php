@@ -487,9 +487,9 @@ HTML;
 			}
 		}
 
-		$sUrl = "webservices/rest.php";
+		$sUrl = "webservices/rest.php?version=1.3";
 		if (! is_null($sLoginMode)){
-			$sUrl = "$sUrl?login_mode=$sLoginMode";
+			$sUrl = "$sUrl&login_mode=$sLoginMode";
 		}
 		$sOutput =  $this->CallRestApi(json_encode(["fake symport"]), null, $sUrl);
 		var_dump($sOutput);

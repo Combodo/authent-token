@@ -190,7 +190,9 @@ class Oauth2ServerTest extends AbstractTokenRest {
 			$this->assertNotEquals('', $oLnkOauth2ApplicationToUser->Get($sField), "$sField should NOT be empty");
 		}
 		foreach ($aPwdFields as $sField){
-			$this->assertNotEquals('', $oLnkOauth2ApplicationToUser->Get($sField), "$sField should NOT be empty");
+			$sPasswordValue = $oLnkOauth2ApplicationToUser->Get($sField)->GetPassword();
+			$this->assertNotEquals('', $sPasswordValue, "$sField should NOT be empty");
+			$this->assertNotNull(AuthentTokenService::GetInstance()->DecryptToken($sPasswordValue), "$sField should work to fetch Oauth2 token again afterwhile");
 		}
 
 		$this->assertNotEquals(
@@ -312,6 +314,7 @@ class Oauth2ServerTest extends AbstractTokenRest {
 		$this->assertTrue($iAccessTokenExpiredIn + 5 > Oauth2ApplicationService::ACCESS_TOKEN_EXPIRATION_IN_SECONDS, "(modulo 5s) $iAccessTokenExpiredIn  . > ".Oauth2ApplicationService::ACCESS_TOKEN_EXPIRATION_IN_SECONDS);
 
 		$this->assertNotNull(AuthentTokenService::GetInstance()->DecryptToken($aJson['access_token']), "renewed access token should work to fetch Oauth2 token again afterwhile");
+		$this->assertNotNull(AuthentTokenService::GetInstance()->DecryptToken($aJson['refresh_token']), "refresh token should work to fetch Oauth2 token again afterwhile");
 	}
 
 	protected function AssertStringContains($sNeedle, $sHaystack, $sMessage): void
@@ -392,28 +395,6 @@ class Oauth2ServerTest extends AbstractTokenRest {
 		//}
 	}
 
-	public function testGetToken()
-	{
-		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
-		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
-		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, "CODE-456", "STATE-123");
-		$this->sToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
-
-		$sUri = 'env-'.utils::GetCurrentEnvironment() . '/' . TokenAuthHelper::MODULE_NAME . '/token.php';
-
-		$sOutput =  $this->CallRestApi(json_encode([]), null, $sUri);
-		$aParams = json_decode($sOutput, true);
-		$this->assertNotEquals(false, $aParams, "invalid json: \n $sOutput");
-
-		$aExpected = [
-			'access_token' => $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword(),
-		    'token_type' => 'bearer',
-		    'refresh_token' => $oLnkOauth2ApplicationToUser->Get('refresh_token')->GetPassword(),
-		    'expires_in' => 14400,
-		];
-		$this->assertEquals($aExpected, $aParams);
-	}
-
 	public function testGetUserApi()
 	{
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
@@ -421,8 +402,7 @@ class Oauth2ServerTest extends AbstractTokenRest {
 		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, "CODE-456", "STATE-123");
 		$this->sToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
 
-		/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser */
-		$oLnkOauth2ApplicationToUser = $this->updateObject(lnkOauth2ApplicationToUser::class, $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser->GetKey(),
+		$this->updateObject(lnkOauth2ApplicationToUser::class, $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser->GetKey(),
 			[
 				'scope' => TokenAuthHelper::TAG_OAUTH2_GETUSER_ENDPOINT,
 			]

@@ -250,7 +250,7 @@ class Oauth2AuthorizeController extends Controller
 		return $sJson;
 	}
 
-	public function GetUserFields() : array
+	private function GetUserFields() : array
 	{
 		$oUser = \UserRights::GetUserObject();
 		if (is_null($oUser)){

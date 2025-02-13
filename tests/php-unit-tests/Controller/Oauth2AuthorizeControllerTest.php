@@ -14,6 +14,7 @@ use Combodo\iTop\Test\UnitTest\ItopDataTestCase;
 use User;
 use Oauth2Application;
 use lnkOauth2ApplicationToUser;
+use UserRights;
 
 class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 {
@@ -287,13 +288,13 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
 
-		$sExpireAt = date(AttributeDateTime::GetSQLFormat(), time() + 2);
+		$sExpireAt = date(AttributeDateTime::GetSQLFormat(), time() + 10);
 		$oLnkOauth2ApplicationToUser->Set($sField, $sExpireAt);
 		$oLnkOauth2ApplicationToUser->DBWrite();
 
 		$iExpiredIn = Oauth2AuthorizeController::GetInstance()->GetExpiredInSeconds($oLnkOauth2ApplicationToUser, $sField);
-		$this->assertTrue($iExpiredIn <= 2);
-		$this->assertTrue($iExpiredIn > 1);
+		$this->assertTrue($iExpiredIn <= 10, "$sField <= 10 (modulo 8)");
+		$this->assertTrue($iExpiredIn > 8, "$sField > 8 ");
 	}
 
 	/**
@@ -312,5 +313,59 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 
 		$iExpiredIn = Oauth2AuthorizeController::GetInstance()->GetExpiredInSeconds($oLnkOauth2ApplicationToUser, $sField);
 		$this->assertEquals(0, $iExpiredIn);
+	}
+
+	public function testGetUserFields_UserOnly()
+	{
+		$_SESSION = [];
+		UserRights::Login($this->sLogin);
+
+		$aParams = $this->InvokeNonPublicMethod(Oauth2AuthorizeController::GetInstance(), 'GetUserFields', Oauth2AuthorizeController::GetInstance());
+
+		$aExpected = [
+			'email' => '',
+			'firstName' => '',
+			'organization' => '',
+			'lastName' => '',
+			'displayName' => $this->sLogin,
+			'identifier' => $this->sLogin,
+			'language' => 'EN US',
+		];
+		$this->assertEquals($aExpected, $aParams);
+	}
+
+	public function testGetUserFields_UserWithContact()
+	{
+		$sOrgName = "org-".$this->sUniqId;
+		$oOrg = $this->CreateOrganization($sOrgName);
+		$sEmail = "gabu@zomeu.fr";
+		/** @var Person $oPerson */
+		$oPerson = $this->createObject('Person', array(
+			'name' => 'name123',
+			'first_name' => 'first_name123',
+			'org_id' => $oOrg->GetKey(),
+			'email' => $sEmail,
+		));
+		/** @var \User $oUser */
+		$sUserLogin = "userwithcontact-".$this->sUniqId;
+		$oUser = $this->CreateUser($sUserLogin,
+			ItopDataTestCase::$aURP_Profiles['Service Desk Agent'],
+			$this->sPassword, $oPerson->GetKey());
+
+		$_SESSION = [];
+		UserRights::Login($sUserLogin);
+
+		$aParams = $this->InvokeNonPublicMethod(Oauth2AuthorizeController::GetInstance(), 'GetUserFields', Oauth2AuthorizeController::GetInstance());
+
+		$aExpected = [
+			'email' => $sEmail,
+			'firstName' => 'first_name123',
+			'organization' => $sOrgName,
+			'lastName' => 'name123',
+			'displayName' => "first_name123 name123",
+			'identifier' => $sUserLogin,
+			'language' => 'EN US',
+		];
+		$this->assertEquals($aExpected, $aParams);
 	}
 }

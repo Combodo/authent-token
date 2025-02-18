@@ -93,9 +93,8 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
 
 		$sState = "STATE-123";
-		$sCode = "CODE-456";
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
-		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
+		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sState);
 
 		$sAccessToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
 		$aHeaders = [
@@ -112,9 +111,8 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
 
 		$sState = "STATE-123";
-		$sCode = "CODE-456";
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
-		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
+		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sState);
 
 		$sExpireAt = date(AttributeDateTime::GetSQLFormat(), time() - 10);
 		$oLnkOauth2ApplicationToUser->Set('access_token_expiration', $sExpireAt);
@@ -144,10 +142,9 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
 
 		$sState = "STATE-123";
-		$sCode = "CODE-456";
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
 		$oOauth2Application = $oExpectedOauth2UserApplication->oOauth2Application;
-		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
+		$sCode = Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sState);
 
 		$_SESSION=[];
 		$_POST = [
@@ -155,7 +152,7 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 			'client_secret' => $oOauth2Application->Get('client_secret')->GetPassword(),
 			'grant_type'    => 'authorization_code',
 			'redirect_uri'  => $oOauth2Application->Get('redirect_uri'),
-			'code'          => $oLnkOauth2ApplicationToUser->Get('code'),
+			'code'          => $sCode,
 		];
 		$oFoundLnkOauth2ApplicationToUser = Oauth2AuthorizeController::GetInstance()->AuthenticateViaOauth();
 		$this->assertEquals($oLnkOauth2ApplicationToUser->GetKey(), $oFoundLnkOauth2ApplicationToUser->GetKey());
@@ -168,10 +165,9 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
 
 		$sState = "STATE-123";
-		$sCode = "CODE-456";
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
 		$oOauth2Application = $oExpectedOauth2UserApplication->oOauth2Application;
-		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
+		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sState);
 
 		/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser */
 		$oLnkOauth2ApplicationToUser = $this->updateObject(lnkOauth2ApplicationToUser::class, $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser->GetKey(),
@@ -217,10 +213,9 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
 
 		$sState = "STATE-123";
-		$sCode = "CODE-456";
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
 		$oOauth2Application = $oExpectedOauth2UserApplication->oOauth2Application;
-		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
+		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sState);
 
 		$sExpireAt = date(AttributeDateTime::GetSQLFormat(), time() - 10);
 		$oLnkOauth2ApplicationToUser->Set('refresh_token_expiration', $sExpireAt);
@@ -251,9 +246,8 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
 
 		$sState = "STATE-123";
-		$sCode = "CODE-456";
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
-		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
+		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sState);
 
 		$sJson = Oauth2AuthorizeController::GetInstance()->OperationOauth2Token($oLnkOauth2ApplicationToUser->GetKey());
 		$aJson = json_decode($sJson, true);

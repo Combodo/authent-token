@@ -113,11 +113,10 @@ class Oauth2ApplicationServiceTest extends ItopDataTestCase {
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
 
 		$sState = "STATE-123";
-		$sCode = "CODE-456";
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
-		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
+		$sCode = Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sState);
 
-		$this->assertEquals($sCode, $oLnkOauth2ApplicationToUser->Get('code'));
+		$this->assertEquals($sCode, $oLnkOauth2ApplicationToUser->Get('code')->GetPassword());
 		$this->assertEquals($sState, $oLnkOauth2ApplicationToUser->Get('authorization_state'));
 		$sRefreshToken = $oLnkOauth2ApplicationToUser->Get('refresh_token')->GetPassword();
 		$this->assertNotEmpty($sRefreshToken);
@@ -139,7 +138,7 @@ class Oauth2ApplicationServiceTest extends ItopDataTestCase {
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
 
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
-		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, "CODE-456", "STATE-123");
+		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, "STATE-123");
 		$sOldRefreshToken = $oLnkOauth2ApplicationToUser->Get('refresh_token')->GetPassword();
 		$sOldRefreshTokenExpiration = $oLnkOauth2ApplicationToUser->Get('refresh_token_expiration');
 		$sOldAccessToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
@@ -170,15 +169,14 @@ class Oauth2ApplicationServiceTest extends ItopDataTestCase {
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
 
 		$sState = "STATE-123";
-		$sCode = "CODE-456";
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
-		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
+		$sCode = Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sState);
 
 		$oFoundLnkOauth2ApplicationToUser = Oauth2ApplicationService::GetInstance()->GetLnkOauth2ApplicationToUserByCode(
 			$oExpectedOauth2UserApplication->oOauth2Application->Get('client_id'),
 			$oExpectedOauth2UserApplication->oOauth2Application->Get('client_secret')->GetPassword(),
 			$oExpectedOauth2UserApplication->oOauth2Application->Get('redirect_uri'),
-			$oLnkOauth2ApplicationToUser->Get('code')
+			$sCode
 		);
 
 		$this->assertEquals($oLnkOauth2ApplicationToUser->GetKey(), $oFoundLnkOauth2ApplicationToUser->GetKey());
@@ -189,9 +187,8 @@ class Oauth2ApplicationServiceTest extends ItopDataTestCase {
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
 
 		$sState = "STATE-123";
-		$sCode = "CODE-456";
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
-		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
+		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sState);
 
 		$oFoundLnkOauth2ApplicationToUser = Oauth2ApplicationService::GetInstance()->GetLnkOauth2ApplicationToUserByRefreshToken(
 			$oExpectedOauth2UserApplication->oOauth2Application->Get('client_id'),

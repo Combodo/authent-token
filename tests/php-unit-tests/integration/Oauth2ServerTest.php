@@ -150,7 +150,6 @@ class Oauth2ServerTest extends AbstractTokenRest {
 		$aEmptyFields = [
 			"refresh_token_expiration",
 			"access_token_expiration",
-			"code",
 			"authorization_state",
 		];
 		foreach ($aEmptyFields as $sField){
@@ -160,6 +159,7 @@ class Oauth2ServerTest extends AbstractTokenRest {
 		$aPwdFields = [
 			"refresh_token",
 			"access_token",
+			"code",
 		];
 		foreach ($aPwdFields as $sField){
 			$this->assertEquals('', $oLnkOauth2ApplicationToUser->Get($sField)->GetPassword(), "$sField should be empty");
@@ -213,6 +213,7 @@ class Oauth2ServerTest extends AbstractTokenRest {
 		$sClientId = $oOauth2Application->Get('client_id');
 		$sClientSecret = $oOauth2Application->Get('client_secret')->GetPassword();
 
+		$sCode = Oauth2ApplicationService::GetInstance()->GenerateToken($oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser);
 		$sAccessTokenExpiration = date(AttributeDateTime::GetSQLFormat(), time()+60);
 		$sRefreshTokenExpiration = date(AttributeDateTime::GetSQLFormat(), time() + Oauth2ApplicationService::REFRESH_TOKEN_EXPIRATION_IN_SECONDS);
 		/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser */
@@ -221,7 +222,7 @@ class Oauth2ServerTest extends AbstractTokenRest {
 				'application_id' => $oOauth2Application->GetKey(),
 				'user_id' => $this->oUser->GetKey(),
 				'access_token' => 'access_token123',
-				'code' => 'code123',
+				'code' => $sCode,
 				'refresh_token' => 'refresh_token123',
 				'access_token_expiration' => $sAccessTokenExpiration,
 				'refresh_token_expiration' => $sRefreshTokenExpiration,
@@ -234,7 +235,7 @@ class Oauth2ServerTest extends AbstractTokenRest {
 			"application_id" => $oOauth2Application->GetKey(),
 			"scope" => "scope_" . $this->sUniqId,
 			"client_id" => $sClientId,
-			'code' => 'code123',
+			'code' => $sCode,
 			"client_secret" => $sClientSecret,
 			"grant_type" => 'authorization_code',
 			"redirect_uri" => $oOauth2Application->Get('redirect_uri'),
@@ -366,7 +367,7 @@ class Oauth2ServerTest extends AbstractTokenRest {
 
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
-		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, "CODE-456", "STATE-123");
+		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, "STATE-123");
 		$this->sToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
 
 		$oLnkOauth2ApplicationToUser->Set('scope', \ContextTag::TAG_REST);
@@ -399,7 +400,7 @@ class Oauth2ServerTest extends AbstractTokenRest {
 	{
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
-		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, "CODE-456", "STATE-123");
+		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, "STATE-123");
 		$this->sToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
 
 		$sUri = 'env-'.utils::GetCurrentEnvironment() . '/' . TokenAuthHelper::MODULE_NAME . '/token.php';
@@ -421,7 +422,7 @@ class Oauth2ServerTest extends AbstractTokenRest {
 	{
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
-		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, "CODE-456", "STATE-123");
+		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, "STATE-123");
 		$this->sToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
 
 		$this->updateObject(lnkOauth2ApplicationToUser::class, $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser->GetKey(),

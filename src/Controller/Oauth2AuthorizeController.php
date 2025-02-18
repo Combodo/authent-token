@@ -95,8 +95,7 @@ class Oauth2AuthorizeController extends Controller
 			if ($sDecision === 'disallow') {
 				$aUrlParameters['error'] =  'access_denied';
 			} else {
-				$sCode = base64_encode(random_bytes(24));
-				Oauth2ApplicationService::GetInstance()->SaveCode($oOauth2UserApplication->oLnkOauth2ApplicationToUser, $sCode, $sState);
+				$sCode = Oauth2ApplicationService::GetInstance()->SaveCode($oOauth2UserApplication->oLnkOauth2ApplicationToUser, $sState);
 				$aUrlParameters['code'] = $sCode;
 			}
 

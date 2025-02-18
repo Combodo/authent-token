@@ -395,6 +395,28 @@ class Oauth2ServerTest extends AbstractTokenRest {
 		//}
 	}
 
+	public function testGetToken()
+	{
+		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
+		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
+		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, "CODE-456", "STATE-123");
+		$this->sToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
+
+		$sUri = 'env-'.utils::GetCurrentEnvironment() . '/' . TokenAuthHelper::MODULE_NAME . '/token.php';
+
+		$sOutput =  $this->CallRestApi(json_encode([]), null, $sUri);
+		$aParams = json_decode($sOutput, true);
+		$this->assertNotEquals(false, $aParams, "invalid json: \n $sOutput");
+
+		$aExpected = [
+			'access_token' => $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword(),
+		    'token_type' => 'bearer',
+		    'refresh_token' => $oLnkOauth2ApplicationToUser->Get('refresh_token')->GetPassword(),
+		    'expires_in' => 14400,
+		];
+		$this->assertEquals($aExpected, $aParams);
+	}
+
 	public function testGetUserApi()
 	{
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();

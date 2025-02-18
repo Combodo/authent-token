@@ -100,11 +100,12 @@ class Oauth2AuthorizeController extends Controller
 				$aUrlParameters['code'] = $sCode;
 			}
 
+			$sUrl = TokenAuthHelper::GenerateUrl($sUrl, $aUrlParameters);
 			$aParams = [
-				'sURL' => TokenAuthHelper::GenerateUrl($sUrl, $aUrlParameters),
+				'sURL' => $sUrl,
 			];
 
-			TokenAuthLog::Info("Redirection to oauth client uri", null, $aParams);
+			TokenAuthLog::Info("Redirection to oauth client uri", null, [ 'sURL' => $sUrl ]);
 
 			$this->DisplayPage($aParams);
 		} catch (TokenAuthException $e) {
@@ -116,9 +117,7 @@ class Oauth2AuthorizeController extends Controller
 
 	private function GetBearerToken(): ?string
 	{
-		$aHeaders = isset($this->aFakeAllHeadersForTest) ? $this->aFakeAllHeadersForTest : getallheaders();
-		$sAuthorization = $aHeaders['Authorization'] ?? null;
-
+		$sAuthorization = $this->GetHeaderAuthorization();
 		if (is_null($sAuthorization)) {
 			return null;
 		}
@@ -132,6 +131,12 @@ class Oauth2AuthorizeController extends Controller
 		return null;
 	}
 
+	private function GetHeaderAuthorization(): ?string
+	{
+		$aHeaders = isset($this->aFakeAllHeadersForTest) ? $this->aFakeAllHeadersForTest : getallheaders();
+		return $aHeaders['Authorization'] ?? null;
+	}
+
 	public function IsOauthToken() : bool {
 		$sBearerToken = $this->GetBearerToken();
 		if (! is_null($sBearerToken)) {
@@ -141,6 +146,9 @@ class Oauth2AuthorizeController extends Controller
 		if (ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT)) {
 			return true;
 		}
+
+		TokenAuthLog::Debug(__METHOD__ . ": no oauth authentication possible", null,
+			['authentication_header' => $this->GetHeaderAuthorization(), 'context_tags' => ContextTag::GetTags()]);
 
 		return false;
 	}
@@ -152,6 +160,7 @@ class Oauth2AuthorizeController extends Controller
 			if (! is_null($sBearerToken)) {
 				TokenAuthLog::Debug(__METHOD__ . ": Bearer token received", null,
 					['access_token' => $sBearerToken]);
+
 				$olnkOauth2ApplicationToUser = Oauth2ApplicationService::GetInstance()->GetLnkOauth2ApplicationToUserByAccessToken($sBearerToken);
 
 				TokenAuthLog::Debug(__METHOD__ . ": check access_token_expiration", null,
@@ -170,48 +179,50 @@ class Oauth2AuthorizeController extends Controller
 				$sClientSecret = utils::ReadPostedParam('client_secret', null, utils::ENUM_SANITIZATION_FILTER_STRING);
 				$sGrantType = utils::ReadPostedParam('grant_type', null, utils::ENUM_SANITIZATION_FILTER_STRING);
 				$sRedirectUri = utils::ReadPostedParam('redirect_uri', null, utils::ENUM_SANITIZATION_FILTER_URL);
+				$sCode = utils::ReadPostedParam('code', null, utils::ENUM_SANITIZATION_FILTER_RAW_DATA);
+				$sRefreshToken = utils::ReadPostedParam('refresh_token', null, utils::ENUM_SANITIZATION_FILTER_RAW_DATA);
+
+				TokenAuthLog::Debug("Oauth2 authentication parameters", null,
+					[
+						'code' => $sCode,
+						'grant_type' => $sGrantType,
+						'client_id' => $sClientId,
+						'client_secret' => $sClientSecret,
+						'refresh_token' => $sRefreshToken,
+						'redirect_uri' => $sRedirectUri,
+					]
+				);
 
 				if ($sGrantType === "authorization_code"){
-					$sToken = utils::ReadPostedParam('code', null, utils::ENUM_SANITIZATION_FILTER_RAW_DATA);
-					if (! is_null($sToken)) {
-
-						TokenAuthLog::Debug("try Oauth2 by code", null,
-							[
-								'code' => $sToken,
-								'grant_type' => $sGrantType,
-								'client_id' => $sClientId,
-								'client_secret' => $sClientSecret,
-								'redirect_uri' => $sRedirectUri,
-							]
-						);
-						return Oauth2ApplicationService::GetInstance()->GetLnkOauth2ApplicationToUserByCode($sClientId, $sClientSecret, $sRedirectUri, $sToken);
+					if (! is_null($sCode)) {
+						return Oauth2ApplicationService::GetInstance()->GetLnkOauth2ApplicationToUserByCode($sClientId, $sClientSecret, $sRedirectUri, $sCode);
 					}
 
-					throw new TokenAuthException('Missing Oauth2 code', 400, null, ['grant_type' => $sGrantType]);
+					throw new TokenAuthException('Missing Oauth2 code', 400, null,
+						['grant_type' => $sGrantType, 'client_id' => $sClientId, 'redirect_uri' => $sRedirectUri]);
 				} else if ($sGrantType === "refresh_token"){
-					$sToken = utils::ReadPostedParam('refresh_token', null, utils::ENUM_SANITIZATION_FILTER_RAW_DATA);
-
-					if (! is_null($sToken)) {
-						$olnkOauth2ApplicationToUser = Oauth2ApplicationService::GetInstance()->GetLnkOauth2ApplicationToUserByRefreshToken($sClientId, $sClientSecret, $sRedirectUri, $sToken);
+					if (! is_null($sRefreshToken)) {
+						$olnkOauth2ApplicationToUser = Oauth2ApplicationService::GetInstance()->GetLnkOauth2ApplicationToUserByRefreshToken($sClientId, $sClientSecret, $sRedirectUri, $sRefreshToken);
 
 						$iExpireIn = $this->GetExpiredInSeconds($olnkOauth2ApplicationToUser, 'refresh_token_expiration');
 						if ($iExpireIn == 0){
 							throw new TokenAuthException('Expired refresh_token', 498, null,
-								['lnk_id' => $olnkOauth2ApplicationToUser, 'application_id' => $olnkOauth2ApplicationToUser->Get('application_id')]);
+								['lnk_id' => $olnkOauth2ApplicationToUser, 'application_id' => $olnkOauth2ApplicationToUser->Get('application_id'), 'grant_type' => $sGrantType, 'client_id' => $sClientId, 'redirect_uri' => $sRedirectUri]);
 						}
 
 						Oauth2ApplicationService::GetInstance()->RenewAccessToken($olnkOauth2ApplicationToUser);
 						return $olnkOauth2ApplicationToUser;
 					}
 
-					throw new TokenAuthException('Missing Oauth2 refresh_token', 400, null, ['grant_type' => $sGrantType]);
+					throw new TokenAuthException('Missing Oauth2 refresh_token', 400, null,
+						['grant_type' => $sGrantType, 'client_id' => $sClientId, 'redirect_uri' => $sRedirectUri]);
 				}
 
-				throw new TokenAuthException('Invalid grant_type access', 400, null, ['grant_type' => $sGrantType]);
+				throw new TokenAuthException('Invalid grant_type', 400, null,
+					['grant_type' => $sGrantType, 'client_id' => $sClientId, 'redirect_uri' => $sRedirectUri]);
 			}
 
-			throw new TokenAuthException('No Oauth token found. No Oauth Bearer token provider in the header /Specific token endpoint not reached.', 400, null);
-
+			throw new TokenAuthException('No Oauth Authentication possible', 400, null, ['context_tags' => ContextTag::GetTags()]);
 		} catch(TokenAuthException $e){
 			throw $e;
 		} catch(\Exception $e){
@@ -219,35 +230,52 @@ class Oauth2AuthorizeController extends Controller
 		}
 	}
 
-	public function OperationOauth2Token(): string {
+	/**
+	 * @param $sSimulateTokenIdInSession: provided only in testing context
+	 *
+	 * @return string
+	 * @throws \ArchivedObjectException
+	 * @throws \Combodo\iTop\AuthentToken\Exception\TokenAuthException
+	 * @throws \CoreException
+	 */
+	public function OperationOauth2Token(?string $sSimulateTokenIdInSession=null): string {
 		TokenAuthLog::Enable();
 
 		//TokenLoginExtension handled whole authentication and stored token_id in the session
-		$sTokenId = Session::Get('token_id');
+		if (! is_null($sSimulateTokenIdInSession)){
+			$sTokenId = $sSimulateTokenIdInSession;
+		} else {
+			$sTokenId = Session::Get('token_id') ?? null;
+		}
+
+		if (is_null($sTokenId)){
+			throw new TokenAuthException('Missing token_id', 400);
+		}
+
 		$oLnkOauth2ApplicationToUser = \MetaModel::GetObject(lnkOauth2ApplicationToUser::class, $sTokenId);
 
 		$iExpireIn = $this->GetExpiredInSeconds($oLnkOauth2ApplicationToUser, 'access_token_expiration');
 
-		$aParams = [
+		$aResult = [
 			'access_token' => $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword(),
 			'token_type' => $oLnkOauth2ApplicationToUser->Get('token_type'),
 			'refresh_token' => $oLnkOauth2ApplicationToUser->Get('refresh_token')->GetPassword(),
 			'expires_in' => $iExpireIn,
 		];
 
-		$sJson = json_encode($aParams, JSON_PRETTY_PRINT);
-		echo $sJson;
-		return $sJson;
+		if (is_null($sSimulateTokenIdInSession)) {
+			$this->DisplayJSONPage($aResult);
+		}
+
+		return json_encode($aResult, JSON_PRETTY_PRINT);
 	}
 
 	public function OperationOauth2GetUser(): string {
 		TokenAuthLog::Enable();
 
-		$aParams = $this->GetUserFields();
-		$sJson = json_encode($aParams, JSON_PRETTY_PRINT);
-		echo $sJson;
-
-		return $sJson;
+		$aResult = $this->GetUserFields();
+		$this->DisplayJSONPage($aResult);
+		return json_encode($aResult, JSON_PRETTY_PRINT);
 	}
 
 	private function GetUserFields() : array

@@ -255,11 +255,7 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
 		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sCode, $sState);
 
-		$_SESSION = [
-			'token_id' => $oLnkOauth2ApplicationToUser->GetKey(),
-		];
-
-		$sJson = Oauth2AuthorizeController::GetInstance()->OperationOauth2Token();
+		$sJson = Oauth2AuthorizeController::GetInstance()->OperationOauth2Token($oLnkOauth2ApplicationToUser->GetKey());
 		$aJson = json_decode($sJson, true);
 		$this->assertNotEquals(false, $aJson);
 		$this->assertEquals($oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword(), $aJson['access_token'] ?? null, 'access_token');

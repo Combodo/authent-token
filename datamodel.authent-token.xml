@@ -174,17 +174,11 @@
             <item id="org_id">
               <rank>20</rank>
             </item>
-            <item id="scope">
-              <rank>30</rank>
-            </item>
             <item id="realm">
               <rank>40</rank>
             </item>
             <item id="redirect_uri">
               <rank>50</rank>
-            </item>
-            <item id="code">
-              <rank>60</rank>
             </item>
             <item id="client_id">
               <rank>70</rank>
@@ -205,9 +199,6 @@
             <item id="org_id">
               <rank>20</rank>
             </item>
-            <item id="scope">
-              <rank>30</rank>
-            </item>
             <item id="realm">
               <rank>35</rank>
             </item>
@@ -220,9 +211,6 @@
             </item>
             <item id="org_id">
               <rank>20</rank>
-            </item>
-            <item id="scope">
-              <rank>30</rank>
             </item>
             <item id="realm">
               <rank>35</rank>
@@ -452,6 +440,9 @@
                 <item id="user_id">
                   <rank>20</rank>
                 </item>
+                <item id="scope">
+                  <rank>30</rank>
+                </item>
               </items>
             </item>
             <item id="col:col2">
@@ -475,6 +466,9 @@
                 <item id="authorization_state">
                   <rank>120</rank>
                 </item>
+                <item id="code">
+                  <rank>130</rank>
+                </item>
               </items>
             </item>
           </items>
@@ -487,6 +481,9 @@
             <item id="user_id">
               <rank>20</rank>
             </item>
+            <item id="scope">
+              <rank>30</rank>
+            </item>
           </items>
         </list>
         <search>
@@ -496,6 +493,9 @@
             </item>
             <item id="user_id">
               <rank>20</rank>
+            </item>
+            <item id="scope">
+              <rank>30</rank>
             </item>
           </items>
         </search>

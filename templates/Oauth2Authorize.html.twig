@@ -4,14 +4,14 @@
 {% UIFieldSet Standard { sLegend:'AuthentToken:Oauth2:Authorize:Title'|dict_s } %}
     {% UIForm Standard {sId:"oauth2_authorize_form"} %}
         {% UIField Small { sLabel:'AuthentToken:Oauth2:Authorize:Question'|dict_format(sApplication, sScope) } %}
-            <input type="hidden" name="transaction_id" value="{{ sTransactionId }}">
-            <input type="hidden" name="application_id" value="{{ iApplicationId }}">
-            <input type="hidden" name="state" value="{{ sState }}">
-            <input type="hidden" name="scope" value="{{ sScope }}">
-            <input type="hidden" name="operation" value="DoAuthorize">
+            {% UIInput ForHidden { sName:'operation', sValue:'DoAuthorize' } %}
+            {% UIInput ForHidden { sName:'transaction_id', sValue:sTransactionId } %}
+            {% UIInput ForHidden { sName:'application_id', sValue:iApplicationId } %}
+            {% UIInput ForHidden { sName:'state', sValue:sState } %}
+            {% UIInput ForHidden { sName:'scope', sValue:sScope } %}
+
             {% UIButton ForSecondaryAction { sLabel:'AuthentToken:Oauth2:Authorize:ButtonCancel'|dict_s, sValue: 'disallow' , sName : 'decision', bIsSubmit:true } %}
             {% UIButton ForPrimaryAction { sLabel:'AuthentToken:Oauth2:Authorize:ButtonOk'|dict_s, sValue: 'allow' , sName : 'decision', bIsSubmit:true } %}
         {% EndUIField %}
-
     {% EndUIForm %}
 {% EndUIFieldSet %}

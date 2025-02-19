@@ -68,7 +68,11 @@ class AuthentTokenService {
 
 		try{
 			$oCrypt = new SimpleCrypt();
-			$sDecryptedToken = $oCrypt->Decrypt($sPrivateKey, hex2bin($sToken));
+			$sHexToBinedToken = @hex2bin($sToken);
+			if (false === $sHexToBinedToken){
+				throw new \Exception("Issue when hex2bin token");
+			}
+			$sDecryptedToken = $oCrypt->Decrypt($sPrivateKey, $sHexToBinedToken);
 			$oToken = $this->GetLegacyToken($sDecryptedToken);
 			if (! is_null($oToken)){
 				return $oToken;

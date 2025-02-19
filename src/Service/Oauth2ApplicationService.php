@@ -201,9 +201,13 @@ OQL;
 					]
 				);
 
+				//check access token has not been refreshed in the meantime
 				if ($sFetchedAccessToken === $sAccessToken) {
 					return $oLnkOauth2ApplicationToUser;
 				}
+
+				TokenAuthLog::Warning(__METHOD__. ': access_token does not match the one stored');
+				throw new TokenAuthException("Overwritten access_token used", 400, null, []);
 			}
 		} catch (Exception $e) {
 			throw new TokenAuthException("Internal Server Error", 500, $e);
@@ -228,6 +232,7 @@ OQL;
 				);
 
 				if ($sFetchedRefreshToken !== $sTokenValue) {
+					TokenAuthLog::Warning(__METHOD__. ": $sTokenField does not match the one stored");
 					throw new TokenAuthException("Overwritten $sTokenField used", 400, null, []);
 				}
 
@@ -250,7 +255,7 @@ OQL;
 			throw new TokenAuthException("Internal Server Error", 500, $e);
 		}
 
-		throw new TokenAuthException("Invalid refresh_token", 400, null, []);
+		throw new TokenAuthException("Invalid $sTokenField", 400, null, []);
 	}
 
 	public function GetLnkOauth2ApplicationToUserByRefreshToken(string $sClientId, string $sClientSecret, string $sRedirectUri, string $sRefreshToken) : lnkOauth2ApplicationToUser

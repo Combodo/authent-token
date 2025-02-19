@@ -5,8 +5,6 @@ namespace Combodo\iTop\AuthentToken\Test\Service;
 use AttributeDateTime;
 use Combodo\iTop\AuthentToken\Controller\Oauth2AuthorizeController;
 use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
-use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
-use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Model\Oauth2UserApplication;
 use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
 use Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService;
@@ -15,6 +13,7 @@ use User;
 use Oauth2Application;
 use lnkOauth2ApplicationToUser;
 use UserRights;
+use Combodo\iTop\Application\Helper\Session;
 
 class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 {
@@ -66,6 +65,7 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 
 	public function testIsOauthToken_BearerTokenPassedInHeader()
 	{
+		$_SESSION=[];
 		$aHeaders = [
 			'Authorization' => 'Bearer gabuzomeu',
 		];
@@ -73,11 +73,13 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		$this>$this->SetNonPublicProperty(Oauth2AuthorizeController::GetInstance(), 'aFakeAllHeadersForTest', $aHeaders);
 
 		$this->assertTrue(Oauth2AuthorizeController::GetInstance()->IsOauthToken());
+		$this->assertTrue(Session::Get('oauth_authentication', false));
 	}
 
 	public function testIsOauthToken_Oauth2EndPoint()
 	{
-		\ContextTag::AddContext(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT);
+		$_SESSION=[];
+		Session::Set('oauth_authentication', true);
 
 		$this->assertTrue(Oauth2AuthorizeController::GetInstance()->IsOauthToken());
 	}
@@ -137,8 +139,6 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 
 	public function testAuthenticateViaOauth_AuthorizeOk()
 	{
-		\ContextTag::AddContext(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT);
-
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
 
 		$sState = "STATE-123";
@@ -160,8 +160,6 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 
 	public function testAuthenticateViaOauth_RefreshTokenOk()
 	{
-		\ContextTag::AddContext(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT);
-
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
 
 		$sState = "STATE-123";
@@ -208,8 +206,6 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 
 	public function testAuthenticateViaOauth_ExpiredRefreshTokenOk()
 	{
-		\ContextTag::AddContext(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT);
-
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
 
 		$sState = "STATE-123";

@@ -8,7 +8,7 @@ use Exception;
 use MetaModel;
 
 
-abstract class AbstractRest extends ItopDataTestCase
+abstract class AbstractRestTest extends ItopDataTestCase
 {
 	const USE_TRANSACTION = false;
 
@@ -99,11 +99,14 @@ abstract class AbstractRest extends ItopDataTestCase
 
 		//curl_setopt($ch, CURLOPT_COOKIE, "XDEBUG_SESSION=phpstorm");
 
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $this->GetHeadersParam($sContext));
-		var_dump($this->GetHeadersParam($sContext));
+		$aHeadersParam = $this->GetHeadersParam($sContext);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $aHeadersParam);
+		echo('HeadersParam');
+		var_dump($aHeadersParam);
 		curl_setopt($ch, CURLOPT_URL, "$this->sUrl/$sUri");
 		curl_setopt($ch, CURLOPT_POST, 1);// set post data to true
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $aPostFields);
+		echo('PostFields');
 		var_dump($aPostFields);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);

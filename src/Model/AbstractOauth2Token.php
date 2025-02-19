@@ -1,13 +1,11 @@
 <?php
 
-use Combodo\iTop\Application\UI\Base\Component\Button\ButtonUIBlockFactory;
-use Combodo\iTop\Application\UI\Base\Component\Form\FormUIBlockFactory;
 use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Model\iToken;
-use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
 use Combodo\iTop\AuthentToken\Service\PersonalTokenService;
+use Combodo\iTop\Application\Helper\Session;
 
 /**
  * @copyright   Copyright (C) 2010-2024 Combodo SAS
@@ -52,46 +50,7 @@ abstract class AbstractOauth2Token extends cmdbAbstractObject  implements iToken
 
 	public function CheckValidity(string $sToken): void
 	{
-		$oUser = $this->GetUser();
-		if (! PersonalTokenService::GetInstance()->IsPersonalTokenManagementAllowed($oUser)){
-			if (MetaModel::GetConfig()->Get('login_debug')) {
-				$aProfiles = PersonalTokenService::GetInstance()->GetAuthorizedProfiles();
-				$sMessage = sprintf('Current user has not the Personal Token allowed profiles (%s).', implode(',', $aProfiles));
-				TokenAuthLog::Info($sMessage, null, $this->GetContextParams());
-			}
-			throw new TokenAuthException("No personal token allowed profile");
-		}
-
-		$oPassword = $this->Get('auth_token');
-		if (! $oPassword->CheckPassword($sToken)) {
-			if (MetaModel::GetConfig()->Get('login_debug')) {
-				TokenAuthLog::Info("Invalid token", null, $this->GetContextParams());
-			}
-			throw new TokenAuthException('Invalid token');
-		}
-
-		$sTokenValidity = $this->Get('expiration_date');
-		if (! is_null($sTokenValidity)) {
-			$oNowDateTime = new DateTime();
-			$iNowUnixSeconds = $oNowDateTime->format('U');
-
-
-			$oDateTimeFormat = new \DateTimeFormat('Y-m-d H:i:s');
-			$oLastUseDateTime = $oDateTimeFormat->Parse($sTokenValidity);
-			$iExpirationUnixSeconds = $oLastUseDateTime->format('U');
-
-			if ($iNowUnixSeconds > $iExpirationUnixSeconds) {
-				// Not valid anymore
-				if (MetaModel::GetConfig()->Get('login_debug')) {
-					TokenAuthLog::Info("Invalid token validity", null, $this->GetContextParams());
-				}
-				throw new TokenAuthException('Invalid token validity');
-			}
-		}
-
-		$this->CheckScopes();
 	}
-
 
 	/**
 	 * @return mixed
@@ -101,7 +60,7 @@ abstract class AbstractOauth2Token extends cmdbAbstractObject  implements iToken
 	 */
 	public function CheckScopes(): void
 	{
-		if (ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT)) {
+		if (Session::Get('oauth_token_endpoint', false)){
 			return;
 		}
 
@@ -129,7 +88,7 @@ abstract class AbstractOauth2Token extends cmdbAbstractObject  implements iToken
 
 	public function UpdateUsage(): void
 	{
-		if (ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT)) {
+		if (Session::Get('oauth_token_endpoint', false)){
 			return;
 		}
 
@@ -157,5 +116,4 @@ abstract class AbstractOauth2Token extends cmdbAbstractObject  implements iToken
 			MetaModel::GetConfig()->Set('secure_rest_services', false, 'auth-token');
 		}
 	}
-
 }

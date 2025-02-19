@@ -1,7 +1,7 @@
 <?php
 namespace Combodo\iTop\AuthentToken\Test\integration;
 
-require_once __DIR__.'/AbstractTokenRest.php';
+require_once __DIR__.'/AbstractTokenRestTest.php';
 
 use AbstractPersonalToken;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
@@ -20,7 +20,7 @@ use PersonalToken;
  * @preserveGlobalState disabled
  * @backupGlobals disabled
  */
-class PersonalTokenRestTest extends AbstractTokenRest
+class PersonalTokenRestTest extends AbstractTokenRestTest
 {
 	const EXPORTV2_CLI = 'webservices/export-v2.php';
 	const EXPORT_CLI = 'webservices/export.php';

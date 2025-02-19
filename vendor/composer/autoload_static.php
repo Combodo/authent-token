@@ -46,12 +46,12 @@ class ComposerStaticInit2dc5f289d4f7cd17bc210cd38fdd5ef1
         'Combodo\\iTop\\AuthentToken\\Test\\Controller\\MyAccountControllerTest' => __DIR__ . '/../..' . '/tests/php-unit-tests/Controller/MyAccountControllerTest.php',
         'Combodo\\iTop\\AuthentToken\\Test\\Service\\AuthentTokenServiceTest' => __DIR__ . '/../..' . '/tests/php-unit-tests/Service/AuthentTokenServiceTest.php',
         'Combodo\\iTop\\AuthentToken\\Test\\Service\\Oauth2ApplicationServiceTest' => __DIR__ . '/../..' . '/tests/php-unit-tests/Service/Oauth2ApplicationServiceTest.php',
-        'Combodo\\iTop\\AuthentToken\\Test\\integration\\AbstractRest' => __DIR__ . '/../..' . '/tests/php-unit-tests/integration/AbstractRest.php',
-        'Combodo\\iTop\\AuthentToken\\Test\\integration\\AbstractTokenRest' => __DIR__ . '/../..' . '/tests/php-unit-tests/integration/AbstractTokenRest.php',
+        'Combodo\\iTop\\AuthentToken\\Test\\integration\\AbstractRestTest' => __DIR__ . '/../..' . '/tests/php-unit-tests/integration/AbstractRestTest.php',
+        'Combodo\\iTop\\AuthentToken\\Test\\integration\\AbstractTokenRestTest' => __DIR__ . '/../..' . '/tests/php-unit-tests/integration/AbstractTokenRestTest.php',
         'Combodo\\iTop\\AuthentToken\\Test\\integration\\ApplicationTokenRestTest' => __DIR__ . '/../..' . '/tests/php-unit-tests/integration/ApplicationTokenRestTest.php',
         'Combodo\\iTop\\AuthentToken\\Test\\integration\\Oauth2ServerTest' => __DIR__ . '/../..' . '/tests/php-unit-tests/integration/Oauth2ServerTest.php',
         'Combodo\\iTop\\AuthentToken\\Test\\integration\\PersonalTokenRestTest' => __DIR__ . '/../..' . '/tests/php-unit-tests/integration/PersonalTokenRestTest.php',
-        'Combodo\\iTop\\AuthentToken\\Test\\integration\\Rest' => __DIR__ . '/../..' . '/tests/php-unit-tests/integration/Rest.php',
+        'Combodo\\iTop\\AuthentToken\\Test\\integration\\RestTest' => __DIR__ . '/../..' . '/tests/php-unit-tests/integration/RestTest.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
     );
 

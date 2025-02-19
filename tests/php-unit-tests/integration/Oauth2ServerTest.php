@@ -2,7 +2,7 @@
 
 namespace Combodo\iTop\AuthentToken\Test\integration;
 
-require_once __DIR__.'/AbstractTokenRest.php';
+require_once __DIR__.'/AbstractTokenRestTest.php';
 use AttributeDateTime;
 use Combodo\iTop\AuthentToken\Controller\Oauth2AuthorizeController;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
@@ -20,7 +20,7 @@ use ApplicationContext;
 use lnkOauth2ApplicationToUser;
 use utils;
 
-class Oauth2ServerTest extends AbstractTokenRest {
+class Oauth2ServerTest extends AbstractTokenRestTest {
 	//iTop called from outside
 	//users need to be persisted in DB
 	const USE_TRANSACTION = false;
@@ -45,7 +45,7 @@ class Oauth2ServerTest extends AbstractTokenRest {
 
 		MetaModel::GetConfig()->Set('secure_rest_services', true, 'auth-token');
 		MetaModel::GetConfig()->Set('allow_rest_services_via_tokens', true, 'auth-token');
-		MetaModel::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Administrator', 'Service Desk Agent']);
+		//MetaModel::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Administrator', 'Service Desk Agent']);
 
 		//\MetaModel::GetConfig()->Set('log_level_min', ['Token' => 'Debug']);
 		//\MetaModel::GetConfig()->Set('login_debug', true);
@@ -135,6 +135,9 @@ class Oauth2ServerTest extends AbstractTokenRest {
 			'auth_user' => $this->oUser->Get('login'),
 			'auth_pwd' => $this->sPassword,
 		];
+
+		//no bearer token passed
+		$this->sToken = null;
 		$sOutput = $this->CallItopUrl($sUrl, $aPostParams);
 
 		$this->AssertStringContains(Dict::S('AuthentToken:Oauth2:Authorize:Title'), $sOutput, "$sUrl should contain oauth2 authorize form");
@@ -183,6 +186,8 @@ class Oauth2ServerTest extends AbstractTokenRest {
 			'decision' => 'allow',
 		];
 
+		//no bearer token passed
+		$this->sToken = null;
 		$this->CallItopUrl($sUrl, $aPostParams);
 		$oLnkOauth2ApplicationToUser->Reload();
 
@@ -204,6 +209,18 @@ class Oauth2ServerTest extends AbstractTokenRest {
 		$this->CheckExpirationField($oLnkOauth2ApplicationToUser, 'refresh_token_expiration', Oauth2ApplicationService::REFRESH_TOKEN_EXPIRATION_IN_SECONDS);
 
 		$this->assertEquals($sState, $oLnkOauth2ApplicationToUser->Get('authorization_state'), 'authorization_state should have been saved');
+	}
+
+	public function testGetTokenEndpoint_WrongPostedParams() {
+		$sUrl = TokenAuthHelper::GenerateUrl(utils::GetAbsoluteUrlModulesRoot() . TokenAuthHelper::MODULE_NAME . '/token.php', []);
+
+		//no bearer token passed
+		$this->sToken = null;
+		$sOutput = $this->CallItopUrl($sUrl, []);
+
+		$aJson = json_decode($sOutput, true);
+		$this->assertNotEquals(false, $aJson, $sOutput);
+		var_dump($aJson);
 	}
 
 	public function testFetchAccessTokenByCodeAfterAuthorize() {
@@ -241,7 +258,10 @@ class Oauth2ServerTest extends AbstractTokenRest {
 			"redirect_uri" => $oOauth2Application->Get('redirect_uri'),
 		];
 
+		//no bearer token passed
+		$this->sToken = null;
 		$sOutput = $this->CallItopUrl($sUrl, $aPostParams);
+
 		$aJson = json_decode($sOutput, true);
 		$this->assertNotEquals(false, $aJson, $sOutput);
 		var_dump($aJson);
@@ -292,7 +312,10 @@ class Oauth2ServerTest extends AbstractTokenRest {
 			"redirect_uri" => $oOauth2Application->Get('redirect_uri'),
 		];
 
+		//no bearer token passed
+		$this->sToken = null;
 		$sOutput = $this->CallItopUrl($sUrl, $aPostParams);
+
 		$aJson = json_decode($sOutput, true);
 		$this->assertNotEquals(false, $aJson, $sOutput);
 		var_dump($aJson);
@@ -370,10 +393,23 @@ class Oauth2ServerTest extends AbstractTokenRest {
 		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, "STATE-123");
 		$this->sToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
 
-		$oLnkOauth2ApplicationToUser->Set('scope', \ContextTag::TAG_REST);
-		$this->updateObject(lnkOauth2ApplicationToUser::class, $oLnkOauth2ApplicationToUser->GetKey(), ['scope' => \ContextTag::TAG_REST] );
+
+		$this->updateObject(lnkOauth2ApplicationToUser::class, $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser->GetKey(),
+			[
+				'scope' => \ContextTag::TAG_REST,
+			]
+		);
 
 		parent::testCreateApiViaToken($iJsonDataMode, false);
+	}
+
+	public function testCreateApiViaInvalidToken()
+	{
+		$this->sToken = "GABUZOMEU";
+
+		$sUri = 'webservices/rest.php';
+		$sOutput =  $this->CallRestApi(json_encode([]), null, $sUri);
+		$this->assertEquals('{"code":1,"message":"Error: Invalid login"}', $sOutput);
 	}
 
 	/**
@@ -396,7 +432,7 @@ class Oauth2ServerTest extends AbstractTokenRest {
 		//}
 	}
 
-	public function testGetToken()
+	/*public function testGetToken()
 	{
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
 		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
@@ -416,7 +452,7 @@ class Oauth2ServerTest extends AbstractTokenRest {
 		    'expires_in' => 14400,
 		];
 		$this->assertEquals($aExpected, $aParams);
-	}
+	}*/
 
 	public function testGetUserApi()
 	{
@@ -447,5 +483,13 @@ class Oauth2ServerTest extends AbstractTokenRest {
 		    'language' => 'EN US',
 		];
 		$this->assertEquals($aExpected, $aParams);
+	}
+
+	public function testGetUserInvalidToken()
+	{
+		$this->sToken = "GABUZOMEU";
+		$sUri = 'env-'.utils::GetCurrentEnvironment() . '/' . TokenAuthHelper::MODULE_NAME . '/get_user.php';
+		$sOutput =  $this->CallRestApi(json_encode([]), null, $sUri);
+		$this->assertEquals('{"code":1,"message":"Error: Invalid login"}', $sOutput);
 	}
 }

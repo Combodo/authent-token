@@ -2,7 +2,7 @@
 
 namespace Combodo\iTop\AuthentToken\Test\integration;
 
-require_once __DIR__.'/AbstractTokenRest.php';
+require_once __DIR__.'/AbstractTokenRestTest.php';
 
 use Combodo\iTop\AuthentToken\Hook\TokenLoginExtension;
 use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
@@ -23,7 +23,7 @@ use UserToken;
  * @preserveGlobalState disabled
  * @backupGlobals disabled
  */
-class ApplicationTokenRestTest extends AbstractTokenRest
+class ApplicationTokenRestTest extends AbstractTokenRestTest
 {
 	protected $sToken;
 

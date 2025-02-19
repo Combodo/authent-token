@@ -137,12 +137,13 @@ class Oauth2AuthorizeController extends Controller
 	}
 
 	public function IsOauthToken() : bool {
-		$sBearerToken = $this->GetBearerToken();
-		if (! is_null($sBearerToken)) {
+		if (Session::Get('oauth_authentication', false)) {
 			return true;
 		}
 
-		if (ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT)) {
+		$sBearerToken = $this->GetBearerToken();
+		if (! is_null($sBearerToken)) {
+			Session::Set('oauth_authentication', true);
 			return true;
 		}
 
@@ -173,55 +174,52 @@ class Oauth2AuthorizeController extends Controller
 				return $olnkOauth2ApplicationToUser;
 			}
 
-			if (ContextTag::Check(TokenAuthHelper::TAG_OAUTH2_TOKEN_ENDPOINT)) {
-				$sClientId = utils::ReadPostedParam('client_id', null, utils::ENUM_SANITIZATION_FILTER_STRING);
-				$sClientSecret = utils::ReadPostedParam('client_secret', null, utils::ENUM_SANITIZATION_FILTER_STRING);
-				$sGrantType = utils::ReadPostedParam('grant_type', null, utils::ENUM_SANITIZATION_FILTER_STRING);
-				$sRedirectUri = utils::ReadPostedParam('redirect_uri', null, utils::ENUM_SANITIZATION_FILTER_URL);
-				$sCode = utils::ReadPostedParam('code', null, utils::ENUM_SANITIZATION_FILTER_RAW_DATA);
-				$sRefreshToken = utils::ReadPostedParam('refresh_token', null, utils::ENUM_SANITIZATION_FILTER_RAW_DATA);
+			$sClientId = utils::ReadPostedParam('client_id', null, utils::ENUM_SANITIZATION_FILTER_STRING);
+			$sClientSecret = utils::ReadPostedParam('client_secret', null, utils::ENUM_SANITIZATION_FILTER_STRING);
+			$sGrantType = utils::ReadPostedParam('grant_type', null, utils::ENUM_SANITIZATION_FILTER_STRING);
+			$sRedirectUri = utils::ReadPostedParam('redirect_uri', null, utils::ENUM_SANITIZATION_FILTER_URL);
+			$sCode = utils::ReadPostedParam('code', null, utils::ENUM_SANITIZATION_FILTER_RAW_DATA);
+			$sRefreshToken = utils::ReadPostedParam('refresh_token', null, utils::ENUM_SANITIZATION_FILTER_RAW_DATA);
 
-				TokenAuthLog::Debug("Oauth2 authentication parameters", null,
-					[
-						'code' => $sCode,
-						'grant_type' => $sGrantType,
-						'client_id' => $sClientId,
-						'client_secret' => $sClientSecret,
-						'refresh_token' => $sRefreshToken,
-						'redirect_uri' => $sRedirectUri,
-					]
-				);
+			TokenAuthLog::Debug("Oauth2 authentication parameters", null,
+				[
+					'code' => $sCode,
+					'grant_type' => $sGrantType,
+					'client_id' => $sClientId,
+					'client_secret' => $sClientSecret,
+					'refresh_token' => $sRefreshToken,
+					'redirect_uri' => $sRedirectUri,
+				]
+			);
 
-				if ($sGrantType === "authorization_code"){
-					if (! is_null($sCode)) {
-						return Oauth2ApplicationService::GetInstance()->GetLnkOauth2ApplicationToUserByCode($sClientId, $sClientSecret, $sRedirectUri, $sCode);
-					}
-
-					throw new TokenAuthException('Missing Oauth2 code', 400, null,
-						['grant_type' => $sGrantType, 'client_id' => $sClientId, 'redirect_uri' => $sRedirectUri]);
-				} else if ($sGrantType === "refresh_token"){
-					if (! is_null($sRefreshToken)) {
-						$olnkOauth2ApplicationToUser = Oauth2ApplicationService::GetInstance()->GetLnkOauth2ApplicationToUserByRefreshToken($sClientId, $sClientSecret, $sRedirectUri, $sRefreshToken);
-
-						$iExpireIn = $this->GetExpiredInSeconds($olnkOauth2ApplicationToUser, 'refresh_token_expiration');
-						if ($iExpireIn == 0){
-							throw new TokenAuthException('Expired refresh_token', 498, null,
-								['lnk_id' => $olnkOauth2ApplicationToUser, 'application_id' => $olnkOauth2ApplicationToUser->Get('application_id'), 'grant_type' => $sGrantType, 'client_id' => $sClientId, 'redirect_uri' => $sRedirectUri]);
-						}
-
-						Oauth2ApplicationService::GetInstance()->RenewAccessToken($olnkOauth2ApplicationToUser);
-						return $olnkOauth2ApplicationToUser;
-					}
-
-					throw new TokenAuthException('Missing Oauth2 refresh_token', 400, null,
-						['grant_type' => $sGrantType, 'client_id' => $sClientId, 'redirect_uri' => $sRedirectUri]);
+			if ($sGrantType === "authorization_code"){
+				if (! is_null($sCode)) {
+					return Oauth2ApplicationService::GetInstance()->GetLnkOauth2ApplicationToUserByCode($sClientId, $sClientSecret, $sRedirectUri, $sCode);
 				}
 
-				throw new TokenAuthException('Invalid grant_type', 400, null,
+				throw new TokenAuthException('Missing Oauth2 code', 400, null,
 					['grant_type' => $sGrantType, 'client_id' => $sClientId, 'redirect_uri' => $sRedirectUri]);
+			} else if ($sGrantType === "refresh_token"){
+				if (! is_null($sRefreshToken)) {
+					$olnkOauth2ApplicationToUser = Oauth2ApplicationService::GetInstance()->GetLnkOauth2ApplicationToUserByRefreshToken($sClientId, $sClientSecret, $sRedirectUri, $sRefreshToken);
+
+					$iExpireIn = $this->GetExpiredInSeconds($olnkOauth2ApplicationToUser, 'refresh_token_expiration');
+					if ($iExpireIn == 0){
+						throw new TokenAuthException('Expired refresh_token', 498, null,
+							['lnk_id' => $olnkOauth2ApplicationToUser, 'application_id' => $olnkOauth2ApplicationToUser->Get('application_id'), 'grant_type' => $sGrantType, 'client_id' => $sClientId, 'redirect_uri' => $sRedirectUri]);
+					}
+
+					Oauth2ApplicationService::GetInstance()->RenewAccessToken($olnkOauth2ApplicationToUser);
+					return $olnkOauth2ApplicationToUser;
+				}
+
+				throw new TokenAuthException('Missing Oauth2 refresh_token', 400, null,
+					['grant_type' => $sGrantType, 'client_id' => $sClientId, 'redirect_uri' => $sRedirectUri]);
+
 			}
 
-			throw new TokenAuthException('No Oauth Authentication possible', 400, null, ['context_tags' => ContextTag::GetTags()]);
+			throw new TokenAuthException('Invalid grant_type', 400, null,
+				['grant_type' => $sGrantType, 'client_id' => $sClientId, 'redirect_uri' => $sRedirectUri]);
 		} catch(TokenAuthException $e){
 			throw $e;
 		} catch(\Exception $e){

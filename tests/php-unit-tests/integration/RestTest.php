@@ -1,10 +1,12 @@
 <?php
 namespace Combodo\iTop\AuthentToken\Test\integration;
 
-require_once __DIR__.'/AbstractRest.php';
+require_once __DIR__.'/AbstractRestTest.php';
 
 use Combodo\iTop\AuthentToken\Test\Exception;
 use MetaModel;
+use Combodo\iTop\Test\UnitTest\ItopDataTestCase;
+
 
 /**
  * @group itopRequestMgmt
@@ -15,7 +17,7 @@ use MetaModel;
  * @preserveGlobalState disabled
  * @backupGlobals disabled
  */
-class Rest extends AbstractRest
+class RestTest extends AbstractRestTest
 {
 	/**
 	 * @throws Exception
@@ -23,17 +25,16 @@ class Rest extends AbstractRest
 	protected function setUp(): void {
 		parent::setUp();
 
-		$oRestProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'REST Services User'),
-			true);
 
-		if (is_object($this->oUser)) {
-			if (is_object($oRestProfile)) {
-				$this->AddProfileToUser($this->oUser, $oRestProfile->GetKey());
-			} else {
-				MetaModel::GetConfig()->Set('secure_rest_services', false, 'auth-token');
-				MetaModel::GetConfig()->WriteToFile();
-			}
-		}
+		clearstatcache();
+
+		/** @var \User oUser */
+		$this->oUser = $this->CreateContactlessUser($this->sLogin,
+			ItopDataTestCase::$aURP_Profiles['Administrator'],
+			$this->sPassword
+		);
+
+		$this->AddProfileToUser($this->oUser, ItopDataTestCase::$aURP_Profiles['REST Services User']);
 	}
 
 	protected function GetPostParameters($sContext=null){

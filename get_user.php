@@ -8,6 +8,7 @@
 use Combodo\iTop\AuthentToken\Controller\Oauth2AuthorizeController;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
+use Combodo\iTop\Application\Helper\Session;
 
 require_once('../../approot.inc.php');
 require_once(APPROOT.'bootstrap.inc.php');
@@ -17,9 +18,18 @@ TokenAuthLog::Enable();
 $oP = new JsonPage();
 
 $oCtx = new ContextTag(TokenAuthHelper::TAG_OAUTH2_GETUSER_ENDPOINT);
-$oCtx = new ContextTag(ContextTag::TAG_REST);
-LoginWebPage::DoLogin();
 
-$oController = new Oauth2AuthorizeController(__DIR__.'/templates', TokenAuthHelper::MODULE_NAME);
-$oController->SetDefaultOperation('Oauth2GetUser');
-$oController->HandleOperation();
+LoginWebPage::ResetSession(true);
+$iRet = LoginWebPage::DoLogin(false, false, LoginWebPage::EXIT_RETURN);
+
+if ($iRet === LoginWebPage::EXIT_CODE_OK) {
+	$oController = new Oauth2AuthorizeController(__DIR__.'/templates', TokenAuthHelper::MODULE_NAME);
+	$oController->SetDefaultOperation('Oauth2GetUser');
+	$oController->HandleOperation();
+} else {
+	$oP = new JsonPage();
+	$oP->add_header('Access-Control-Allow-Origin: *');
+	$oP->SetData(['code' => $iRet]);
+	$oP->SetOutputDataOnly(true);
+	$oP->Output();
+}

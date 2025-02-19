@@ -11,7 +11,6 @@ use Combodo\iTop\AuthentToken\Helper\TokenAuthConfig;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Model\iToken;
 use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
-use Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService;
 use LoginWebPage;
 use MetaModel;
 use utils;
@@ -30,8 +29,6 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 	const SUPPORTED_LOGIN_MODES = [ self::LOGIN_TYPE , self::LEGACY_LOGIN_TYPE ];
 	// Avoid saving token into the session, keep it in memory
 	private static $sAuthToken = '';
-
-	private static $bIsOauthToken = false;
 
 	public function __construct()
 	{
@@ -69,10 +66,7 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 			return LoginWebPage::LOGIN_FSM_CONTINUE;
 		}
 
-		if (Oauth2AuthorizeController::GetInstance()->IsOauthToken()) {
-			self::$bIsOauthToken = true;
-			Session::Set('oauth_authentication', true);
-		} else {
+		if (! Oauth2AuthorizeController::GetInstance()->IsOauthToken()) {
 			if (isset($_SERVER['HTTP_AUTH_TOKEN'])) {
 				self::$sAuthToken = $_SERVER['HTTP_AUTH_TOKEN'];
 			} else {
@@ -82,7 +76,7 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 
 		$sSessionLoginMode = Session::Get('login_mode');
 		// Note: We don't use \utils::IsNullOrEmptyString() as it is not available in iTop 2.7
-		if (! self::$bIsOauthToken && strlen(self::$sAuthToken ?? '') === 0)
+		if (! Session::Get('oauth_authentication', false) && strlen(self::$sAuthToken ?? '') === 0)
 		{
 			if ($this->IsLoginModeSupported($sSessionLoginMode)){
 				//login_mode forced and no token. exit to stop login automata
@@ -116,7 +110,7 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 		if ($this->IsLoginModeSupported(Session::Get('login_mode')))
 		{
 			try{
-				if (self::$bIsOauthToken){
+				if (Session::Get('oauth_authentication', false)){
 					$oToken = Oauth2AuthorizeController::GetInstance()->AuthenticateViaOauth();
 				} else {
 					$oToken = self::GetToken(self::$sAuthToken);
@@ -127,6 +121,7 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 				TokenAuthLog::Error("OnCheckCredentials: " . $e->getMessage());
 				Session::Unset('token_id');
 				Session::Unset('oauth_authentication');
+				Session::Unset('oauth_token_endpoint');
 				Session::Unset('token_class');
 
 				$iErrorCode = LoginWebPage::EXIT_CODE_WRONGCREDENTIALS;

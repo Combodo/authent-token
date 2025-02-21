@@ -29,7 +29,7 @@ if ($iRet === LoginWebPage::EXIT_CODE_OK) {
 } else {
 	$oP = new JsonPage();
 	$oP->add_header('Access-Control-Allow-Origin: *');
-	$oP->SetData(['code' => $iRet]);
+	$oP->SetData(['code' => $iRet, "message" => "Error: Invalid authentication"]);
 	$oP->SetOutputDataOnly(true);
 	$oP->Output();
 }

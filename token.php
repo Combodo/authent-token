@@ -27,6 +27,8 @@ if ($iRet === LoginWebPage::EXIT_CODE_OK) {
 	$oController->SetDefaultOperation('Oauth2Token');
 	$oController->HandleOperation();
 } else {
+	$iHttpCode = Session::Get('oauth_http_errorcode', 200);
+	http_response_code($iHttpCode);
 	$oP = new JsonPage();
 	$oP->add_header('Access-Control-Allow-Origin: *');
 	$oP->SetData(['code' => $iRet]);

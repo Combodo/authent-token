@@ -137,6 +137,8 @@ class Oauth2AuthorizeController extends Controller
 	}
 
 	public function IsOauthToken() : bool {
+		Session::Unset('oauth_http_errorcode');
+
 		if (Session::Get('oauth_authentication', false)) {
 			return true;
 		}
@@ -221,8 +223,10 @@ class Oauth2AuthorizeController extends Controller
 			throw new TokenAuthException('Invalid grant_type', 400, null,
 				['grant_type' => $sGrantType, 'client_id' => $sClientId, 'redirect_uri' => $sRedirectUri]);
 		} catch(TokenAuthException $e){
+			Session::Set('oauth_http_errorcode', $e->getCode());
 			throw $e;
 		} catch(\Exception $e){
+			Session::Set('oauth_http_errorcode', 500);
 			throw new TokenAuthException('invalid_token', 500, $e);
 		}
 	}

@@ -1,10 +1,8 @@
 <?php
 
 use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
-use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Model\iToken;
-use Combodo\iTop\AuthentToken\Service\PersonalTokenService;
 use Combodo\iTop\Application\Helper\Session;
 
 /**
@@ -18,23 +16,28 @@ abstract class AbstractOauth2Token extends cmdbAbstractObject  implements iToken
 
 	public function GetUser() : \User
 	{
-		/** @var \User $oUser */
-		$oUser = MetaModel::GetObject(\User::class, $this->Get('user_id'));
-		$this->aContext = [
-			'token' => get_class($this),
-			'token_id' => $this->GetKey(),
-			'user_class' => get_class($oUser),
-			'user_id' => $oUser->GetKey(),
-			'login' => $oUser->Get('login'),
-		];
+		try {
+			/** @var \User $oUser */
+			$oUser = MetaModel::GetObject(\User::class, $this->Get('user_id'));
+			$this->aContext = [
+				'token' => get_class($this),
+				'token_id' => $this->GetKey(),
+				'user_class' => get_class($oUser),
+				'user_id' => $oUser->GetKey(),
+				'login' => $oUser->Get('login'),
+			];
 
-		if (MetaModel::GetConfig()->Get('login_debug')) {
-			TokenAuthLog::Info("GetUser", null,
-				$this->aContext
-			);
+			if (MetaModel::GetConfig()->Get('login_debug')) {
+				TokenAuthLog::Info("GetUser", null,
+					$this->aContext
+				);
+			}
+
+			return $oUser;
+		} catch(\Exception $e){
+			Session::Set('oauth_http_errorcode', 401);
+			throw new TokenAuthException("GetUser issue", 401, $e);
 		}
-
-		return $oUser;
 	}
 
 	private function GetContextParams() : array {
@@ -82,7 +85,8 @@ abstract class AbstractOauth2Token extends cmdbAbstractObject  implements iToken
 			);
 		}
 
-		throw new TokenAuthException('Scope not authorized');
+		Session::Set('oauth_http_errorcode', 403);
+		throw new TokenAuthException('Scope not authorized', 403);
 	}
 
 

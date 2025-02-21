@@ -103,6 +103,7 @@ class Oauth2ServerTest extends AbstractTokenRestTest {
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 		$sOutput = curl_exec($ch);
+		$this->iHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
 		//echo "$sUrl curl_error:".curl_error($ch);
 		//echo "$sUrl curl_errno:".curl_errno($ch);
@@ -144,6 +145,7 @@ class Oauth2ServerTest extends AbstractTokenRestTest {
 		$this->AssertStringContains(Dict::S('AuthentToken:Oauth2:Authorize:Title'), $sOutput, "$sUrl should contain oauth2 authorize form");
 		$this->AssertStringContains($sState, $sOutput, "$sUrl should contain provided state");
 		$this->AssertStringContains($sScope, $sOutput, "$sUrl should contain provided scope");
+		$this->assertEquals(200, $this->iHttpCode);
 	}
 
 	public function testDoAuthorizeOk() {
@@ -189,7 +191,9 @@ class Oauth2ServerTest extends AbstractTokenRestTest {
 
 		//no bearer token passed
 		$this->sToken = null;
-		$this->CallItopUrl($sUrl, $aPostParams);
+		$sOutput = $this->CallItopUrl($sUrl, $aPostParams);
+		$this->assertEquals(200, $this->iHttpCode, "Calling DoAuthorizeOk failed");
+
 		$oLnkOauth2ApplicationToUser->Reload();
 
 		foreach ($aEmptyFields as $sField){
@@ -218,6 +222,7 @@ class Oauth2ServerTest extends AbstractTokenRestTest {
 		//no bearer token passed
 		$this->sToken = null;
 		$sOutput = $this->CallItopUrl($sUrl, []);
+		$this->assertEquals(400, $this->iHttpCode);
 
 		$aJson = json_decode($sOutput, true);
 		$this->assertNotEquals(false, $aJson, $sOutput);
@@ -262,6 +267,7 @@ class Oauth2ServerTest extends AbstractTokenRestTest {
 		//no bearer token passed
 		$this->sToken = null;
 		$sOutput = $this->CallItopUrl($sUrl, $aPostParams);
+		$this->assertEquals(200, $this->iHttpCode);
 
 		$aJson = json_decode($sOutput, true);
 		$this->assertNotEquals(false, $aJson, $sOutput);
@@ -316,6 +322,7 @@ class Oauth2ServerTest extends AbstractTokenRestTest {
 		//no bearer token passed
 		$this->sToken = null;
 		$sOutput = $this->CallItopUrl($sUrl, $aPostParams);
+		$this->assertEquals(200, $this->iHttpCode);
 
 		$aJson = json_decode($sOutput, true);
 		$this->assertNotEquals(false, $aJson, $sOutput);
@@ -492,5 +499,6 @@ class Oauth2ServerTest extends AbstractTokenRestTest {
 		$sUri = 'env-'.utils::GetCurrentEnvironment() . '/' . TokenAuthHelper::MODULE_NAME . '/get_user.php';
 		$sOutput =  $this->CallRestApi(json_encode([]), null, $sUri);
 		$this->assertEquals(sprintf('{"code":%s,"message":"Error: Invalid authentication"}', \LoginWebPage::EXIT_CODE_WRONGCREDENTIALS), $sOutput);
+		$this->assertEquals(400, $this->iHttpCode);
 	}
 }

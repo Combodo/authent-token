@@ -26,6 +26,7 @@ abstract class AbstractRestTest extends ItopDataTestCase
 	protected $sOrgName;
 	protected $sOrgId;
 	protected string $sUniqId;
+	protected int $iHttpCode;
 
 	/**
 	 * @throws Exception
@@ -45,6 +46,7 @@ abstract class AbstractRestTest extends ItopDataTestCase
 		$this->sLogin = "rest-user-".$this->sUniqId;
 		$this->sOrgName = "Org-$this->sUniqId";
 		$this->sOrgId = $this->CreateOrganization($this->sOrgName)->GetKey();
+		$this->iHttpCode=-1;
 
 		if (0 !== strlen($this->sTmpFile)) {
 			unlink($this->sTmpFile);
@@ -115,6 +117,8 @@ abstract class AbstractRestTest extends ItopDataTestCase
 		if (curl_errno($ch)) {
 			echo 'Curl error: '.curl_error($ch);
 		}
+
+		$this->iHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 		curl_close($ch);
 
 		return $sJson;

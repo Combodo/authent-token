@@ -10,6 +10,9 @@ use MetaModel;
 
 class TokenAuthConfig
 {
+	const OAUTH2_ACCESS_TOKEN_EXPIRATION_IN_SECONDS = 4 * 3600; // 4 hours
+	const OAUTH2_REFRESH_TOKEN_EXPIRATION_IN_SECONDS = 6 * 30 * 24 * 3600; // 6 months
+
 	private static TokenAuthConfig $oInstance;
 
 	private function __construct()
@@ -48,5 +51,14 @@ class TokenAuthConfig
 		return $res;
 	}
 
+	public function GetAccessTokenRetentionInSeconds() : int {
+		return (int) TokenAuthConfig::GetInstance()->Get(strtolower('OAUTH2_ACCESS_TOKEN_EXPIRATION_IN_SECONDS'), null,
+			self::OAUTH2_ACCESS_TOKEN_EXPIRATION_IN_SECONDS);
+	}
+
+	public function GetRefreshTokenRetentionInSeconds() : int {
+		return (int) TokenAuthConfig::GetInstance()->Get(strtolower('OAUTH2_REFRESH_TOKEN_EXPIRATION_IN_SECONDS'), null,
+			self::OAUTH2_REFRESH_TOKEN_EXPIRATION_IN_SECONDS);
+	}
 
 }

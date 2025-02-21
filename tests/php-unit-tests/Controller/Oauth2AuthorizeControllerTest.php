@@ -5,6 +5,7 @@ namespace Combodo\iTop\AuthentToken\Test\Service;
 use AttributeDateTime;
 use Combodo\iTop\AuthentToken\Controller\Oauth2AuthorizeController;
 use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
+use Combodo\iTop\AuthentToken\Helper\TokenAuthConfig;
 use Combodo\iTop\AuthentToken\Model\Oauth2UserApplication;
 use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
 use Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService;
@@ -198,7 +199,7 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		$this->assertNotEquals($sOldAccessToken, $sNewAccessToken, "refresh_token should have changed");
 
 		$iAccessTokenExpiredIn = Oauth2AuthorizeController::GetInstance()->GetExpiredInSeconds($oFoundLnkOauth2ApplicationToUser, 'access_token_expiration');
-		$this->assertTrue($iAccessTokenExpiredIn + 5 > Oauth2ApplicationService::ACCESS_TOKEN_EXPIRATION_IN_SECONDS, "(modulo 5s) $iAccessTokenExpiredIn  . > ".Oauth2ApplicationService::ACCESS_TOKEN_EXPIRATION_IN_SECONDS);
+		$this->assertTrue($iAccessTokenExpiredIn + 5 > TokenAuthConfig::OAUTH2_ACCESS_TOKEN_EXPIRATION_IN_SECONDS, "(modulo 5s) $iAccessTokenExpiredIn  . > ".TokenAuthConfig::OAUTH2_ACCESS_TOKEN_EXPIRATION_IN_SECONDS);
 
 		$this->assertNotNull(AuthentTokenService::GetInstance()->DecryptToken($sNewAccessToken), "renewed access token should work to fetch Oauth2 token again afterwhile");
 
@@ -253,7 +254,7 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		$this->assertEquals($oLnkOauth2ApplicationToUser->Get('token_type'), $aJson['token_type'] ?? null, 'token_type');
 
 		$iAccessTokenExpiredIn = Oauth2AuthorizeController::GetInstance()->GetExpiredInSeconds($oLnkOauth2ApplicationToUser, 'access_token_expiration');
-		$this->assertTrue($iAccessTokenExpiredIn + 5 > Oauth2ApplicationService::ACCESS_TOKEN_EXPIRATION_IN_SECONDS, "(modulo 5s) $iAccessTokenExpiredIn  . > ".Oauth2ApplicationService::ACCESS_TOKEN_EXPIRATION_IN_SECONDS);
+		$this->assertTrue($iAccessTokenExpiredIn + 5 > TokenAuthConfig::OAUTH2_ACCESS_TOKEN_EXPIRATION_IN_SECONDS, "(modulo 5s) $iAccessTokenExpiredIn  . > ".TokenAuthConfig::OAUTH2_ACCESS_TOKEN_EXPIRATION_IN_SECONDS);
 	}
 
 	public static function GetExpiredInSecondsProvider()

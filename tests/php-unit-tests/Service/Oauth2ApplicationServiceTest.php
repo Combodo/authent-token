@@ -5,6 +5,7 @@ namespace Combodo\iTop\AuthentToken\Test\Service;
 use AttributeDateTime;
 use Combodo\iTop\AuthentToken\Controller\Oauth2AuthorizeController;
 use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
+use Combodo\iTop\AuthentToken\Helper\TokenAuthConfig;
 use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
 use Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService;
 use Combodo\iTop\Test\UnitTest\ItopDataTestCase;
@@ -124,10 +125,10 @@ class Oauth2ApplicationServiceTest extends ItopDataTestCase {
 		$this->assertNotEmpty($sAccessToken);
 
 		$iAccessTokenExpiredIn = Oauth2AuthorizeController::GetInstance()->GetExpiredInSeconds($oLnkOauth2ApplicationToUser, 'access_token_expiration');
-		$this->assertTrue($iAccessTokenExpiredIn + 5 > Oauth2ApplicationService::ACCESS_TOKEN_EXPIRATION_IN_SECONDS, "(modulo 5s) $iAccessTokenExpiredIn  . > " . Oauth2ApplicationService::ACCESS_TOKEN_EXPIRATION_IN_SECONDS);
+		$this->assertTrue($iAccessTokenExpiredIn + 5 > TokenAuthConfig::OAUTH2_ACCESS_TOKEN_EXPIRATION_IN_SECONDS, "(modulo 5s) $iAccessTokenExpiredIn  . > " . TokenAuthConfig::OAUTH2_ACCESS_TOKEN_EXPIRATION_IN_SECONDS);
 
 		$iRefreshTokenExpiredIn = Oauth2AuthorizeController::GetInstance()->GetExpiredInSeconds($oLnkOauth2ApplicationToUser, 'refresh_token_expiration');
-		$this->assertTrue($iRefreshTokenExpiredIn + 5 > Oauth2ApplicationService::REFRESH_TOKEN_EXPIRATION_IN_SECONDS, "(modulo 5s) $iRefreshTokenExpiredIn > " . Oauth2ApplicationService::REFRESH_TOKEN_EXPIRATION_IN_SECONDS);
+		$this->assertTrue($iRefreshTokenExpiredIn + 5 > TokenAuthConfig::OAUTH2_REFRESH_TOKEN_EXPIRATION_IN_SECONDS, "(modulo 5s) $iRefreshTokenExpiredIn > " . TokenAuthConfig::OAUTH2_REFRESH_TOKEN_EXPIRATION_IN_SECONDS);
 
 		$this->assertNotNull(AuthentTokenService::GetInstance()->DecryptToken($sRefreshToken), "refresh token should work to fetch Oauth2 token again afterwhile");
 		$this->assertNotNull(AuthentTokenService::GetInstance()->DecryptToken($sAccessToken), "access token should work to fetch Oauth2 token again afterwhile");
@@ -158,7 +159,7 @@ class Oauth2ApplicationServiceTest extends ItopDataTestCase {
 		$this->assertNotEquals($sOldAccessToken, $sAccessToken);
 
 		$iAccessTokenExpiredIn = Oauth2AuthorizeController::GetInstance()->GetExpiredInSeconds($oLnkOauth2ApplicationToUser, 'access_token_expiration');
-		$this->assertTrue($iAccessTokenExpiredIn + 5 > Oauth2ApplicationService::ACCESS_TOKEN_EXPIRATION_IN_SECONDS, "(modulo 5s) $iAccessTokenExpiredIn  . > " . Oauth2ApplicationService::ACCESS_TOKEN_EXPIRATION_IN_SECONDS);
+		$this->assertTrue($iAccessTokenExpiredIn + 5 > TokenAuthConfig::OAUTH2_ACCESS_TOKEN_EXPIRATION_IN_SECONDS, "(modulo 5s) $iAccessTokenExpiredIn  . > " . TokenAuthConfig::OAUTH2_ACCESS_TOKEN_EXPIRATION_IN_SECONDS);
 
 		$this->assertNotNull(AuthentTokenService::GetInstance()->DecryptToken($sAccessToken), "access token should work to fetch Oauth2 token again afterwhile");
 

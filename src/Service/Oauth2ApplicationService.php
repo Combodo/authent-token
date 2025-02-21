@@ -3,6 +3,7 @@
 namespace Combodo\iTop\AuthentToken\Service;
 
 use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
+use Combodo\iTop\AuthentToken\Helper\TokenAuthConfig;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Model\Oauth2UserApplication;
@@ -19,11 +20,6 @@ use AttributeDateTime;
 use DateTime;
 
 class Oauth2ApplicationService {
-	const CONSENT = "OAUTH2_SERVER_CONSENT";
-	const APPLICATION_ID = "OAUTH2_SERVER_APP_ID";
-	const ACCESS_TOKEN_EXPIRATION_IN_SECONDS = 4 * 3600; // 4 hours
-	const REFRESH_TOKEN_EXPIRATION_IN_SECONDS = 6 * 30 * 24 * 3600; // 6 months
-
 	private static Oauth2ApplicationService $oInstance;
 
 	protected function __construct()
@@ -161,10 +157,10 @@ OQL;
 		$oLnkOauth2ApplicationToUser->Set('refresh_token', Oauth2ApplicationService::GetInstance()->GenerateToken($oLnkOauth2ApplicationToUser));
 		$oLnkOauth2ApplicationToUser->Set('access_token', Oauth2ApplicationService::GetInstance()->GenerateToken($oLnkOauth2ApplicationToUser));
 
-		$sExpireAt = date(AttributeDateTime::GetSQLFormat(), time() + self::ACCESS_TOKEN_EXPIRATION_IN_SECONDS);
+		$sExpireAt = date(AttributeDateTime::GetSQLFormat(), time() + TokenAuthConfig::GetInstance()->GetAccessTokenRetentionInSeconds());
 		$oLnkOauth2ApplicationToUser->Set('access_token_expiration', $sExpireAt);
 
-		$sExpireAt = date(AttributeDateTime::GetSQLFormat(), time() + self::REFRESH_TOKEN_EXPIRATION_IN_SECONDS);
+		$sExpireAt = date(AttributeDateTime::GetSQLFormat(), time() + TokenAuthConfig::GetInstance()->GetRefreshTokenRetentionInSeconds());
 		$oLnkOauth2ApplicationToUser->Set('refresh_token_expiration', $sExpireAt);
 
 		$oLnkOauth2ApplicationToUser->AllowWrite();
@@ -178,7 +174,7 @@ OQL;
 		$sNewAccessToken = Oauth2ApplicationService::GetInstance()->GenerateToken($oLnkOauth2ApplicationToUser);
 		$oLnkOauth2ApplicationToUser->Set('access_token', $sNewAccessToken);
 
-		$sExpireAt = date(AttributeDateTime::GetSQLFormat(), time() + self::ACCESS_TOKEN_EXPIRATION_IN_SECONDS);
+		$sExpireAt = date(AttributeDateTime::GetSQLFormat(), time() + TokenAuthConfig::GetInstance()->GetAccessTokenRetentionInSeconds());
 		$oLnkOauth2ApplicationToUser->Set('access_token_expiration', $sExpireAt);
 
 		$oLnkOauth2ApplicationToUser->AllowWrite();

@@ -67,6 +67,9 @@
             <value id="Export">
               <code>Export</code>
             </value>
+            <value id="Cron">
+              <code>CRON</code>
+            </value>
           </values>
           <sql>scope</sql>
           <default_value>WebService</default_value>
@@ -242,6 +245,9 @@
             </value>
             <value id="Export">
               <code>Export</code>
+            </value>
+            <value id="Cron">
+              <code>CRON</code>
             </value>
           </values>
           <sql>scope</sql>

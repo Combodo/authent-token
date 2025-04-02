@@ -5,14 +5,18 @@ namespace Combodo\iTop\AuthentToken\Controller;
 use AttributeDateTime;
 use Combodo\iTop\Application\Helper\Session;
 use Combodo\iTop\Application\TwigBase\Controller\Controller;
+use Combodo\iTop\Application\UI\Base\Component\Button\ButtonUIBlockFactory;
+use Combodo\iTop\Application\WebPage\WebPage;
 use Combodo\iTop\AuthentToken\Exception\TokenAuthException;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService;
+use Combodo\iTop\Oauth2Client\Helper\Oauth2ClientHelper;
 use ContextTag;
 use DateTime;
 use Dict;
 use Exception;
+use iTopStandardURLMaker;
 use Oauth2Application;
 use lnkOauth2ApplicationToUser;
 use utils;
@@ -178,23 +182,20 @@ class Oauth2AuthorizeController extends Controller
 
 			$sClientId = utils::ReadPostedParam('client_id', null, utils::ENUM_SANITIZATION_FILTER_STRING);
 			$sClientSecret = utils::ReadPostedParam('client_secret', null, utils::ENUM_SANITIZATION_FILTER_STRING);
+			$sReponseType = utils::ReadPostedParam('response_type', null, utils::ENUM_SANITIZATION_FILTER_STRING);
 			$sGrantType = utils::ReadPostedParam('grant_type', null, utils::ENUM_SANITIZATION_FILTER_STRING);
 			$sRedirectUri = utils::ReadPostedParam('redirect_uri', null, utils::ENUM_SANITIZATION_FILTER_URL);
-			$sCode = utils::ReadPostedParam('code', null, utils::ENUM_SANITIZATION_FILTER_RAW_DATA);
-			$sRefreshToken = utils::ReadPostedParam('refresh_token', null, utils::ENUM_SANITIZATION_FILTER_RAW_DATA);
-
-			TokenAuthLog::Debug("Oauth2 authentication parameters", null,
-				[
-					'code' => $sCode,
-					'grant_type' => $sGrantType,
-					'client_id' => $sClientId,
-					'client_secret' => $sClientSecret,
-					'refresh_token' => $sRefreshToken,
-					'redirect_uri' => $sRedirectUri,
-				]
-			);
-
 			if ($sGrantType === "authorization_code"){
+				$sCode = utils::ReadPostedParam('code', null, utils::ENUM_SANITIZATION_FILTER_RAW_DATA);
+				TokenAuthLog::Debug("Oauth2 authorization_code parameters", null,
+					[
+						'code' => $sCode,
+						'client_id' => $sClientId,
+						'client_secret' => $sClientSecret,
+						'redirect_uri' => $sRedirectUri,
+					]
+				);
+
 				if (! is_null($sCode)) {
 					return Oauth2ApplicationService::GetInstance()->GetLnkOauth2ApplicationToUserByCode($sClientId, $sClientSecret, $sRedirectUri, $sCode);
 				}
@@ -202,6 +203,15 @@ class Oauth2AuthorizeController extends Controller
 				throw new TokenAuthException('Missing Oauth2 code', 400, null,
 					['grant_type' => $sGrantType, 'client_id' => $sClientId, 'redirect_uri' => $sRedirectUri]);
 			} else if ($sGrantType === "refresh_token"){
+				$sRefreshToken = utils::ReadPostedParam('refresh_token', null, utils::ENUM_SANITIZATION_FILTER_RAW_DATA);
+				TokenAuthLog::Debug("Oauth2 refresh_token parameters", null,
+					[
+						'client_id' => $sClientId,
+						'client_secret' => $sClientSecret,
+						'refresh_token' => $sRefreshToken,
+						'redirect_uri' => $sRedirectUri,
+					]
+				);
 				if (! is_null($sRefreshToken)) {
 					$olnkOauth2ApplicationToUser = Oauth2ApplicationService::GetInstance()->GetLnkOauth2ApplicationToUserByRefreshToken($sClientId, $sClientSecret, $sRedirectUri, $sRefreshToken);
 
@@ -217,11 +227,21 @@ class Oauth2AuthorizeController extends Controller
 
 				throw new TokenAuthException('Missing Oauth2 refresh_token', 400, null,
 					['grant_type' => $sGrantType, 'client_id' => $sClientId, 'redirect_uri' => $sRedirectUri]);
+			} else if ($sReponseType === "code") {
+				//handle authorize without consent form
+				TokenAuthLog::Debug("Oauth2 authorize (no consent) parameters", null,
+					[
+						'grant_type' => $sGrantType,
+						'client_id' => $sClientId,
+						'redirect_uri' => $sRedirectUri,
+					]
+				);
 
+				return Oauth2ApplicationService::GetInstance()->GetNoConsentLnkOauth2ApplicationToUser($sClientId, $sRedirectUri);
 			}
 
-			throw new TokenAuthException('Invalid grant_type', 400, null,
-				['grant_type' => $sGrantType, 'client_id' => $sClientId, 'redirect_uri' => $sRedirectUri]);
+			throw new TokenAuthException('Missing Oauth2 state for authorize without consent form', 400, null,
+				['grant_type' => $sGrantType, 'response_type' => $sReponseType, 'client_id' => $sClientId, 'redirect_uri' => $sRedirectUri]);
 		} catch(TokenAuthException $e){
 			Session::Set('oauth_http_errorcode', $e->getCode());
 			throw $e;
@@ -229,6 +249,48 @@ class Oauth2AuthorizeController extends Controller
 			Session::Set('oauth_http_errorcode', 500);
 			throw new TokenAuthException('invalid_token', 500, $e);
 		}
+	}
+
+	/**
+	 * @param $sSimulateTokenIdInSession: provided only in testing context
+	 *
+	 * @return string
+	 * @throws \ArchivedObjectException
+	 * @throws \Combodo\iTop\AuthentToken\Exception\TokenAuthException
+	 * @throws \CoreException
+	 */
+	public function OperationOauth2NoConsentAuthorize(?string $sSimulateTokenIdInSession=null): string {
+		TokenAuthLog::Enable();
+
+		//TokenLoginExtension handled whole authentication and stored token_id in the session
+		if (! is_null($sSimulateTokenIdInSession)){
+			$sTokenId = $sSimulateTokenIdInSession;
+		} else {
+			$sTokenId = Session::Get('token_id') ?? null;
+		}
+
+		if (is_null($sTokenId)){
+			throw new TokenAuthException('Missing token_id', 400);
+		}
+
+		/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser */
+		$oLnkOauth2ApplicationToUser = \MetaModel::GetObject(lnkOauth2ApplicationToUser::class, $sTokenId);
+
+		$sState = utils::ReadPostedParam('state', '', utils::ENUM_SANITIZATION_FILTER_RAW_DATA);
+		$sCode = Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sState);
+
+		$sScope = utils::ReadPostedParam('scope', '', utils::ENUM_SANITIZATION_FILTER_STRING);
+		$aResult = [
+			'state' => $sState,
+			'scope' => $sScope,
+			'code' => $sCode
+		];
+
+		if (is_null($sSimulateTokenIdInSession)) {
+			$this->DisplayJSONPage($aResult);
+		}
+
+		return json_encode($aResult, JSON_PRETTY_PRINT);
 	}
 
 	/**
@@ -313,5 +375,56 @@ class Oauth2AuthorizeController extends Controller
 		}
 
 		return $iExpireIn;
+	}
+
+	public static function GetButtons(Oauth2Application $oObj, WebPage $oPage): array
+	{
+		$aTab = [
+			'oauth2-application-reset-clientsecret' => [
+				'label' => 'Oauth2UserApplication:UI:Button:ResetClientSecret',
+				'icon_classes' => 'fas fa-eraser',
+				'action' => 'Oauth2ApplicationResetSecret',
+			],
+		];
+
+		try {
+			$aButtons = [];
+			foreach ($aTab as $sId => $aData) {
+				$oButton = ButtonUIBlockFactory::MakeIconAction($aData['icon_classes'], Dict::S($aData['label']), null, null, false, $sId);
+				$aButtons[] = $oButton;
+
+				// Prepare button callback
+				$sButtonCallbackName = 'OauthConnectCallback'.utils::Sanitize($oButton->GetId(), '', utils::ENUM_SANITIZATION_FILTER_VARIABLE_NAME);
+
+				$oButton->SetOnClickJsCode($sButtonCallbackName.'();');
+				$sAjaxActionUrl = utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'ajax.php',
+					['operation' => $aData['action'], 'id' => $oObj->GetKey()]);
+				//$sAjaxActionUrl = sprintf("%s%s/%s?%s", utils::GetAbsoluteUrlModulesRoot(), TokenAuthHelper::MODULE_NAME, 'ajax.php',
+				//	http_build_query(['operation' => $aData['action'], 'id' => $oObj->GetKey()], '', '&'));
+
+				$sUrl = iTopStandardURLMaker::MakeObjectURL(Oauth2Application::class, $oObj->GetKey());
+				$oPage->add_script(
+					<<<JS
+function $sButtonCallbackName() {
+	$.ajax({
+		type: "GET",
+		url: '$sAjaxActionUrl'
+	})
+	.done(function (data) {
+		window.location = "$sUrl";
+	})
+	.fail(function (data) {
+	});
+}
+JS
+				);
+			}
+
+			return $aButtons;
+		} catch (Oauth2ClientException $e) {
+			throw $e;
+		} catch (Exception $e) {
+			throw new Oauth2ClientException(__FUNCTION__.': failed', 0, $e);
+		}
 	}
 }

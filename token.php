@@ -10,7 +10,7 @@ use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
 use Combodo\iTop\Application\Helper\Session;
 
-require_once('../../approot.inc.php');
+//require_once('../../approot.inc.php');
 require_once(APPROOT.'bootstrap.inc.php');
 require_once(APPROOT.'application/startup.inc.php');
 

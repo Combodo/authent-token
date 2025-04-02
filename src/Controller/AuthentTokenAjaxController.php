@@ -13,6 +13,7 @@ use Combodo\iTop\Application\UI\Base\Component\Toolbar\Toolbar;
 use Combodo\iTop\Application\UI\Base\Component\Toolbar\ToolbarUIBlockFactory;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
 use Combodo\iTop\AuthentToken\Helper\TokenAuthLog;
+use Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService;
 use Combodo\iTop\AuthentToken\Service\PersonalTokenService;
 use Combodo\iTop\Renderer\BlockRenderer;
 use DBObject;
@@ -482,5 +483,25 @@ JS;
 		}
 
 		return PersonalTokenService::GetInstance()->IsPersonalTokenManagementAllowed($oUser);
+	}
+
+
+	public function OperationOauth2ApplicationResetSecret()
+	{
+		try {
+			$sId = utils::ReadParam('id', null);
+
+			if ($sId === null) {
+				TokenAuthLog::Error("Missing application id");
+				$this->DisplayJSONPage(['result' => 'error'], 401);
+
+				return;
+			}
+
+			Oauth2ApplicationService::GetInstance()->ResetSecret($sId);
+		} catch (\Exception $e) {
+			TokenAuthLog::Error("Cannot modify token: ".$e->getMessage());
+			$this->DisplayJSONPage(['result' => 'error'], 401);
+		}
 	}
 }

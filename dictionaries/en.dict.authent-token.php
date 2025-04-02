@@ -9,8 +9,10 @@ Dict::Add('EN US', 'English', 'English', array(
 	'AuthentToken:CopyToken' => 'The credentials you have to provide are:<p>auth_token=<a>%1$s</a></p>Copy them now, you won\'t be able to get them later!',
 	'AuthentToken:RebuildToken' => 'Rebuild token',
 	'AuthentToken:ClientSecret' => 'Client secret %1$s',
+	'AuthentToken:TokensRefreshed' => 'Access Token %1$s<BR>Refresh Token %2$s',
 	'AuthentToken:RebuildToken+' => 'The authentification token will be recreated, BEWARE the previous one will be lost',
 	'MyAccount:SubTitle:PersonalTokens' => 'My personal tokens',
+	'Oauth2UserApplication:UI:Button:ResetClientSecret' => "Reset Client secret",
 
 	'UI:Datatables:Column:RowActions:Label' => '',
 	'UI:Datatables:Column:RowActions:Description' => '',

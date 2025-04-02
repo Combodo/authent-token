@@ -159,6 +159,38 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 		$this->assertEquals($oLnkOauth2ApplicationToUser->GetKey(), $oFoundLnkOauth2ApplicationToUser->GetKey());
 	}
 
+	public function testAuthenticateViaOauth_HeadlessModeAuthorize()
+	{
+		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
+		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
+		$oLnkOauth2ApplicationToUser->Set('consent_mode', 'headless');
+		$oLnkOauth2ApplicationToUser->DBWrite();
+
+		/** @var \User $oUser2 */
+		$oUser2 = $this->CreateContactlessUser(uniqid(),
+			ItopDataTestCase::$aURP_Profiles['Service Desk Agent'],
+			$this->sPassword
+		);
+
+		/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser2 */
+		$oLnkOauth2ApplicationToUser2 = $this->createObject(lnkOauth2ApplicationToUser::class, [
+			'application_id' => $oLnkOauth2ApplicationToUser->Get('application_id'),
+			'user_id' => $oUser2->GetKey(),
+			'consent_mode' => 'form',
+		]);
+
+		$oOauth2Application = $oExpectedOauth2UserApplication->oOauth2Application;
+
+		$_SESSION=[];
+		$_POST = [
+			'client_id'     => $oOauth2Application->Get('client_id'),
+			'redirect_uri'  => $oOauth2Application->Get('redirect_uri'),
+			'response_type' => "code",
+		];
+		$oFoundLnkOauth2ApplicationToUser = Oauth2AuthorizeController::GetInstance()->AuthenticateViaOauth();
+		$this->assertEquals($oLnkOauth2ApplicationToUser->GetKey(), $oFoundLnkOauth2ApplicationToUser->GetKey());
+	}
+
 	public function testAuthenticateViaOauth_RefreshTokenOk()
 	{
 		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
@@ -255,6 +287,30 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 
 		$iAccessTokenExpiredIn = Oauth2AuthorizeController::GetInstance()->GetExpiredInSeconds($oLnkOauth2ApplicationToUser, 'access_token_expiration');
 		$this->assertTrue($iAccessTokenExpiredIn + 5 > TokenAuthConfig::OAUTH2_ACCESS_TOKEN_EXPIRATION_IN_SECONDS, "(modulo 5s) $iAccessTokenExpiredIn  . > ".TokenAuthConfig::OAUTH2_ACCESS_TOKEN_EXPIRATION_IN_SECONDS);
+	}
+
+	public function testOperationOauth2NoConsentAuthorize()
+	{
+		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
+
+		$sState = "STATE-123";
+		$sScope = 'scope123';
+		$_POST=[
+			'state' => $sState,
+			'scope' => $sScope
+		];
+		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
+
+		$sJson = Oauth2AuthorizeController::GetInstance()->OperationOauth2NoConsentAuthorize($oLnkOauth2ApplicationToUser->GetKey());
+		$oLnkOauth2ApplicationToUser->Reload();
+
+		$aJson = json_decode($sJson, true);
+		$this->assertNotEquals(false, $aJson);
+		$this->assertEquals($sState, $aJson['state'] ?? null, 'state');
+		$this->assertEquals($sScope, $aJson['scope'] ?? null, 'scope');
+		$sCode = $oLnkOauth2ApplicationToUser->Get('code')->GetPassword();
+		$this->assertEquals($sCode, $aJson['code'] ?? null, 'code');
+		$this->assertNotEquals('', $sCode, 'not empty code');
 	}
 
 	public static function GetExpiredInSecondsProvider()

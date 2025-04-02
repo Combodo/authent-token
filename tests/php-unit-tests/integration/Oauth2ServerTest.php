@@ -130,8 +130,8 @@ class Oauth2ServerTest extends AbstractTokenRestTest {
 			'scope' => $sScope,
 		] ;
 
-		//$sUrl = \utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'authorize.php', $aAuthorizeArgs);
-		$sUrl = TokenAuthHelper::GenerateUrl(utils::GetAbsoluteUrlModulesRoot() . TokenAuthHelper::MODULE_NAME . '/authorize.php', $aAuthorizeArgs);
+		$sUrl = \utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'authorize.php', $aAuthorizeArgs);
+		//$sUrl = TokenAuthHelper::GenerateUrl(utils::GetAbsoluteUrlModulesRoot() . TokenAuthHelper::MODULE_NAME . '/authorize.php', $aAuthorizeArgs);
 
 		$aPostParams = [
 			'auth_user' => $this->oUser->Get('login'),
@@ -145,6 +145,45 @@ class Oauth2ServerTest extends AbstractTokenRestTest {
 		$this->AssertStringContains(Dict::S('AuthentToken:Oauth2:Authorize:Title'), $sOutput, "$sUrl should contain oauth2 authorize form");
 		$this->AssertStringContains($sState, $sOutput, "$sUrl should contain provided state");
 		$this->AssertStringContains($sScope, $sOutput, "$sUrl should contain provided scope");
+		$this->assertEquals(200, $this->iHttpCode);
+	}
+
+	public function testHeadlessAuthorizeJsonOk() {
+		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
+		$oOauth2Application = $oExpectedOauth2UserApplication->oOauth2Application;
+		$oOauth2Application->Reload();
+		$sClientId = $oOauth2Application->Get('client_id');
+
+
+		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
+		$oLnkOauth2ApplicationToUser->Set('consent_mode', 'headless');
+		$oLnkOauth2ApplicationToUser->DBWrite();
+
+		$sUrl = \utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'authorize.php', []);
+		//$sUrl = TokenAuthHelper::GenerateUrl(utils::GetAbsoluteUrlModulesRoot() . TokenAuthHelper::MODULE_NAME . '/authorize.php', []);
+
+		//no bearer token passed
+		$this->sToken = null;
+		$sState = 'state_' . $this->sUniqId;
+		$sScope = 'scope_' . $this->sUniqId;
+		$aPostedVars = [
+			"client_id" => $sClientId,
+			"redirect_uri" => $oOauth2Application->Get('redirect_uri'),
+			'response_type' => 'code',
+			'prompt' => 'noconsent',
+			'state' => $sState,
+			'scope' => $sScope,
+		];
+		$sOutput = $this->CallItopUrl($sUrl, $aPostedVars);
+		$oLnkOauth2ApplicationToUser->Reload();
+
+		$aJson = json_decode($sOutput, true);
+		$this->assertNotEquals(false, $aJson, $sOutput);
+		$this->assertEquals($sState, $aJson['state'] ?? null, 'state');
+		$this->assertEquals($sScope, $aJson['scope'] ?? null, 'scope');
+		$sCode = $oLnkOauth2ApplicationToUser->Get('code')->GetPassword();
+		$this->assertEquals($sCode, $aJson['code'] ?? null, 'code');
+		$this->assertNotEquals('', $sCode, 'not empty code');
 		$this->assertEquals(200, $this->iHttpCode);
 	}
 
@@ -175,8 +214,8 @@ class Oauth2ServerTest extends AbstractTokenRestTest {
 			"operation" => "DoAuthorize",
 		] ;
 
-		//$sUrl = \utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'authorize.php', $aAuthorizeArgs);
-		$sUrl = TokenAuthHelper::GenerateUrl(utils::GetAbsoluteUrlModulesRoot() . TokenAuthHelper::MODULE_NAME . '/authorize.php', $aAuthorizeArgs);
+		$sUrl = \utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'authorize.php', $aAuthorizeArgs);
+		//$sUrl = TokenAuthHelper::GenerateUrl(utils::GetAbsoluteUrlModulesRoot() . TokenAuthHelper::MODULE_NAME . '/authorize.php', $aAuthorizeArgs);
 
 		$sState = "state_".$this->sUniqId;
 		$aPostParams = [
@@ -217,7 +256,8 @@ class Oauth2ServerTest extends AbstractTokenRestTest {
 	}
 
 	public function testGetTokenEndpoint_WrongPostedParams() {
-		$sUrl = TokenAuthHelper::GenerateUrl(utils::GetAbsoluteUrlModulesRoot() . TokenAuthHelper::MODULE_NAME . '/token.php', []);
+		$sUrl = \utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'token.php', []);
+		//$sUrl = TokenAuthHelper::GenerateUrl(utils::GetAbsoluteUrlModulesRoot() . TokenAuthHelper::MODULE_NAME . '/token.php', []);
 
 		//no bearer token passed
 		$this->sToken = null;
@@ -252,7 +292,8 @@ class Oauth2ServerTest extends AbstractTokenRestTest {
 			]
 		);
 
-		$sUrl = TokenAuthHelper::GenerateUrl(utils::GetAbsoluteUrlModulesRoot() . TokenAuthHelper::MODULE_NAME . '/token.php', []);
+		$sUrl = \utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'token.php', []);
+		//$sUrl = TokenAuthHelper::GenerateUrl(utils::GetAbsoluteUrlModulesRoot() . TokenAuthHelper::MODULE_NAME . '/token.php', []);
 
 		$aPostParams = [
 			"application_id" => $oOauth2Application->GetKey(),
@@ -306,8 +347,8 @@ class Oauth2ServerTest extends AbstractTokenRestTest {
 			]
 		);
 
-
-		$sUrl = TokenAuthHelper::GenerateUrl(utils::GetAbsoluteUrlModulesRoot() . TokenAuthHelper::MODULE_NAME . '/token.php', []);
+		$sUrl = \utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'token.php', []);
+		//$sUrl = TokenAuthHelper::GenerateUrl(utils::GetAbsoluteUrlModulesRoot() . TokenAuthHelper::MODULE_NAME . '/token.php', []);
 
 		$aPostParams = [
 			"application_id" => $oOauth2Application->GetKey(),

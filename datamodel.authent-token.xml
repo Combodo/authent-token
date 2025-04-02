@@ -125,7 +125,7 @@
           <type>EventListener</type>
           <code><![CDATA[	public function EvtAfterWriteOauth2Application(Combodo\iTop\Service\Events\EventData $oEventData)
           {
-            if ($oEventData->Get('is_new')) {
+            if ($oEventData->Get('is_new') || array_key_exists('client_secret', $oEventData->Get('changes'))) {
               $sSecret = $this->Get('client_secret')->GetPassword();
               $sMessage = \Dict::Format('AuthentToken:ClientSecret', $sSecret);
               self::SetSessionMessage(get_class($this), $this->GetKey(), 1, $sMessage, WebPage::ENUM_SESSION_MESSAGE_SEVERITY_OK, 1);
@@ -145,7 +145,6 @@
 	        public function EvtSetAttributeFlagsOauth2Application(Combodo\iTop\Service\Events\EventData $oEventData)
           {
                 $this->AddAttributeFlags('client_id', OPT_ATT_READONLY);
-                $this->AddAttributeFlags('client_secret', OPT_ATT_READONLY);
           }]]></code>
         </method>
         <method id="EvtSetInitialAttributeFlagsOauth2Application">
@@ -161,8 +160,41 @@
 	        public function EvtSetInitialAttributeFlagsOauth2Application(Combodo\iTop\Service\Events\EventData $oEventData)
           {
                 $this->AddInitialAttributeFlags('client_id', OPT_ATT_READONLY);
-                $this->AddInitialAttributeFlags('client_secret', OPT_ATT_READONLY);
           }]]></code>
+        </method>
+        <method id="DisplayBareHeader">
+          <static>false</static>
+          <access>public</access>
+          <type>Overload-DBObject</type>
+          <code><![CDATA[
+  public function DisplayBareHeader(WebPage $oPage, $bEditMode = false)
+  {
+		$aHeaderBlocks = parent::DisplayBareHeader($oPage, $bEditMode);
+
+    if ($this instanceof Oauth2Application) {
+      $aOauthConnectButtons = Combodo\iTop\AuthentToken\Controller\Oauth2AuthorizeController::GetButtons($this, $oPage);
+
+      // Add the buttons in the existing toolbar
+      reset($aHeaderBlocks['toolbar']);
+      $sToolbarContainerKey = key($aHeaderBlocks['toolbar']);
+      foreach ($aHeaderBlocks['toolbar'][$sToolbarContainerKey]->GetSubBlocks() as $sSubBlockId => $oSubBlock) {
+        if (!($oSubBlock instanceof Combodo\iTop\Application\UI\Base\Component\Toolbar\Toolbar)) {
+          continue;
+        }
+        // Look for the actions menu toolbar by checking if its ID starts with the good prefix
+        if (stripos($sSubBlockId, MenuBlock::ACTIONS_TOOLBAR_ID_PREFIX) === 0) {
+          foreach($aOauthConnectButtons as $oOauthConnectButton) {
+            $oSubBlock->PrependSubBlock($oOauthConnectButton);
+          }
+          break;
+        }
+      }
+		}
+
+		return $aHeaderBlocks;
+
+   }
+        ]]></code>
         </method>
       </methods>
       <presentation>
@@ -174,20 +206,14 @@
             <item id="org_id">
               <rank>20</rank>
             </item>
-            <item id="realm">
+            <item id="redirect_uri">
               <rank>40</rank>
             </item>
-            <item id="redirect_uri">
+            <item id="client_id">
               <rank>50</rank>
             </item>
-            <item id="client_id">
-              <rank>70</rank>
-            </item>
-            <item id="client_secret">
-              <rank>80</rank>
-            </item>
             <item id="users_list">
-              <rank>90</rank>
+              <rank>60</rank>
             </item>
           </items>
         </details>
@@ -199,9 +225,6 @@
             <item id="org_id">
               <rank>20</rank>
             </item>
-            <item id="realm">
-              <rank>35</rank>
-            </item>
           </items>
         </list>
         <search>
@@ -212,11 +235,8 @@
             <item id="org_id">
               <rank>20</rank>
             </item>
-            <item id="realm">
-              <rank>35</rank>
-            </item>
             <item id="client_id">
-              <rank>40</rank>
+              <rank>30</rank>
             </item>
           </items>
         </search>
@@ -276,6 +296,19 @@
           <sql>use_count</sql>
           <default_value>0</default_value>
           <tracking_level>none</tracking_level>
+          <is_null_allowed>true</is_null_allowed>
+        </field>
+        <field id="consent_mode" xsi:type="AttributeEnum">
+          <values>
+            <value id="form">
+              <code>form</code>
+            </value>
+            <value id="headless">
+              <code>headless</code>
+            </value>
+          </values>
+          <sql>consent_mode</sql>
+          <default_value>form</default_value>
           <is_null_allowed>true</is_null_allowed>
         </field>
         <field id="last_use_date" xsi:type="AttributeDateTime" _delta="define">
@@ -381,11 +414,22 @@
           <type>EventListener</type>
           <code><![CDATA[	public function EvtAfterWritelnkOauth2ApplicationToUser(Combodo\iTop\Service\Events\EventData $oEventData)
           {
-            //if ($oEventData->Get('is_new')) {
-            //  $sSecret = $this->Get('client_secret')->GetPassword();
-            //  $sMessage = \Dict::Format('AuthentToken:ClientSecret', $sSecret);
-            //  self::SetSessionMessage(get_class($this), $this->GetKey(), 1, $sMessage, WebPage::ENUM_SESSION_MESSAGE_SEVERITY_OK, 1);
-            //}
+            if ($oEventData->Get('is_new') || array_key_exists('access_token', $oEventData->Get('changes'))) {
+              $sAccessToken = $this->Get('access_token');
+              if ($sAccessToken instanceof \ormEncryptedPassword){
+                $sAccessToken = $this->Get('access_token')->GetPassword();
+              }
+
+              $sRefreshToken = $this->Get('refresh_token');
+              if ($sRefreshToken instanceof \ormEncryptedPassword){
+                $sRefreshToken = $this->Get('refresh_token')->GetPassword();
+              }
+
+              $sMessage = \Dict::Format('AuthentToken:TokensRefreshed', $sAccessToken, $sRefreshToken);
+              self::SetSessionMessage(get_class($this), $this->GetKey(), 1, $sMessage, WebPage::ENUM_SESSION_MESSAGE_SEVERITY_OK, 1);
+            }
+
+            Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService::GetInstance()->PropagateFormConsentFormToOtherObjects($this, $oEventData);
           }]]></code>
         </method>
         <method id="EvtSetAttributeFlagslnkOauth2ApplicationToUser">
@@ -400,10 +444,9 @@
           <code><![CDATA[
 	        public function EvtSetAttributeFlagslnkOauth2ApplicationToUser(Combodo\iTop\Service\Events\EventData $oEventData)
           {
-                $this->AddAttributeFlags('refresh_token', OPT_ATT_READONLY);
-                $this->AddAttributeFlags('access_token', OPT_ATT_READONLY);
-                $this->AddAttributeFlags('authorization_state', OPT_ATT_READONLY);
-                $this->AddAttributeFlags('code', OPT_ATT_READONLY);
+                $this->AddAttributeFlags('authorization_state', OPT_ATT_HIDDEN);
+                $this->AddAttributeFlags('use_count', OPT_ATT_HIDDEN);
+                $this->AddAttributeFlags('last_use_date', OPT_ATT_HIDDEN);
           }]]></code>
         </method>
         <method id="EvtSetInitialAttributeFlagslnkOauth2ApplicationToUser">
@@ -418,13 +461,11 @@
           <code><![CDATA[
 	        public function EvtSetInitialAttributeFlagslnkOauth2ApplicationToUser(Combodo\iTop\Service\Events\EventData $oEventData)
           {
-                $this->AddInitialAttributeFlags('refresh_token', OPT_ATT_READONLY);
-                $this->AddInitialAttributeFlags('refresh_token_expiration', OPT_ATT_READONLY);
-                $this->AddInitialAttributeFlags('access_token', OPT_ATT_READONLY);
-                $this->AddInitialAttributeFlags('access_token_expiration', OPT_ATT_READONLY);
-                $this->AddInitialAttributeFlags('authorization_state', OPT_ATT_READONLY);
-                $this->AddInitialAttributeFlags('code', OPT_ATT_READONLY);
-                $this->AddInitialAttributeFlags('token_type', OPT_ATT_READONLY);
+                $this->AddInitialAttributeFlags('refresh_token_expiration', OPT_ATT_HIDDEN);
+                $this->AddInitialAttributeFlags('access_token_expiration', OPT_ATT_HIDDEN);
+                $this->AddInitialAttributeFlags('authorization_state', OPT_ATT_HIDDEN);
+                $this->AddInitialAttributeFlags('use_count', OPT_ATT_HIDDEN);
+                $this->AddInitialAttributeFlags('last_use_date', OPT_ATT_HIDDEN);
           }]]></code>
         </method>
       </methods>
@@ -443,31 +484,28 @@
                 <item id="scope">
                   <rank>30</rank>
                 </item>
+                <item id="consent_mode">
+                  <rank>40</rank>
+                </item>
               </items>
             </item>
             <item id="col:col2">
               <rank>10</rank>
               <items>
-                <item id="access_token">
-                  <rank>70</rank>
-                </item>
                 <item id="access_token_expiration">
-                  <rank>80</rank>
-                </item>
-                <item id="refresh_token">
-                  <rank>90</rank>
+                  <rank>10</rank>
                 </item>
                 <item id="refresh_token_expiration">
-                  <rank>100</rank>
-                </item>
-                <item id="token_type">
-                  <rank>110</rank>
+                  <rank>20</rank>
                 </item>
                 <item id="authorization_state">
-                  <rank>120</rank>
+                  <rank>30</rank>
                 </item>
-                <item id="code">
-                  <rank>130</rank>
+                <item id="last_use_date">
+                  <rank>40</rank>
+                </item>
+                <item id="use_count">
+                  <rank>50</rank>
                 </item>
               </items>
             </item>
@@ -484,6 +522,15 @@
             <item id="scope">
               <rank>30</rank>
             </item>
+            <item id="consent_mode">
+              <rank>40</rank>
+            </item>
+            <item id="last_use_date">
+              <rank>50</rank>
+            </item>
+            <item id="use_count">
+              <rank>60</rank>
+            </item>
           </items>
         </list>
         <search>
@@ -496,6 +543,15 @@
             </item>
             <item id="scope">
               <rank>30</rank>
+            </item>
+            <item id="consent_mode">
+              <rank>40</rank>
+            </item>
+            <item id="last_use_date">
+              <rank>50</rank>
+            </item>
+            <item id="use_count">
+              <rank>60</rank>
             </item>
           </items>
         </search>

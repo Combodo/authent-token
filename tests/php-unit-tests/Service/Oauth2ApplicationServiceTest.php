@@ -211,4 +211,76 @@ class Oauth2ApplicationServiceTest extends ItopDataTestCase {
 
 		$this->assertNotNull($oDecryptedLnkOauth2ApplicationToUser);
 	}
+
+	public function testPropagateFormConsentFormToOtherObjects_SetHeadlessShouldPassTheOtherInFormMode()
+	{
+		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
+		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
+		$oLnkOauth2ApplicationToUser->Set('consent_mode', 'headless');
+		$oLnkOauth2ApplicationToUser->DBWrite();
+
+		/** @var \User $oUser2 */
+		$oUser2 = $this->CreateContactlessUser(uniqid(),
+			ItopDataTestCase::$aURP_Profiles['Service Desk Agent'],
+			$this->sPassword
+		);
+
+		/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser2 */
+		$oLnkOauth2ApplicationToUser2 = $this->createObject(lnkOauth2ApplicationToUser::class, [
+			'application_id' => $oLnkOauth2ApplicationToUser->Get('application_id'),
+			'user_id' => $oUser2->GetKey(),
+			'consent_mode' => 'headless',
+		]);
+		$oLnkOauth2ApplicationToUser->Reload();
+		$this->assertEquals('form', $oLnkOauth2ApplicationToUser->Get('consent_mode'), "test propagation after obj creation");
+
+		/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser3 */
+		$oLnkOauth2ApplicationToUser3 = $this->createObject(lnkOauth2ApplicationToUser::class, [
+			'application_id' => $oLnkOauth2ApplicationToUser->Get('application_id'),
+			'user_id' => $oUser2->GetKey(),
+			'consent_mode' => 'form',
+		]);
+		$oLnkOauth2ApplicationToUser3->Set('consent_mode', 'headless');
+		$oLnkOauth2ApplicationToUser3->DBWrite();
+
+		$oLnkOauth2ApplicationToUser2->Reload();
+		$this->assertEquals('form', $oLnkOauth2ApplicationToUser2->Get('consent_mode'), "test propagation after dbwrite");
+	}
+
+	public function testGetNoConsentLnkOauth2ApplicationToUser()
+	{
+		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
+		$oLnkOauth2ApplicationToUser = $oExpectedOauth2UserApplication->oLnkOauth2ApplicationToUser;
+		$oLnkOauth2ApplicationToUser->Set('consent_mode', 'headless');
+		$oLnkOauth2ApplicationToUser->DBWrite();
+
+		/** @var \User $oUser2 */
+		$oUser2 = $this->CreateContactlessUser(uniqid(),
+			ItopDataTestCase::$aURP_Profiles['Service Desk Agent'],
+			$this->sPassword
+		);
+
+		/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser2 */
+		$oLnkOauth2ApplicationToUser2 = $this->createObject(lnkOauth2ApplicationToUser::class, [
+			'application_id' => $oLnkOauth2ApplicationToUser->Get('application_id'),
+			'user_id' => $oUser2->GetKey(),
+			'consent_mode' => 'form',
+		]);
+
+		$oFoundLnkOauth2ApplicationToUser = Oauth2ApplicationService::GetInstance()->GetNoConsentLnkOauth2ApplicationToUser(
+			$oExpectedOauth2UserApplication->oOauth2Application->Get('client_id'),
+			$oExpectedOauth2UserApplication->oOauth2Application->Get('redirect_uri')
+		);
+
+		$this->assertEquals($oLnkOauth2ApplicationToUser->GetKey(), $oFoundLnkOauth2ApplicationToUser->GetKey(), "should find the object in headless mode");
+	}
+
+	public function testResetSecret()
+	{
+		$oExpectedOauth2UserApplication = $this->CreateOauth2UserApplication();
+		$sSecret = $oExpectedOauth2UserApplication->oOauth2Application->Get('client_secret')->GetPassword();
+		Oauth2ApplicationService::GetInstance()->ResetSecret($oExpectedOauth2UserApplication->oOauth2Application->GetKey());
+		$oExpectedOauth2UserApplication->oOauth2Application->Reload();
+		$this->assertTrue($sSecret !== $oExpectedOauth2UserApplication->oOauth2Application->Get('client_secret')->GetPassword(), "secret value should have changed");
+	}
 }

@@ -13,6 +13,7 @@ Dict::Add('FR FR', 'French', 'Français', [
 	'AuthentToken:CopyToken' => 'Les identifiants que vous aurez à fournir sont :<p>auth_token=<a>%1$s</a></p>Notez les maintenant, vous ne pourrez plus les afficher ensuite !',
 	'AuthentToken:Message:DeleteTokenConfirmation' => 'Voulez-vous supprimer le jeton <a>%1$s</a>?',
 	'AuthentToken:ClientSecret' => 'Client secret %1$s',
+	'AuthentToken:TokensRefreshed' => 'Jeton d\'accès %1$s<BR>Jeton de renouvellement %2$s',
 	'AuthentToken:RebuildToken' => 'Régénérer le jeton',
 	'AuthentToken:RebuildToken+' => 'Le jeton d\'authentification sera régénéré, ATTENTION le précédent sera perdu et ne pourra plus être utilisé',
 	'AuthentToken:Title:DeleteTokenConfirmation' => 'Confirmation',
@@ -74,6 +75,7 @@ Dict::Add('FR FR', 'French', 'Français', [
 	'UI:MyAccount' => 'Mon compte',
 	'authent-token/Operation:MainPage/Title' => 'Mon compte',
 
+	'Oauth2UserApplication:UI:Button:ResetClientSecret' => "Regénérer un nouveau secret",
 	'AuthentToken:Oauth2:Authorize:Title' => 'Authorize Oauth2 Application',
 	'AuthentToken:Oauth2:Authorize:Question' => 'Do you want to authorize `%1$s` application to access to scopes [%2$s]?',
 	'AuthentToken:Oauth2:Authorize:ButtonCancel' => 'Cancel',

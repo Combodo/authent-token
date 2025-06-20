@@ -105,7 +105,11 @@ abstract class AbstractRestTest extends ItopDataTestCase
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $aHeadersParam);
 		echo('HeadersParam');
 		var_dump($aHeadersParam);
-		curl_setopt($ch, CURLOPT_URL, "$this->sUrl/$sUri");
+		if (false === strpos($sUri, 'http')){
+			curl_setopt($ch, CURLOPT_URL, "$this->sUrl/$sUri");
+		} else {
+			curl_setopt($ch, CURLOPT_URL, $sUri);
+		}
 		curl_setopt($ch, CURLOPT_POST, 1);// set post data to true
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $aPostFields);
 		echo('PostFields');

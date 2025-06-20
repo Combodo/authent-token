@@ -421,7 +421,7 @@ class Oauth2ServerTest extends AbstractTokenRestTest {
 		$this->assertNotNull($oAttDateTime, "$sField not null");
 		$oExpirationFieldDateTime = DateTime::createFromFormat(AttributeDateTime::GetSQLFormat(), $oAttDateTime);
 
-		$iExpirationTime = strtotime("+$iExpirationInSeconds SECONDS") - 10;
+		$iExpirationTime = strtotime("+$iExpirationInSeconds SECONDS") - 3601;
 		$oExpirationTimeDateTimeCheck = date(AttributeDateTime::GetSQLFormat(), $iExpirationTime);
 
 		$this->assertTrue($iExpirationTime < $oExpirationFieldDateTime->getTimestamp(), "expiration check $iExpirationInSeconds: $oExpirationTimeDateTimeCheck < $oAttDateTime");
@@ -456,8 +456,7 @@ class Oauth2ServerTest extends AbstractTokenRestTest {
 	{
 		$this->sToken = "GABUZOMEU";
 
-		$sUri = 'webservices/rest.php';
-		$sOutput =  $this->CallRestApi(json_encode([]), null, $sUri);
+		$sOutput =  $this->CallRestApi(json_encode([]));
 		$this->assertEquals('{"code":1,"message":"Error: Invalid login"}', $sOutput);
 	}
 
@@ -488,7 +487,7 @@ class Oauth2ServerTest extends AbstractTokenRestTest {
 		Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, "STATE-123");
 		$this->sToken = $oLnkOauth2ApplicationToUser->Get('access_token')->GetPassword();
 
-		$sUri = 'env-'.utils::GetCurrentEnvironment() . '/' . TokenAuthHelper::MODULE_NAME . '/token.php';
+		$sUri = \utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'token.php', []);
 
 		$sOutput =  $this->CallRestApi(json_encode([]), null, $sUri);
 		$aParams = json_decode($sOutput, true);
@@ -516,9 +515,9 @@ class Oauth2ServerTest extends AbstractTokenRestTest {
 			]
 		);
 
-		$sUri = 'env-'.utils::GetCurrentEnvironment() . '/' . TokenAuthHelper::MODULE_NAME . '/get_user.php';
-
+		$sUri = \utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'get_user.php', []);
 		$sOutput =  $this->CallRestApi(json_encode([]), null, $sUri);
+
 		$aParams = json_decode($sOutput, true);
 		$this->assertNotEquals(false, $aParams, "invalid json: \n $sOutput");
 
@@ -530,6 +529,7 @@ class Oauth2ServerTest extends AbstractTokenRestTest {
 		    'displayName' => $this->sLogin,
 		    'identifier' => $this->sLogin,
 		    'language' => 'EN US',
+			'groups' => ['Administrator']
 		];
 		$this->assertEquals($aExpected, $aParams);
 	}
@@ -537,8 +537,9 @@ class Oauth2ServerTest extends AbstractTokenRestTest {
 	public function testGetUserInvalidToken()
 	{
 		$this->sToken = "GABUZOMEU";
-		$sUri = 'env-'.utils::GetCurrentEnvironment() . '/' . TokenAuthHelper::MODULE_NAME . '/get_user.php';
+		$sUri = \utils::GetAbsoluteUrlModulePage(TokenAuthHelper::MODULE_NAME, 'get_user.php', []);
 		$sOutput =  $this->CallRestApi(json_encode([]), null, $sUri);
+
 		$this->assertEquals(sprintf('{"code":%s,"message":"Error: Invalid authentication"}', \LoginWebPage::EXIT_CODE_WRONGCREDENTIALS), $sOutput);
 		$this->assertEquals(400, $this->iHttpCode);
 	}

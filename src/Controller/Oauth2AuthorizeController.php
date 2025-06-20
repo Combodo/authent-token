@@ -350,6 +350,14 @@ class Oauth2AuthorizeController extends Controller
 
 		$sLogin = $oUser->Get('login');
 		$oContact = \UserRights::GetContactObject();
+
+		$oProfilesSet = $oUser->Get('profile_list');
+		$aProfileNames = [];
+		while ($oProfile = $oProfilesSet->Fetch())
+		{
+			$aProfileNames[]=$oProfile->Get('profile');
+		}
+
 		return [
 			'email' => 	$oUser->Get('email'),
 			'firstName' => 	\UserRights::GetContactFirstname() ?? '',
@@ -358,6 +366,7 @@ class Oauth2AuthorizeController extends Controller
 			'displayName' => 	\UserRights::GetContactFriendlyname() ?? $sLogin,
 			'identifier' => $sLogin,
 			'language' => 	$oUser->Get('language'),
+			'groups' => $aProfileNames,
 		];
 	}
 

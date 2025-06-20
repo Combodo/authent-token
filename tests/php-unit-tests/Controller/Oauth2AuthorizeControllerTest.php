@@ -373,6 +373,7 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 			'displayName' => $this->sLogin,
 			'identifier' => $this->sLogin,
 			'language' => 'EN US',
+			'groups' => ["Service Desk Agent"],
 		];
 		$this->assertEquals($aExpected, $aParams);
 	}
@@ -408,6 +409,7 @@ class Oauth2AuthorizeControllerTest extends ItopDataTestCase
 			'displayName' => "first_name123 name123",
 			'identifier' => $sUserLogin,
 			'language' => 'EN US',
+			'groups' => ["Service Desk Agent"],
 		];
 		$this->assertEquals($aExpected, $aParams);
 	}

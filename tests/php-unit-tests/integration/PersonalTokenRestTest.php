@@ -385,7 +385,7 @@ HTML;
 
 	//N°6443 - Loop when allowed profils missconfigured
 	public function testInfiniteLoopViaExport() {
-		$this->testSynchroScript(self::EXPORTV2_CLI . '?login_mode=token', "iTop access to this page is restricted. Please, contact an iTop administrator", false, false, \ContextTag::TAG_EXPORT);
+		$this->testSynchroScript(self::EXPORTV2_CLI . '?login_mode=token', \Dict::S("UI:Login:Error:AccessRestricted"), false, false, \ContextTag::TAG_EXPORT);
 	}
 
 	/**

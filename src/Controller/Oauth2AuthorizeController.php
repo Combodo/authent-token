@@ -14,9 +14,11 @@ use Combodo\iTop\AuthentToken\Service\Oauth2ApplicationService;
 use Combodo\iTop\Oauth2Client\Helper\Oauth2ClientHelper;
 use ContextTag;
 use DateTime;
+use DateTimeZone;
 use Dict;
 use Exception;
 use iTopStandardURLMaker;
+use MetaModel;
 use Oauth2Application;
 use lnkOauth2ApplicationToUser;
 use utils;
@@ -274,7 +276,7 @@ class Oauth2AuthorizeController extends Controller
 		}
 
 		/** @var lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser */
-		$oLnkOauth2ApplicationToUser = \MetaModel::GetObject(lnkOauth2ApplicationToUser::class, $sTokenId);
+		$oLnkOauth2ApplicationToUser = MetaModel::GetObject(lnkOauth2ApplicationToUser::class, $sTokenId);
 
 		$sState = utils::ReadPostedParam('state', '', utils::ENUM_SANITIZATION_FILTER_RAW_DATA);
 		$sCode = Oauth2ApplicationService::GetInstance()->SaveCode($oLnkOauth2ApplicationToUser, $sState);
@@ -315,7 +317,7 @@ class Oauth2AuthorizeController extends Controller
 			throw new TokenAuthException('Missing token_id', 400);
 		}
 
-		$oLnkOauth2ApplicationToUser = \MetaModel::GetObject(lnkOauth2ApplicationToUser::class, $sTokenId);
+		$oLnkOauth2ApplicationToUser = MetaModel::GetObject(lnkOauth2ApplicationToUser::class, $sTokenId);
 
 		$iExpireIn = $this->GetExpiredInSeconds($oLnkOauth2ApplicationToUser, 'access_token_expiration');
 
@@ -377,7 +379,11 @@ class Oauth2AuthorizeController extends Controller
 			throw new TokenAuthException("No $sExpirationDateFieldName date found");
 		}
 		$oDateTime = DateTime::createFromFormat(AttributeDateTime::GetSQLFormat(), $oAttDateTime);
+		$sItopTimeZone = MetaModel::GetConfig()->Get('timezone');
+		$timezone = new DateTimeZone($sItopTimeZone);
+		$oDateTime->setTimezone($timezone);
 		$oNow = new DateTime();
+		$oNow->setTimezone($timezone);
 		$iExpireIn = $oDateTime->getTimestamp() - $oNow->getTimestamp();
 		if ($iExpireIn <= 0){
 			return 0;

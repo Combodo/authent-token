@@ -415,16 +415,11 @@ class Oauth2ServerTest extends AbstractTokenRestTest {
 	}
 
 	private function CheckExpirationField(lnkOauth2ApplicationToUser $oLnkOauth2ApplicationToUser, string $sField,
-		int $iExpirationInSeconds) : void {
+		int $iExpectedExpirationInSeconds) : void {
+		$oOauth2AuthorizeController = new Oauth2AuthorizeController();
+		$iExpirationInSeconds = $oOauth2AuthorizeController->GetExpiredInSeconds($oLnkOauth2ApplicationToUser, $sField);
 
-		$oAttDateTime = $oLnkOauth2ApplicationToUser->Get($sField);
-		$this->assertNotNull($oAttDateTime, "$sField not null");
-		$oExpirationFieldDateTime = DateTime::createFromFormat(AttributeDateTime::GetSQLFormat(), $oAttDateTime);
-
-		$iExpirationTime = strtotime("+$iExpirationInSeconds SECONDS") - 3601;
-		$oExpirationTimeDateTimeCheck = date(AttributeDateTime::GetSQLFormat(), $iExpirationTime);
-
-		$this->assertTrue($iExpirationTime < $oExpirationFieldDateTime->getTimestamp(), "expiration check $iExpirationInSeconds: $oExpirationTimeDateTimeCheck < $oAttDateTime");
+		$this->assertTrue($iExpirationInSeconds <= $iExpectedExpirationInSeconds, "expiration check $sField: $iExpirationInSeconds <= $iExpectedExpirationInSeconds");
 	}
 
 

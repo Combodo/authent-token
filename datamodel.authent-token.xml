@@ -87,6 +87,7 @@
         <field id="last_use_date" xsi:type="AttributeDateTime" _delta="define">
           <sql>last_use_date</sql>
           <default_value/>
+          <tracking_level>none</tracking_level>
           <is_null_allowed>true</is_null_allowed>
         </field>
       </fields>

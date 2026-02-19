@@ -14,7 +14,7 @@ class TokenAuthException extends Exception
 	 * @param int $iHttpCode
 	 * @param Exception|null $oPrevious
 	 */
-	public function __construct($sMessage = "Unauthorized", $iHttpCode = 400, Exception $oPrevious = null)
+	public function __construct($sMessage = "Unauthorized", $iHttpCode = 400, ?Exception $oPrevious = null)
 	{
 		TokenAuthLog::Error(TokenAuthHelper::MODULE_NAME.": $sMessage code: $iHttpCode");
 		parent::__construct($sMessage, $iHttpCode, $oPrevious);

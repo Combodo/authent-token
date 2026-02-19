@@ -25,7 +25,7 @@ class TokenAuthConfig
 		return static::$oInstance;
 	}
 
-	public function Get(string $sParamName, string $sTokenType = null, $default = null)
+	public function Get(string $sParamName, ?string $sTokenType = null, $default = null)
 	{
 		if (is_null($sTokenType)) {
 			return MetaModel::GetModuleSetting('authent-token', $sParamName, $default);
@@ -38,7 +38,7 @@ class TokenAuthConfig
 		return $default;
 	}
 
-	public function GetBoolean(string $sParamName, string $sTokenType = null, $default = null)
+	public function GetBoolean(string $sParamName, ?string $sTokenType = null, $default = null)
 	{
 		$res = $this->Get($sParamName, $sTokenType, $default);
 		if (is_string($res)) {

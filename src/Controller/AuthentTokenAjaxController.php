@@ -484,7 +484,7 @@ JS;
 			return true;
 		}
 
-		if (utils::GetConfig()->GetModuleSetting(TokenAuthHelper::MODULE_NAME, 'enable_myaccount_menu', false)) {
+		if (utils::GetConfig(true)->GetModuleSetting(TokenAuthHelper::MODULE_NAME, 'enable_myaccount_menu', false)) {
 			return true;
 		}
 

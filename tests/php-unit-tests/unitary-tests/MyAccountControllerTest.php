@@ -19,6 +19,7 @@ class MyAccountControllerTest extends ItopDataTestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
+		$this->BackupConfiguration();
 		$this->RequireOnceItopFile('/env-production/authent-token/vendor/autoload.php');
 	}
 
@@ -47,7 +48,9 @@ class MyAccountControllerTest extends ItopDataTestCase
 
 		$this->assertEquals(true, PersonalTokenService::GetInstance()->IsPersonalTokenManagementAllowed($oUser), "default conf: IsPersonalTokenManagementAllowed check on $sProfileName");
 
-		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', []);
+		$this->oiTopConfig->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', []);
+		$this->SaveItopConfFile();
+
 		$this->assertEquals(true, PersonalTokenService::GetInstance()->IsPersonalTokenManagementAllowed($oUser), "default conf: IsPersonalTokenManagementAllowed check on $sProfileName");
 	}
 
@@ -59,8 +62,10 @@ class MyAccountControllerTest extends ItopDataTestCase
 
 		$this->assertEquals(true, AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
 
-		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', []);
-		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'enable_myaccount_menu', false);
+		$this->oiTopConfig->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', []);
+		$this->oiTopConfig->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'enable_myaccount_menu', false);
+		$this->SaveItopConfFile();
+
 		$this->assertEquals(true, AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
 	}
 
@@ -72,7 +77,9 @@ class MyAccountControllerTest extends ItopDataTestCase
 
 		$this->assertEquals(false, PersonalTokenService::GetInstance()->IsPersonalTokenManagementAllowed($oUser), "default conf: IsPersonalTokenManagementAllowed check on $sProfileName");
 
-		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', [$sProfileName]);
+		$this->oiTopConfig->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', [$sProfileName]);
+		$this->SaveItopConfFile();
+
 		$this->assertEquals(true, PersonalTokenService::GetInstance()->IsPersonalTokenManagementAllowed($oUser), "default conf: IsPersonalTokenManagementAllowed check on $sProfileName");
 	}
 
@@ -81,12 +88,15 @@ class MyAccountControllerTest extends ItopDataTestCase
 		$oUser = $this->CreateContactlessUserWithProfileName($sProfileName);
 		$_SESSION = [];
 		\UserRights::Login($oUser->Get('login'));
-		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'enable_myaccount_menu', false);
+		$this->oiTopConfig->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'enable_myaccount_menu', false);
+		$this->SaveItopConfFile();
 
 		$this->assertFalse(AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
 
-		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', []);
-		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'enable_myaccount_menu', true);
+		$this->oiTopConfig->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', []);
+		$this->oiTopConfig->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'enable_myaccount_menu', true);
+		$this->SaveItopConfFile();
+
 		$this->assertTrue(AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
 	}
 
@@ -95,11 +105,14 @@ class MyAccountControllerTest extends ItopDataTestCase
 		$oUser = $this->CreateContactlessUserWithProfileName($sProfileName);
 		$_SESSION = [];
 		\UserRights::Login($oUser->Get('login'));
-		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'enable_myaccount_menu', false);
+		$this->oiTopConfig->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'enable_myaccount_menu', false);
+		$this->SaveItopConfFile();
 
 		$this->assertFalse(AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
 
-		\utils::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', [$sProfileName]);
+		$this->oiTopConfig->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', [$sProfileName]);
+		$this->SaveItopConfFile();
+
 		$this->assertTrue(AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
 	}
 }

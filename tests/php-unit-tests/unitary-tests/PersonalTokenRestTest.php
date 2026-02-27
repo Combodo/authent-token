@@ -36,15 +36,12 @@ class PersonalTokenRestTest extends AbstractTokenRest
 	{
 		parent::setUp();
 
-		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
-		$this->InitLoginMode(TokenLoginExtension::LOGIN_TYPE);
+		$this->AddLoginModeAndSaveConfiguration(TokenLoginExtension::LOGIN_TYPE);
 
-		MetaModel::GetConfig()->Set('secure_rest_services', true, 'auth-token');
-		MetaModel::GetConfig()->Set('allow_rest_services_via_tokens', true, 'auth-token');
-		MetaModel::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Administrator', 'Service Desk Agent']);
-
-		MetaModel::GetConfig()->WriteToFile();
-		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
+		$this->oiTopConfig->Set('secure_rest_services', true, 'auth-token');
+		$this->oiTopConfig->Set('allow_rest_services_via_tokens', true, 'auth-token');
+		$this->oiTopConfig->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Administrator', 'Service Desk Agent']);
+		$this->SaveItopConfFile();
 
 		//create admin only to read cmdbchangop
 		$oAdminProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", ['name' => 'Administrator'], true);
@@ -197,10 +194,8 @@ JSON;
 	{
 		$this->oPersonalToken = $this->oAdminToken;
 
-		MetaModel::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Configuration Manager']);
-		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
-		MetaModel::GetConfig()->WriteToFile();
-		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
+		$this->oiTopConfig->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Configuration Manager']);
+		$this->SaveItopConfFile();
 
 		//create ticket
 		$description = date('dmY H:i:s');
@@ -215,10 +210,8 @@ JSON;
 
 	public function testApiShouldFailWithACorrectTokenAssociatedToAUserWithoutAuthorizedProfileInConf()
 	{
-		MetaModel::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Configuration Manager']);
-		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
-		MetaModel::GetConfig()->WriteToFile();
-		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
+		$this->oiTopConfig->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Configuration Manager']);
+		$this->SaveItopConfFile();
 
 		//create ticket
 		$description = date('dmY H:i:s');
@@ -236,12 +229,9 @@ JSON;
 	{
 		$this->oPersonalToken = $this->oAdminToken;
 
-		MetaModel::GetConfig()->Set('secure_rest_services', true, 'auth-token');
-		MetaModel::GetConfig()->Set('allow_rest_services_via_tokens', false, 'auth-token');
-
-		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
-		MetaModel::GetConfig()->WriteToFile();
-		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
+		$this->oiTopConfig->Set('secure_rest_services', true, 'auth-token');
+		$this->oiTopConfig->Set('allow_rest_services_via_tokens', false, 'auth-token');
+		$this->SaveItopConfFile();
 
 		//create ticket
 		$description = date('dmY H:i:s');

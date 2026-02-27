@@ -31,18 +31,6 @@ abstract class AbstractTokenRest extends AbstractRest
 		$this->RequireOnceItopFile('/env-production/authent-token/vendor/autoload.php');
 	}
 
-	protected function InitLoginMode($sLoginMode)
-	{
-		$aAllowedLoginTypes = MetaModel::GetConfig()->GetAllowedLoginTypes();
-		if (!in_array($sLoginMode, $aAllowedLoginTypes)) {
-			$aAllowedLoginTypes[] = $sLoginMode;
-			MetaModel::GetConfig()->SetAllowedLoginTypes($aAllowedLoginTypes);
-			$sConfigFile = APPROOT.'conf/'.\utils::GetCurrentEnvironment().'/config-itop.php';
-			@chmod($sConfigFile, 0770); // Allow overwriting the file
-			MetaModel::GetConfig()->WriteToFile();
-		}
-	}
-
 	public function BasicTokenProvider()
 	{
 		return [

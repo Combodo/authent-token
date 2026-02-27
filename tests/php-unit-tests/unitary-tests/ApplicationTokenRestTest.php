@@ -4,6 +4,7 @@ namespace Combodo\iTop\AuthentToken\Test;
 
 require_once __DIR__.'/AbstractTokenRest.php';
 
+use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;
 use Combodo\iTop\AuthentToken\Hook\TokenLoginExtension;
 use Combodo\iTop\AuthentToken\Service\AuthentTokenService;
 use DBObjectSet;
@@ -35,7 +36,7 @@ class ApplicationTokenRestTest extends AbstractTokenRest
 
 		$this->RequireOnceItopFile('/env-production/authent-token/vendor/autoload.php');
 
-		$this->InitLoginMode(TokenLoginExtension::LEGACY_LOGIN_TYPE);
+		$this->AddLoginModeAndSaveConfiguration(TokenLoginExtension::LEGACY_LOGIN_TYPE);
 
 		$oRestProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", ['name' => 'REST Services User'], true);
 		$oAdminProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", ['name' => 'Administrator'], true);
@@ -126,19 +127,13 @@ class ApplicationTokenRestTest extends AbstractTokenRest
 		$description = date('dmY H:i:s');
 
 		// Allow legacy tokens in configuration
-		$oConfig = MetaModel::GetConfig();
-		$aParamsByTokenType = $oConfig->GetModuleSetting('authent-token', 'application_token', []);
+		$aParamsByTokenType = $this->oiTopConfig->GetModuleSetting('authent-token', 'application_token', []);
 		$aParamsByTokenType['allow_fallback_token'] = true;
-		$oConfig->SetModuleSetting('authent-token', 'application_token', $aParamsByTokenType);
-		$sConfigFile = $oConfig->GetLoadedFile();
-		@chmod($sConfigFile, 0770); // Allow overwriting the file
-		$oConfig->WriteToFile();
+		$this->oiTopConfig->SetModuleSetting('authent-token', 'application_token', $aParamsByTokenType);
+		$this->SaveItopConfFile();
 
 		$sOutputJson = $this->CreateTicketViaApi($description);
 
-		$oConfig->SetModuleSetting('authent-token', 'application_token', []);
-		$oConfig->WriteToFile();
-		//@chmod($sConfigFile, 0440); // Deny overwriting the file
 		$aJson = json_decode($sOutputJson, true);
 
 		$this->assertFalse(is_null($aJson), "should be json (and not html login form): ".$sOutputJson);

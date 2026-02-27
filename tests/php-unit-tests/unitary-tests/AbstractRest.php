@@ -29,44 +29,16 @@ abstract class AbstractRest extends ItopDataTestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-
-		$sConfigPath = MetaModel::GetConfig()->GetLoadedFile();
+		$this->BackupConfiguration();
 
 		clearstatcache();
-		echo sprintf("\nrights via ls on %s:\n %s \n", $sConfigPath, exec("ls -al $sConfigPath"));
-		$sFilePermOutput = substr(sprintf('%o', fileperms('/etc/passwd')), -4);
-		echo sprintf("rights via fileperms on %s:\n %s \n", $sConfigPath, $sFilePermOutput);
 
 		$sUid = date('dmYHis');
 		$this->sLogin = "rest-user-".$sUid;
 		$this->sOrgName = "Org-$sUid";
 		$this->CreateOrganization($this->sOrgName);
 
-		if (0 !== strlen($this->sTmpFile)) {
-			unlink($this->sTmpFile);
-		}
-
 		$this->sUrl = MetaModel::GetConfig()->Get('app_root_url');
-
-		$this->sConfigTmpBackupFile = tempnam(sys_get_temp_dir(), "config_");
-		MetaModel::GetConfig()->WriteToFile($this->sConfigTmpBackupFile);
-	}
-
-	/**
-	 * @throws Exception
-	 */
-	protected function tearDown(): void
-	{
-		parent::tearDown();
-
-		if (!is_null($this->sConfigTmpBackupFile) && is_file($this->sConfigTmpBackupFile)) {
-			//put config back
-			$sConfigPath = MetaModel::GetConfig()->GetLoadedFile();
-			@chmod($sConfigPath, 0770);
-			$oConfig = new Config($this->sConfigTmpBackupFile);
-			$oConfig->WriteToFile($sConfigPath);
-			@chmod($sConfigPath, 0440);
-		}
 	}
 
 	abstract protected function GetPostParameters($sContext = null);

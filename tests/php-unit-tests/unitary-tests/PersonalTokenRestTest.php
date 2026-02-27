@@ -1,4 +1,5 @@
 <?php
+
 namespace Combodo\iTop\AuthentToken\Test;
 
 require_once __DIR__.'/AbstractTokenRest.php';
@@ -9,7 +10,6 @@ use Combodo\iTop\AuthentToken\Hook\TokenLoginExtension;
 use Exception;
 use MetaModel;
 use PersonalToken;
-
 
 /**
  * @group itopRequestMgmt
@@ -22,8 +22,8 @@ use PersonalToken;
  */
 class PersonalTokenRestTest extends AbstractTokenRest
 {
-	const EXPORTV2_CLI = 'webservices/export-v2.php';
-	const EXPORT_CLI = 'webservices/export.php';
+	public const EXPORTV2_CLI = 'webservices/export-v2.php';
+	public const EXPORT_CLI = 'webservices/export.php';
 
 	protected $oPersonalToken;
 	protected $oAdminToken;
@@ -35,7 +35,7 @@ class PersonalTokenRestTest extends AbstractTokenRest
 	protected function setUp(): void
 	{
 		parent::setUp();
-		
+
 		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
 		$this->InitLoginMode(TokenLoginExtension::LOGIN_TYPE);
 
@@ -47,13 +47,13 @@ class PersonalTokenRestTest extends AbstractTokenRest
 		@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0440);
 
 		//create admin only to read cmdbchangop
-		$oAdminProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'Administrator'), true);
-		$sLogin = $this->sLogin . "-Admin";
+		$oAdminProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", ['name' => 'Administrator'], true);
+		$sLogin = $this->sLogin."-Admin";
 		$oAdminUser = $this->CreateContactlessUser($sLogin, $oAdminProfile->GetKey(), $this->sPassword);
 		$this->oAdminToken = $this->CreatePersonalToken($oAdminUser, "ADMINACCESS");
 
-		$oProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'Service Desk Agent'), true);
-		$this->sLogin = $this->sLogin . "-ServiceDeskAgent";
+		$oProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", ['name' => 'Service Desk Agent'], true);
+		$this->sLogin = $this->sLogin."-ServiceDeskAgent";
 		$this->oUser = $this->CreateContactlessUser($this->sLogin, $oProfile->GetKey(), $this->sPassword);
 		$this->oPersonalToken = $this->CreatePersonalToken($this->oUser, "RESTTEST");
 
@@ -61,27 +61,29 @@ class PersonalTokenRestTest extends AbstractTokenRest
 		$this->iJsonDataMode = self::MODE['JSONDATA_AS_STRING'];
 	}
 
-	public function CreatePersonalToken(\User $oUser, string $sApplication, $sScope=null) : PersonalToken{
+	public function CreatePersonalToken(\User $oUser, string $sApplication, $sScope = null): PersonalToken
+	{
 		if (is_null($sScope)) {
 			/** PersonalToken $oPersonalToken */
 			$oPersonalToken = $this->createObject(PersonalToken::class, [
 				'user_id' => $oUser->GetKey(),
 				'application' => $sApplication,
-				'scope' => \ContextTag::TAG_REST
+				'scope' => \ContextTag::TAG_REST,
 			]);
 			return $oPersonalToken;
 		}
 		throw \Exception("not implemented nor used yet");
 	}
 
-	private function CheckToken($oToken, $sNow, $iExpectedUsedCount){
+	private function CheckToken($oToken, $sNow, $iExpectedUsedCount)
+	{
 		$oLastPersonalToken = MetaModel::GetObject(PersonalToken::class, $oToken->GetKey());
 		$this->assertEquals($iExpectedUsedCount, $oLastPersonalToken->Get('use_count'));
 
 		$sLastUseDate = $oLastPersonalToken->Get('last_use_date');
-		if (is_null($sNow)){
+		if (is_null($sNow)) {
 			$this->assertEquals(null, $sLastUseDate);
-		} else{
+		} else {
 			$oDateTimeFormat = new \DateTimeFormat('Y-m-d H:i:s');
 			$oLastUseDateTime = $oDateTimeFormat->Parse($sLastUseDate);
 			$iRefreshExpiration = $oLastUseDateTime->format('U');
@@ -91,8 +93,9 @@ class PersonalTokenRestTest extends AbstractTokenRest
 		}
 	}
 
-	protected function GetAuthToken($sContext=null){
-		if ($this->bEmptyToken){
+	protected function GetAuthToken($sContext = null)
+	{
+		if ($this->bEmptyToken) {
 			return '';
 		}
 
@@ -100,7 +103,7 @@ class PersonalTokenRestTest extends AbstractTokenRest
 		$oProperty = $oReflectionClass->getProperty('sToken');
 		$oProperty->setAccessible(true);
 
-		if ('CMDBChangeOp' === $sContext || 'delete' === $sContext){
+		if ('CMDBChangeOp' === $sContext || 'delete' === $sContext) {
 			//only admin can see CMDBChangeOp or delete UR
 			$sTokenCredential = $oProperty->getValue($this->oAdminToken);
 		} else {
@@ -171,14 +174,13 @@ class PersonalTokenRestTest extends AbstractTokenRest
 JSON;
 
 		$sOuputJson = $this->CreateTicketViaApi($description);
-		$this->assertEquals($sExpectedOutput, $sOuputJson, "should be html login form instead of any json : " .  $sOuputJson);
+		$this->assertEquals($sExpectedOutput, $sOuputJson, "should be html login form instead of any json : ".$sOuputJson);
 	}
 
 	public function testApiWithAnotherScope()
 	{
 		$this->oPersonalToken->Set('scope', 'OTHERS');
 		$this->oPersonalToken->DBWrite();
-
 
 		//create ticket
 		$description = date('dmY H:i:s');
@@ -188,7 +190,7 @@ JSON;
 JSON;
 
 		$sOuputJson = $this->CreateTicketViaApi($description);
-		$this->assertEquals($sExpectedOutput, $sOuputJson, "should be html login form instead of any json : " .  $sOuputJson);
+		$this->assertEquals($sExpectedOutput, $sOuputJson, "should be html login form instead of any json : ".$sOuputJson);
 	}
 
 	public function testApiShouldFailWithACorrectTokenAssociatedToAnAdminUserWithoutAuthorizedProfileInConf()
@@ -208,7 +210,7 @@ JSON;
 JSON;
 
 		$sOuputJson = $this->CreateTicketViaApi($description);
-		$this->assertEquals($sExpectedOutput, $sOuputJson, "should be html login form instead of any json : " .  $sOuputJson);
+		$this->assertEquals($sExpectedOutput, $sOuputJson, "should be html login form instead of any json : ".$sOuputJson);
 	}
 
 	public function testApiShouldFailWithACorrectTokenAssociatedToAUserWithoutAuthorizedProfileInConf()
@@ -226,7 +228,7 @@ JSON;
 JSON;
 
 		$sOuputJson = $this->CreateTicketViaApi($description);
-		$this->assertEquals($sExpectedOutput, $sOuputJson, "should be html login form instead of any json : " .  $sOuputJson);
+		$this->assertEquals($sExpectedOutput, $sOuputJson, "should be html login form instead of any json : ".$sOuputJson);
 	}
 
 	//N°6444 - parameter allow_rest_services_via_tokens not well managed
@@ -252,7 +254,8 @@ JSON;
 		$this->assertEquals($sExpectedOutput, $sOuputJson, "rest is called. authentification works but then Rest Profile should fail and stop with proper message");
 	}
 
-	public function SynchroProvider(){
+	public function SynchroProvider()
+	{
 		$sSynchroExecAuthenticationOkNeedle = <<<HTML
 The parameter 'data_sources' is mandatory
 HTML;
@@ -294,10 +297,11 @@ HTML;
 	/**
 	 * @dataProvider SynchroProvider
 	 */
-	public function testSynchroScript($sUri, $sNeedle, $bSetScope, $bAuthenticationSuccess, $sScope=null) {
+	public function testSynchroScript($sUri, $sNeedle, $bSetScope, $bAuthenticationSuccess, $sScope = null)
+	{
 		$sScope = (is_null($sScope)) ? \ContextTag::TAG_SYNCHRO : $sScope;
 
-		if($bSetScope){
+		if ($bSetScope) {
 			$this->oPersonalToken->Set('scope', $sScope);
 			$this->oPersonalToken->DBWrite();
 		}
@@ -306,14 +310,15 @@ HTML;
 
 		$this->assertTrue(false !== strpos($sOutput, $sNeedle), $sOutput);
 
-		if($bAuthenticationSuccess){
+		if ($bAuthenticationSuccess) {
 			$this->CheckToken($this->oPersonalToken, time(), 1);
 		} else {
 			$this->CheckToken($this->oPersonalToken, null, 0);
 		}
 	}
 
-	public function ImportProvider(){
+	public function ImportProvider()
+	{
 		$sImportAuthenticationOkNeedle = <<<HTML
 ERROR: Missing argument 'class'
 HTML;
@@ -339,11 +344,13 @@ HTML;
 	/**
 	 * @dataProvider ImportProvider
 	 */
-	public function testImportScript($sUri, $sNeedle, $bSetScope, $bAuthenticationSuccess) {
+	public function testImportScript($sUri, $sNeedle, $bSetScope, $bAuthenticationSuccess)
+	{
 		$this->testSynchroScript($sUri, $sNeedle, $bSetScope, $bAuthenticationSuccess, \ContextTag::TAG_IMPORT);
 	}
 
-	public function ExportProvider(){
+	public function ExportProvider()
+	{
 		$sExportv2AuthenticationOkNeedle = <<<HTML
 <p>ERROR: Missing parameter. The parameter 'expression' or 'query' must be specified.</p>
 HTML;
@@ -384,18 +391,21 @@ HTML;
 	}
 
 	//N°6443 - Loop when allowed profils missconfigured
-	public function testInfiniteLoopViaExport() {
-		$this->testSynchroScript(self::EXPORTV2_CLI . '?login_mode=token', "iTop access to this page is restricted. Please, contact an iTop administrator", false, false, \ContextTag::TAG_EXPORT);
+	public function testInfiniteLoopViaExport()
+	{
+		$this->testSynchroScript(self::EXPORTV2_CLI.'?login_mode=token', "iTop access to this page is restricted. Please, contact an iTop administrator", false, false, \ContextTag::TAG_EXPORT);
 	}
 
 	/**
 	 * @dataProvider ExportProvider
 	 */
-	public function testExportScript($sUri, $sNeedle, $bSetScope, $bAuthenticationSuccess) {
+	public function testExportScript($sUri, $sNeedle, $bSetScope, $bAuthenticationSuccess)
+	{
 		$this->testSynchroScript($sUri, $sNeedle, $bSetScope, $bAuthenticationSuccess, \ContextTag::TAG_EXPORT);
 	}
 
-	public function TokenLoginExtensionProvider(){
+	public function TokenLoginExtensionProvider()
+	{
 		$sRestOkNeedle = <<<HTML
 {"code":100,"message":"Error: Missing parameter 'operation'"}
 HTML;
@@ -409,49 +419,49 @@ HTML;
 				'sNeedle' => "login_mode 'token' forced without any token passed",
 				'bAuthenticationSuccess' => false,
 				'empty token' => true,
-				'bTokenLoginModesNotConfigured' => false
+				'bTokenLoginModesNotConfigured' => false,
 			],
 			'rest.php / no login_mode and empty token / login page returned for other login modes trials' => [
 				'sLoginMode' => null,
 				'sNeedle' => $sInvalidLoginNeedle,
 				'bAuthenticationSuccess' => false,
 				'empty token' => true,
-				'bTokenLoginModesNotConfigured' => false
+				'bTokenLoginModesNotConfigured' => false,
 			],
 			'rest.php / no login_mode passed / authentication OK' => [
 				'sLoginMode' => null,
 				'sNeedle' => $sRestOkNeedle,
 				'bAuthenticationSuccess' => true,
 				'empty token' => false,
-				'bTokenLoginModesNotConfigured' => false
+				'bTokenLoginModesNotConfigured' => false,
 			],
 			'rest.php / token login_mode forced / authentication OK' => [
 				'sLoginMode' => 'token',
 				'sNeedle' => $sRestOkNeedle,
 				'bAuthenticationSuccess' => true,
 				'empty token' => false,
-				'bTokenLoginModesNotConfigured' => false
+				'bTokenLoginModesNotConfigured' => false,
 			],
 			'rest.php / rest-token login_mode forced / authentication OK' => [
 				'sLoginMode' => 'rest-token',
 				'sNeedle' => $sRestOkNeedle,
 				'bAuthenticationSuccess' => true,
 				'empty token' => false,
-				'bTokenLoginModesNotConfigured' => false
+				'bTokenLoginModesNotConfigured' => false,
 			],
 			'rest.php / login_mode passed / token passed but login_modes not configured' => [
 				'sLoginMode' => 'token',
 				'sNeedle' => $sInvalidLoginNeedle,
 				'bAuthenticationSuccess' => false,
 				'empty token' => false,
-				'bTokenLoginModesNotConfigured' => true
+				'bTokenLoginModesNotConfigured' => true,
 			],
 			'rest.php / no login_mode / token passed but login_modes not configured / login page to let other login mode authenticate' => [
 				'sLoginMode' => null,
 				'sNeedle' => $sInvalidLoginNeedle,
 				'bAuthenticationSuccess' => false,
 				'empty token' => false,
-				'bTokenLoginModesNotConfigured' => true
+				'bTokenLoginModesNotConfigured' => true,
 			],
 
 		];
@@ -460,8 +470,9 @@ HTML;
 	/**
 	 * @dataProvider TokenLoginExtensionProvider
 	 */
-	public function testTokenLoginExtension($sLoginMode, $sNeedle, $bAuthenticationSuccess, $bEmptyToken, $bTokenLoginModesNotConfigured) {
-		if ($bEmptyToken){
+	public function testTokenLoginExtension($sLoginMode, $sNeedle, $bAuthenticationSuccess, $bEmptyToken, $bTokenLoginModesNotConfigured)
+	{
+		if ($bEmptyToken) {
 			$this->bEmptyToken = true;
 		}
 
@@ -472,14 +483,14 @@ HTML;
 			$oTokenLoginExtension = new TokenLoginExtension();
 			foreach ($aAllowedLoginTypes as $sConfiguredLoginMode) {
 				if ($oTokenLoginExtension->IsLoginModeSupported($sConfiguredLoginMode)) {
-					$bConfigToUpdate=true;
+					$bConfigToUpdate = true;
 				} else {
-					$aNewAllowedLoginTypes []= $sConfiguredLoginMode;
+					$aNewAllowedLoginTypes [] = $sConfiguredLoginMode;
 				}
 			}
 
 			var_dump($aNewAllowedLoginTypes);
-			if ($bConfigToUpdate){
+			if ($bConfigToUpdate) {
 				MetaModel::GetConfig()->SetAllowedLoginTypes($aNewAllowedLoginTypes);
 				@chmod(MetaModel::GetConfig()->GetLoadedFile(), 0770);
 				MetaModel::GetConfig()->WriteToFile();
@@ -488,7 +499,7 @@ HTML;
 		}
 
 		$sUrl = "webservices/rest.php";
-		if (! is_null($sLoginMode)){
+		if (! is_null($sLoginMode)) {
 			$sUrl = "$sUrl?login_mode=$sLoginMode";
 		}
 		$sOutput =  $this->CallRestApi(json_encode(["fake symport"]), null, $sUrl);
@@ -496,7 +507,7 @@ HTML;
 
 		$this->assertTrue(false !== strpos($sOutput, $sNeedle), $sOutput);
 
-		if($bAuthenticationSuccess){
+		if ($bAuthenticationSuccess) {
 			$this->CheckToken($this->oPersonalToken, time(), 1);
 		} else {
 			$this->CheckToken($this->oPersonalToken, null, 0);

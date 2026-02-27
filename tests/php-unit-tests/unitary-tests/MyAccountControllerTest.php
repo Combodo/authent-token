@@ -14,25 +14,33 @@ use MetaModel;
  * @preserveGlobalState disabled
  * @backupGlobals disabled
  */
-class MyAccountControllerTest  extends ItopDataTestCase {
-	protected function setUp(): void {
+class MyAccountControllerTest extends ItopDataTestCase
+{
+	protected function setUp(): void
+	{
 		parent::setUp();
 		$this->RequireOnceItopFile('/env-production/authent-token/vendor/autoload.php');
 	}
 
-	protected function tearDown(): void {
+	protected function tearDown(): void
+	{
 		parent::tearDown();
 		$_SESSION = [];
 	}
 
-	protected function CreateContactlessUserWithProfileName($sProfileName) : \UserLocal {
+	protected function CreateContactlessUserWithProfileName($sProfileName): \UserLocal
+	{
 		$sLogin = sprintf("%s-%s", $sProfileName, date('Y-m-d-H:i:s'));
-		$oProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => $sProfileName),
-			true);
+		$oProfile = MetaModel::GetObjectFromOQL(
+			"SELECT URP_Profiles WHERE name = :name",
+			['name' => $sProfileName],
+			true
+		);
 		return $this->CreateContactlessUser($sLogin, $oProfile->GetKey(), '123456abcdeFGTR@');
 	}
 
-	public function testIsPersonalTokenManagementAllowed_Admin($sProfileName='Administrator'){
+	public function testIsPersonalTokenManagementAllowed_Admin($sProfileName = 'Administrator')
+	{
 		$oUser = $this->CreateContactlessUserWithProfileName($sProfileName);
 		$_SESSION = [];
 		\UserRights::Login($oUser->Get('login'));
@@ -43,7 +51,8 @@ class MyAccountControllerTest  extends ItopDataTestCase {
 		$this->assertEquals(true, PersonalTokenService::GetInstance()->IsPersonalTokenManagementAllowed($oUser), "default conf: IsPersonalTokenManagementAllowed check on $sProfileName");
 	}
 
-	public function testIsMenuAllowed_Admin($sProfileName='Administrator'){
+	public function testIsMenuAllowed_Admin($sProfileName = 'Administrator')
+	{
 		$oUser = $this->CreateContactlessUserWithProfileName($sProfileName);
 		$_SESSION = [];
 		\UserRights::Login($oUser->Get('login'));
@@ -55,7 +64,8 @@ class MyAccountControllerTest  extends ItopDataTestCase {
 		$this->assertEquals(true, AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
 	}
 
-	public function testIsPersonalTokenManagementAllowed_OtherThanAdmin($sProfileName="Configuration Manager"){
+	public function testIsPersonalTokenManagementAllowed_OtherThanAdmin($sProfileName = "Configuration Manager")
+	{
 		$oUser = $this->CreateContactlessUserWithProfileName($sProfileName);
 		$_SESSION = [];
 		\UserRights::Login($oUser->Get('login'));
@@ -66,7 +76,8 @@ class MyAccountControllerTest  extends ItopDataTestCase {
 		$this->assertEquals(true, PersonalTokenService::GetInstance()->IsPersonalTokenManagementAllowed($oUser), "default conf: IsPersonalTokenManagementAllowed check on $sProfileName");
 	}
 
-	public function testIsMenuAllowed_OtherThanAdmin($sProfileName='Configuration Manager'){
+	public function testIsMenuAllowed_OtherThanAdmin($sProfileName = 'Configuration Manager')
+	{
 		$oUser = $this->CreateContactlessUserWithProfileName($sProfileName);
 		$_SESSION = [];
 		\UserRights::Login($oUser->Get('login'));
@@ -79,7 +90,8 @@ class MyAccountControllerTest  extends ItopDataTestCase {
 		$this->assertTrue(AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
 	}
 
-	public function testIsMenuAllowed_OtherThanAdminAndProfileByPassing($sProfileName='Configuration Manager'){
+	public function testIsMenuAllowed_OtherThanAdminAndProfileByPassing($sProfileName = 'Configuration Manager')
+	{
 		$oUser = $this->CreateContactlessUserWithProfileName($sProfileName);
 		$_SESSION = [];
 		\UserRights::Login($oUser->Get('login'));
@@ -91,4 +103,3 @@ class MyAccountControllerTest  extends ItopDataTestCase {
 		$this->assertTrue(AuthentTokenAjaxController::IsMenuAllowed($oUser), "default conf: IsMenuAllowed check on $sProfileName");
 	}
 }
-

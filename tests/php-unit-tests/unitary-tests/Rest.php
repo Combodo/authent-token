@@ -1,4 +1,5 @@
 <?php
+
 namespace Combodo\iTop\AuthentToken\Test;
 
 require_once __DIR__.'/AbstractRest.php';
@@ -19,11 +20,15 @@ class Rest extends AbstractRest
 	/**
 	 * @throws Exception
 	 */
-	protected function setUp(): void {
+	protected function setUp(): void
+	{
 		parent::setUp();
 
-		$oRestProfile = MetaModel::GetObjectFromOQL("SELECT URP_Profiles WHERE name = :name", array('name' => 'REST Services User'),
-			true);
+		$oRestProfile = MetaModel::GetObjectFromOQL(
+			"SELECT URP_Profiles WHERE name = :name",
+			['name' => 'REST Services User'],
+			true
+		);
 
 		if (is_object($this->oUser)) {
 			if (is_object($oRestProfile)) {
@@ -34,8 +39,9 @@ class Rest extends AbstractRest
 			}
 		}
 	}
-	
-	protected function GetPostParameters($sContext=null){
+
+	protected function GetPostParameters($sContext = null)
+	{
 		return [
 			'version' => '1.3',
 			'auth_user' => $this->sLogin,
@@ -43,11 +49,12 @@ class Rest extends AbstractRest
 		];
 	}
 
-	public function BasicProvider(){
+	public function BasicProvider()
+	{
 		return [
 			'call rest call' => [ 'sJsonDataMode' => self::MODE['JSONDATA_AS_STRING']],
 			'pass json_data as file' => [ 'sJsonDataMode' => self::MODE['JSONDATA_AS_FILE']],
-			'no json data' => [ 'sJsonDataMode' => self::MODE['NO_JSONDATA']]
+			'no json data' => [ 'sJsonDataMode' => self::MODE['NO_JSONDATA']],
 		];
 	}
 

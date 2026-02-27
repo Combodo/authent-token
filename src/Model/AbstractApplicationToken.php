@@ -105,7 +105,7 @@ HTML;
 		parent::AfterInsert();
 	}
 
-	public function GetInitialStateAttributeFlags($sAttCode, &$aReasons = array())
+	public function GetInitialStateAttributeFlags($sAttCode, &$aReasons = [])
 	{
 		if ($sAttCode == 'auth_token') {
 			return OPT_ATT_HIDDEN;
@@ -113,7 +113,7 @@ HTML;
 		return parent::GetInitialStateAttributeFlags($sAttCode, $aReasons);
 	}
 
-	public function GetAttributeFlags($sAttCode, &$aReasons = array(), $sTargetState = '')
+	public function GetAttributeFlags($sAttCode, &$aReasons = [], $sTargetState = '')
 	{
 		if ($sAttCode == 'auth_token') {
 			return OPT_ATT_HIDDEN;
@@ -134,7 +134,7 @@ HTML;
 		return parent::GetAsHTML($sAttCode, $bLocalize);
 	}
 
-	private function CreateNewToken() : void
+	private function CreateNewToken(): void
 	{
 		$oService = new AuthentTokenService();
 		$this->sToken = $oService->CreateNewToken($this);
@@ -142,10 +142,12 @@ HTML;
 		$this->Set('auth_token', $oPassword);
 	}
 
-	public function GetUser() : \User
+	public function GetUser(): \User
 	{
-		if (MetaModel::GetConfig()->Get('login_debug')){
-			TokenAuthLog::Info("GetUser", null,
+		if (MetaModel::GetConfig()->Get('login_debug')) {
+			TokenAuthLog::Info(
+				"GetUser",
+				null,
 				[
 					'class' => get_class($this),
 					'user_id' => $this->GetKey(),

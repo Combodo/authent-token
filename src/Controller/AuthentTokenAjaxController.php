@@ -22,6 +22,7 @@ use Dict;
 use MetaModel;
 use UserRights;
 use utils;
+
 use const ITOP_DESIGN_LATEST_VERSION;
 
 /**
@@ -226,7 +227,8 @@ JS;
 
 			//pass token to display after page reload
 			$sMessage = Dict::Format('AuthentToken:CopyToken', $oToken->getToken());
-			Session::Set('AuthentToken:CopyToken',
+			Session::Set(
+				'AuthentToken:CopyToken',
 				[
 					'credential_message' => $sMessage,
 					'token_name' => $oToken->Get('application'),
@@ -292,8 +294,12 @@ JS;
 			return false;
 		}
 
-		return sprintf("%spages/UI.php?operation=modify&class=%s&id=%s",
-			utils::GetAbsoluteUrlAppRoot(), $sClass, $oObject->GetKey());
+		return sprintf(
+			"%spages/UI.php?operation=modify&class=%s&id=%s",
+			utils::GetAbsoluteUrlAppRoot(),
+			$sClass,
+			$oObject->GetKey()
+		);
 	}
 
 	public function ProvideHtmlUserInfo(\User $oUser, &$aParams): void
@@ -410,7 +416,8 @@ JS;
 		// Double escape 'application' to prevent from XSS, there's also HTML markup in AuthentToken:Message:DeleteTokenConfirmation dict entry that needs to be escaped.
 		$sDeletionLabel = utils::HtmlEntities(Dict::Format("AuthentToken:Message:DeleteTokenConfirmation", utils::HtmlEntities($oToken->Get('application'))));
 		$sTokenId = $oToken->GetKey();
-		$sRowHtml = str_replace('data-role="ibo-button"',
+		$sRowHtml = str_replace(
+			'data-role="ibo-button"',
 			sprintf('data-role="ibo-button" data-token-id="%s" data-deletion-label="%s"', $sTokenId, $sDeletionLabel),
 			$oBlockRenderer->RenderHtml()
 		);

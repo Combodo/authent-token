@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright   Copyright (C) 2010-2024 Combodo SARL
  * @license     http://opensource.org/licenses/AGPL-3.0
@@ -30,7 +31,7 @@ class TokenAuthConfig
 		if (is_null($sTokenType)) {
 			return MetaModel::GetModuleSetting('authent-token', $sParamName, $default);
 		}
-		$aParamsByTokenType = MetaModel::GetModuleSetting('authent-token', $sTokenType, array());
+		$aParamsByTokenType = MetaModel::GetModuleSetting('authent-token', $sTokenType, []);
 		if (array_key_exists($sParamName, $aParamsByTokenType)) {
 			return $aParamsByTokenType[$sParamName];
 		}
@@ -47,6 +48,5 @@ class TokenAuthConfig
 
 		return $res;
 	}
-
 
 }

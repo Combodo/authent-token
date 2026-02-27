@@ -7,12 +7,11 @@ use Config;
 use Exception;
 use MetaModel;
 
-
 abstract class AbstractRest extends ItopDataTestCase
 {
-	const USE_TRANSACTION = false;
+	public const USE_TRANSACTION = false;
 
-	const MODE = ['JSONDATA_AS_STRING' => 0, 'JSONDATA_AS_FILE' => 1, 'NO_JSONDATA' => 2];
+	public const MODE = ['JSONDATA_AS_STRING' => 0, 'JSONDATA_AS_FILE' => 1, 'NO_JSONDATA' => 2];
 
 	protected $sTmpFile = "";
 	/** @var int $iJsonDataMode */
@@ -51,7 +50,7 @@ abstract class AbstractRest extends ItopDataTestCase
 
 		$this->sConfigTmpBackupFile = tempnam(sys_get_temp_dir(), "config_");
 		MetaModel::GetConfig()->WriteToFile($this->sConfigTmpBackupFile);
-}
+	}
 
 	/**
 	 * @throws Exception
@@ -129,7 +128,6 @@ abstract class AbstractRest extends ItopDataTestCase
 
 		return false;
 	}
-
 
 	public function CreateApiTest($iJsonDataMode)
 	{
@@ -226,7 +224,6 @@ JSON;
 		$aCmdbChangeUserInfo = $this->GetCmdbChangeUserInfo($iId);
 		var_dump($aCmdbChangeUserInfo);
 		$this->assertEquals(['CMDBChangeOpCreate' => 'test', 'CMDBChangeOpSetAttributeHTML' => 'test'], $aCmdbChangeUserInfo);
-
 
 		//delete ticket
 		$this->DeleteTicketFromApi($iId);

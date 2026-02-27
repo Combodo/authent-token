@@ -13,7 +13,7 @@ use Combodo\iTop\AuthentToken\Service\PersonalTokenService;
  * @license     http://opensource.org/licenses/AGPL-3.0
  */
 
-abstract class AbstractPersonalToken extends cmdbAbstractObject  implements iToken
+abstract class AbstractPersonalToken extends cmdbAbstractObject implements iToken
 {
 	protected $sToken;
 	protected $bCanEditUserId = true;
@@ -32,18 +32,21 @@ abstract class AbstractPersonalToken extends cmdbAbstractObject  implements iTok
 		return parent::DisplayBareHeader($oPage, $bEditMode);
 	}
 
-	public function SetCanEditUserId(bool $bCanEdit) : void {
+	public function SetCanEditUserId(bool $bCanEdit): void
+	{
 		$this->bCanEditUserId = $bCanEdit;
 	}
 
-	public function GetCanEditUserId() : bool {
+	public function GetCanEditUserId(): bool
+	{
 		return $this->bCanEditUserId;
 	}
 
 	/**
 	 * @return string : get token value only when refreshing its value
 	 */
-	public function GetToken() : ?string {
+	public function GetToken(): ?string
+	{
 		return $this->sToken;
 	}
 
@@ -94,21 +97,21 @@ HTML;
 		parent::AfterInsert();
 	}
 
-	public function GetInitialStateAttributeFlags($sAttCode, &$aReasons = array())
+	public function GetInitialStateAttributeFlags($sAttCode, &$aReasons = [])
 	{
 		if (in_array($sAttCode, [ 'auth_token', 'use_count', 'last_use_date' ])) {
 			return OPT_ATT_HIDDEN;
-		} else if ($sAttCode == 'user_id' && !$this->GetCanEditUserId()) {
+		} elseif ($sAttCode == 'user_id' && !$this->GetCanEditUserId()) {
 			return OPT_ATT_READONLY;
 		}
 		return parent::GetInitialStateAttributeFlags($sAttCode, $aReasons);
 	}
 
-	public function GetAttributeFlags($sAttCode, &$aReasons = array(), $sTargetState = '')
+	public function GetAttributeFlags($sAttCode, &$aReasons = [], $sTargetState = '')
 	{
 		if (in_array($sAttCode, [ 'auth_token', 'use_count', 'last_use_date' ])) {
 			return OPT_ATT_HIDDEN;
-		} else if ($sAttCode == 'user_id' && !$this->GetCanEditUserId()) {
+		} elseif ($sAttCode == 'user_id' && !$this->GetCanEditUserId()) {
 			return OPT_ATT_READONLY;
 		}
 		return parent::GetAttributeFlags($sAttCode, $aReasons, $sTargetState);
@@ -122,7 +125,7 @@ HTML;
 		return parent::GetAsHTML($sAttCode, $bLocalize);
 	}
 
-	public function GetUser() : \User
+	public function GetUser(): \User
 	{
 		/** @var \User $oUser */
 		$oUser = MetaModel::GetObject(\User::class, $this->Get('user_id'));
@@ -135,7 +138,9 @@ HTML;
 		];
 
 		if (MetaModel::GetConfig()->Get('login_debug')) {
-			TokenAuthLog::Info("GetUser", null,
+			TokenAuthLog::Info(
+				"GetUser",
+				null,
 				$this->aContext
 			);
 		}
@@ -143,8 +148,9 @@ HTML;
 		return $oUser;
 	}
 
-	private function GetContextParams() : array {
-		if (is_null($this->aContext)){
+	private function GetContextParams(): array
+	{
+		if (is_null($this->aContext)) {
 			$this->aContext = [
 				'token' => get_class($this),
 				'token_id' => $this->GetKey(),
@@ -157,7 +163,7 @@ HTML;
 	public function CheckValidity(string $sToken): void
 	{
 		$oUser = $this->GetUser();
-		if (! PersonalTokenService::GetInstance()->IsPersonalTokenManagementAllowed($oUser)){
+		if (! PersonalTokenService::GetInstance()->IsPersonalTokenManagementAllowed($oUser)) {
 			if (MetaModel::GetConfig()->Get('login_debug')) {
 				$aProfiles = PersonalTokenService::GetInstance()->GetAuthorizedProfiles();
 				$sMessage = sprintf('Current user has not the Personal Token allowed profiles (%s).', implode(',', $aProfiles));
@@ -179,7 +185,6 @@ HTML;
 			$oNowDateTime = new DateTime();
 			$iNowUnixSeconds = $oNowDateTime->format('U');
 
-
 			$oDateTimeFormat = new \DateTimeFormat('Y-m-d H:i:s');
 			$oLastUseDateTime = $oDateTimeFormat->Parse($sTokenValidity);
 			$iExpirationUnixSeconds = $oLastUseDateTime->format('U');
@@ -195,7 +200,6 @@ HTML;
 
 		$this->CheckScopes();
 	}
-
 
 	/**
 	 * @return mixed
@@ -214,12 +218,13 @@ HTML;
 			}
 		}
 
-		if (MetaModel::GetConfig()->Get('login_debug')){
-			TokenAuthLog::Info(sprintf(
-				"Current context (%s) does not match current Token allowed scopes: %s",
-				implode(',', \ContextTag::GetStack()),
-				implode(",", $aScopeValues)
-			),
+		if (MetaModel::GetConfig()->Get('login_debug')) {
+			TokenAuthLog::Info(
+				sprintf(
+					"Current context (%s) does not match current Token allowed scopes: %s",
+					implode(',', \ContextTag::GetStack()),
+					implode(",", $aScopeValues)
+				),
 				null,
 				$this->GetContextParams()
 			);
@@ -227,7 +232,6 @@ HTML;
 
 		throw new TokenAuthException('Scope not authorized');
 	}
-
 
 	public function UpdateUsage(): void
 	{
@@ -242,10 +246,10 @@ HTML;
 
 		if (MetaModel::GetConfig()->Get('allow_rest_services_via_tokens')
 			&&
-			(ContextTag::Check(ContextTag::TAG_REST) || ContextTag::Check(ContextTag::TAG_SYNCHRO)))
-		{
-			if (MetaModel::GetConfig()->Get('login_debug')){
-				TokenAuthLog::Info("Rest profiles can be bypassed with 'allow_rest_services_via_tokens' enabled ('secure_rest_services' disabled once).",
+			(ContextTag::Check(ContextTag::TAG_REST) || ContextTag::Check(ContextTag::TAG_SYNCHRO))) {
+			if (MetaModel::GetConfig()->Get('login_debug')) {
+				TokenAuthLog::Info(
+					"Rest profiles can be bypassed with 'allow_rest_services_via_tokens' enabled ('secure_rest_services' disabled once).",
 					null,
 					$this->GetContextParams()
 				);

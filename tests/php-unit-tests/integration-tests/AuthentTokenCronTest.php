@@ -40,15 +40,16 @@ class AuthentTokenCronTest extends ItopDataTestCase
 
 		$this->CreateTestOrganization();
 
-		MetaModel::GetConfig()->Set('secure_rest_services', true, 'auth-token');
-		MetaModel::GetConfig()->Set('allow_rest_services_via_tokens', true, 'auth-token');
-		MetaModel::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Administrator', 'REST Services User']);
-		MetaModel::GetConfig()->WriteToFile();
+		$this->AddLoginModeAndSaveConfiguration(TokenLoginExtension::LOGIN_TYPE);
+		$this->oiTopConfig->Set('secure_rest_services', true, 'auth-token');
+		$this->oiTopConfig->Set('login_debug', true, 'auth-token');
+		$this->oiTopConfig->Set('allow_rest_services_via_tokens', true, 'auth-token');
+		$this->oiTopConfig->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['Administrator', 'REST Services User']);
+		$this->SaveItopConfFile();
 	}
 
 	public function testRestWithToken()
 	{
-		$this->AddLoginModeAndSaveConfiguration(TokenLoginExtension::LOGIN_TYPE);
 		$oUser = $this->CreateUserWithProfiles([self::$aURP_Profiles['Administrator'], self::$aURP_Profiles['REST Services User']]);
 		$oPersonalToken = $this->CreatePersonalToken($oUser, "CRONTEST", ContextTag::TAG_REST);
 
@@ -65,10 +66,9 @@ class AuthentTokenCronTest extends ItopDataTestCase
 
 	public function testLaunchCronWithTokenMode_AuthenticationPassedButNotAuthorizedToRunCronAsNonAdmin()
 	{
-		$this->AddLoginModeAndSaveConfiguration(TokenLoginExtension::LOGIN_TYPE);
 		$oUser = $this->CreateUserWithProfiles([self::$aURP_Profiles['REST Services User']]);
 
-		MetaModel::GetConfig()->SetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', ['REST Services User']);
+		$this->SaveItopConfFile();
 		$oPersonalToken = $this->CreatePersonalToken($oUser, "CRONTEST", ContextTag::TAG_CRON);
 
 		$sLogFileName = "crontest_".uniqid();
@@ -89,9 +89,8 @@ class AuthentTokenCronTest extends ItopDataTestCase
 
 	public function testGetUserLoginWithTokenMode_NoAuthorizationDueToTokenScope()
 	{
-		$this->AddLoginModeAndSaveConfiguration(TokenLoginExtension::LOGIN_TYPE);
 		$oUser = $this->CreateUserWithProfiles([self::$aURP_Profiles['Administrator']]);
-		$oPersonalToken = $this->CreatePersonalToken($oUser, "CRONTEST", ContextTag::TAG_CRON);
+		$oPersonalToken = $this->CreatePersonalToken($oUser, "CRONTEST", ContextTag::TAG_REST);
 
 		$oLoginMode = new TokenLoginExtension();
 
@@ -102,7 +101,6 @@ class AuthentTokenCronTest extends ItopDataTestCase
 
 	public function testGetUserLoginWithTokenModeOK()
 	{
-		$this->AddLoginModeAndSaveConfiguration(TokenLoginExtension::LOGIN_TYPE);
 		$oUser = $this->CreateUserWithProfiles([self::$aURP_Profiles['Administrator']]);
 		$oPersonalToken = $this->CreatePersonalToken($oUser, "CRONTEST", ContextTag::TAG_CRON);
 

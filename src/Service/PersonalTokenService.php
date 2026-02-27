@@ -63,7 +63,7 @@ class PersonalTokenService
 
 	public function GetAuthorizedProfiles(): array
 	{
-		$aProfiles = utils::GetConfig()->GetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', []);
+		$aProfiles = utils::GetConfig(true)->GetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', []);
 		if (is_array($aProfiles)) {
 			return $aProfiles;
 		}

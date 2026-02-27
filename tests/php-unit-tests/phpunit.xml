@@ -1,26 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<phpunit
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/8.5/phpunit.xsd"
-        bootstrap="unittestautoload.php"
-        backupGlobals="true"
-        colors="true"
-        columns="120"
-        convertErrorsToExceptions="true"
-        convertNoticesToExceptions="true"
-        convertWarningsToExceptions="true"
-        processIsolation="false"
-        stopOnError="false"
-        stopOnFailure="false"
-        stopOnIncomplete="false"
-        stopOnRisky="false"
-        stopOnSkipped="false"
-        verbose="true"
-        printerClass="\Sempro\PHPUnitPrettyPrinter\PrettyPrinterForPhpUnit9"
->
-
+<phpunit bootstrap="../../../tests/php-unit-tests/unittestautoload.php" backupGlobals="false" verbose="true">
   <php>
-    <ini name="error_reporting" value="E_ALL"/>
+    <!--ini name="error_reporting" value="E_ALL &amp; ~E_DEPRECATED"/-->
     <ini name="display_errors" value="On"/>
     <ini name="log_errors" value="On"/>
     <ini name="html_errors" value="Off"/>
@@ -28,11 +8,8 @@
   </php>
 
   <testsuites>
-    <testsuite name="Unitary">
-      <directory suffix="Test.php">unitary-tests</directory>
-    </testsuite>
-    <testsuite name="Integration">
-      <directory suffix="Test.php">integration-tests</directory>
+    <testsuite name="testsU">
+      <directory suffix="Test.php">.</directory>
     </testsuite>
   </testsuites>
 

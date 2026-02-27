@@ -21,7 +21,6 @@ abstract class AbstractRest extends ItopDataTestCase
 	protected $sUrl;
 	protected $sLogin;
 	protected $sPassword = "Iuytrez9876543ç_è-(";
-	protected $sConfigTmpBackupFile;
 	protected $oUser;
 	protected $sOrgName;
 

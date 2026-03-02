@@ -80,7 +80,7 @@ class AuthentTokenCronTest extends ItopDataTestCase
 			'cron_log_file' => $sLogFileName,
 		];
 
-		$sJSONResult = $this->CallItopUri("/webservices/launch_cron_asynchronously.php", $aPostFields);
+		$sJSONResult = $this->CallItopUri("/webservices/asynchronously_cron.php", $aPostFields);
 
 		$this->assertEquals($this->GetExpectedCronResponse(), $sJSONResult);
 		$sLogFile = $this->CheckLogFileIsGeneratedAndGetFullPath($sLogFileName);

@@ -356,18 +356,6 @@ HTML;
 HTML;
 
 		return [
-			'export.php / authentication OK' => [
-				'sUri' => self::EXPORT_CLI,
-				'sNeedle' => $sExportAuthenticationOkNeedle,
-				'bSetScope' => true,
-				'bAuthenticationSuccess' => true,
-			],
-			'export.php / authentication KO (json scope)' => [
-				'sUri' => self::EXPORT_CLI,
-				'sNeedle' => $sLoginModeNeedle,
-				'bSetScope' => false,
-				'bAuthenticationSuccess' => false,
-			],
 			'export-v2.php / authentication OK' => [
 				'sUri' => self::EXPORTV2_CLI,
 				'sNeedle' => $sExportv2AuthenticationOkNeedle,

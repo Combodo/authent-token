@@ -7,12 +7,11 @@ use Config;
 use Exception;
 use MetaModel;
 
-
 abstract class AbstractRest extends ItopDataTestCase
 {
-	const USE_TRANSACTION = false;
+	public const USE_TRANSACTION = false;
 
-	const MODE = ['JSONDATA_AS_STRING' => 0, 'JSONDATA_AS_FILE' => 1, 'NO_JSONDATA' => 2];
+	public const MODE = ['JSONDATA_AS_STRING' => 0, 'JSONDATA_AS_FILE' => 1, 'NO_JSONDATA' => 2];
 
 	protected $sTmpFile = "";
 	/** @var int $iJsonDataMode */
@@ -51,7 +50,7 @@ abstract class AbstractRest extends ItopDataTestCase
 
 		$this->sConfigTmpBackupFile = tempnam(sys_get_temp_dir(), "config_");
 		MetaModel::GetConfig()->WriteToFile($this->sConfigTmpBackupFile);
-}
+	}
 
 	/**
 	 * @throws Exception
@@ -97,7 +96,20 @@ abstract class AbstractRest extends ItopDataTestCase
 
 		//curl_setopt($ch, CURLOPT_COOKIE, "XDEBUG_SESSION=phpstorm");
 
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $this->GetHeadersParam($sContext));
+		// Prepare headers
+		$aHeaders = $this->GetHeadersParam($sContext) ?? [];
+
+		// - Add PHP version in header to be able to handle Docker dev environments with automatic PHP version detection (instead of hardcoding the PHP version in the app_root_url)
+		//   Note: This is duplicated from {@see \Combodo\iTop\Test\UnitTest\ItopTestCase::CallItopUri}
+		$sPhpVersion = PHP_VERSION;
+		$aPhpVersionParts = explode('.', $sPhpVersion);
+		$sPhpVersionHeaderValue = ($aPhpVersionParts[0] ?? '0').($aPhpVersionParts[1] ?? '0');
+		$aHeaders = array_merge(
+			$aHeaders,
+			['X-PHP-Version: '.$sPhpVersionHeaderValue]
+		);
+
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $aHeaders);
 		curl_setopt($ch, CURLOPT_URL, "$this->sUrl/$sUri");
 		curl_setopt($ch, CURLOPT_POST, 1);// set post data to true
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $aPostFields);
@@ -129,7 +141,6 @@ abstract class AbstractRest extends ItopDataTestCase
 
 		return false;
 	}
-
 
 	public function CreateApiTest($iJsonDataMode)
 	{
@@ -226,7 +237,6 @@ JSON;
 		$aCmdbChangeUserInfo = $this->GetCmdbChangeUserInfo($iId);
 		var_dump($aCmdbChangeUserInfo);
 		$this->assertEquals(['CMDBChangeOpCreate' => 'test', 'CMDBChangeOpSetAttributeHTML' => 'test'], $aCmdbChangeUserInfo);
-
 
 		//delete ticket
 		$this->DeleteTicketFromApi($iId);

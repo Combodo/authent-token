@@ -23,7 +23,6 @@ use PersonalToken;
 class PersonalTokenRestTest extends AbstractTokenRest
 {
 	const EXPORTV2_CLI = 'webservices/export-v2.php';
-	const EXPORT_CLI = 'webservices/export.php';
 
 	protected $oPersonalToken;
 	protected $oAdminToken;

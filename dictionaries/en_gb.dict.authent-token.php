@@ -54,6 +54,8 @@ Dict::Add('EN GB', 'British English', 'British English', array(
 	'Class:PersonalToken/Attribute:scope/Value:Import+' => 'No translation needed.',
 	'Class:PersonalToken/Attribute:scope/Value:Export' => 'Export',
 	'Class:PersonalToken/Attribute:scope/Value:Export+' => 'No translation needed.',
+	'Class:PersonalToken/Attribute:scope/Value:CRON' => 'CRON',
+	'Class:PersonalToken/Attribute:scope/Value:CRON+' => 'No translation needed.',
 	'Class:PersonalToken/Attribute:expiration_date' => 'Expiration date',
 	'Class:PersonalToken/Attribute:expiration_date+' => '',
 	'Class:PersonalToken/Attribute:use_count' => 'Use count',
@@ -83,4 +85,6 @@ Dict::Add('EN GB', 'British English', 'British English', array(
 	'Class:UserToken/Attribute:scope/Value:Import+' => '/webservices/import.php',
 	'Class:UserToken/Attribute:scope/Value:Export' => 'Export',
 	'Class:UserToken/Attribute:scope/Value:Export+' => '/webservices/export-v2.php',
+	'Class:UserToken/Attribute:scope/Value:CRON' => 'CRON',
+	'Class:UserToken/Attribute:scope/Value:CRON+' => '/webservices/cron.php',
 ));

@@ -23,9 +23,9 @@ use utils;
 
 class TokenLoginExtension extends AbstractLoginFSMExtension
 {
-	const LOGIN_TYPE = 'token';
-	const LEGACY_LOGIN_TYPE = 'rest-token';
-	const SUPPORTED_LOGIN_MODES = [ self::LOGIN_TYPE , self::LEGACY_LOGIN_TYPE ];
+	public const LOGIN_TYPE = 'token';
+	public const LEGACY_LOGIN_TYPE = 'rest-token';
+	public const SUPPORTED_LOGIN_MODES = [ self::LOGIN_TYPE , self::LEGACY_LOGIN_TYPE ];
 	// Avoid saving token into the session, keep it in memory
 	private static $sAuthToken = '';
 
@@ -56,12 +56,12 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 	 */
 	public function IsLoginModeSupported($sLoginMode)
 	{
-		return in_array($sLoginMode,self::SUPPORTED_LOGIN_MODES);
+		return in_array($sLoginMode, self::SUPPORTED_LOGIN_MODES);
 	}
 
 	protected function OnModeDetection(&$iErrorCode)
 	{
-		if ($this->bErrorOccurred){
+		if ($this->bErrorOccurred) {
 			return LoginWebPage::LOGIN_FSM_CONTINUE;
 		}
 
@@ -73,9 +73,8 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 
 		$sSessionLoginMode = Session::Get('login_mode');
 		// Note: We don't use \utils::IsNullOrEmptyString() as it is not available in iTop 2.7
-		if (strlen(self::$sAuthToken ?? '') === 0)
-		{
-			if ($this->IsLoginModeSupported($sSessionLoginMode)){
+		if (strlen(self::$sAuthToken ?? '') === 0) {
+			if ($this->IsLoginModeSupported($sSessionLoginMode)) {
 				//login_mode forced and no token. exit to stop login automata
 				throw new \Exception("login_mode '$sSessionLoginMode' forced without any token passed");
 			}
@@ -84,13 +83,10 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 			return LoginWebPage::LOGIN_FSM_CONTINUE;
 		}
 
-		if (is_null($sSessionLoginMode))
-		{
+		if (is_null($sSessionLoginMode)) {
 			$aAllowedModes = MetaModel::GetConfig()->GetAllowedLoginTypes();
-			foreach ($aAllowedModes as $sLoginMode)
-			{
-				if ($this->IsLoginModeSupported($sLoginMode))
-				{
+			foreach ($aAllowedModes as $sLoginMode) {
+				if ($this->IsLoginModeSupported($sLoginMode)) {
 					Session::Start();
 					Session::Set('login_mode', $sLoginMode);
 					Session::WriteClose();
@@ -104,14 +100,11 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 
 	protected function OnCheckCredentials(&$iErrorCode)
 	{
-		if ($this->IsLoginModeSupported(Session::Get('login_mode')))
-		{
-			try{
+		if ($this->IsLoginModeSupported(Session::Get('login_mode'))) {
+			try {
 				$oToken = self::GetToken(self::$sAuthToken);
-			}
-			catch(\Exception $e)
-			{
-				TokenAuthLog::Error("OnCheckCredentials: " . $e->getMessage());
+			} catch (\Exception $e) {
+				TokenAuthLog::Error("OnCheckCredentials: ".$e->getMessage());
 				Session::Unset('token_id');
 				Session::Unset('token_class');
 
@@ -128,8 +121,7 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 
 	protected function OnCredentialsOK(&$iErrorCode)
 	{
-		if ($this->IsLoginModeSupported(Session::Get('login_mode')))
-		{
+		if ($this->IsLoginModeSupported(Session::Get('login_mode'))) {
 			/** @var iToken $oToken */
 			$sTokenId = Session::Get('token_id');
 			$sTokenClass = Session::Get('token_class');
@@ -149,8 +141,7 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 			LoginWebPage::HTTP401Error();
 		}
 
-		if ($this->IsLoginModeSupported(Session::Get('login_mode')))
-		{
+		if ($this->IsLoginModeSupported(Session::Get('login_mode'))) {
 			$this->bErrorOccurred = true;
 		}
 		return LoginWebPage::LOGIN_FSM_CONTINUE;
@@ -158,20 +149,17 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 
 	protected function OnConnected(&$iErrorCode)
 	{
-		if ($this->IsLoginModeSupported(Session::Get('login_mode')))
-		{
+		if ($this->IsLoginModeSupported(Session::Get('login_mode'))) {
 			Session::Set('can_logoff', true);
 
 			/** @var iToken $oToken */
 			$sTokenId = Session::Get('token_id');
 			$sTokenClass = Session::Get('token_class');
 			$oToken = MetaModel::GetObject($sTokenClass, $sTokenId);
-			try{
+			try {
 				$oToken->CheckScopes();
-			}
-			catch(\Exception $e)
-			{
-				TokenAuthLog::Error("OnConnected: " . $e->getMessage());
+			} catch (\Exception $e) {
+				TokenAuthLog::Error("OnConnected: ".$e->getMessage());
 				$iErrorCode = LoginWebPage::EXIT_CODE_WRONGCREDENTIALS;
 				return LoginWebPage::LOGIN_FSM_ERROR;
 			}
@@ -191,13 +179,13 @@ class TokenLoginExtension extends AbstractLoginFSMExtension
 	 * @throws \CoreException
 	 * @throws \MySQLException
 	 */
-	public static function GetToken($sToken) : iToken
+	public static function GetToken($sToken): iToken
 	{
 		$oService = new AuthentTokenService();
 
 		$oToken = $oService->DecryptToken($sToken);
 		if (! is_null($oToken)) {
-			if (MetaModel::GetConfig()->Get('login_debug')){
+			if (MetaModel::GetConfig()->Get('login_debug')) {
 				TokenAuthLog::Info("GetToken", null, ["sTokenId" => $oToken->GetKey(), "sTokenClass" => get_class($oToken)]);
 			}
 			$oToken->CheckValidity($sToken);

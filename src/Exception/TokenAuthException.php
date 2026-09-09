@@ -1,4 +1,5 @@
 <?php
+
 namespace Combodo\iTop\AuthentToken\Exception;
 
 use Combodo\iTop\AuthentToken\Helper\TokenAuthHelper;

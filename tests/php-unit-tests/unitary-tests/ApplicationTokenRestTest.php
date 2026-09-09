@@ -12,7 +12,6 @@ use MetaModel;
 use URP_UserProfile;
 use UserToken;
 
-
 /**
  * @mark
  * @group itopRequestMgmt

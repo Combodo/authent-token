@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright   Copyright (C) 2010-2024 Combodo SARL
  * @license     http://opensource.org/licenses/AGPL-3.0
@@ -41,13 +42,13 @@ class PersonalTokenService
 		return static::$oInstance;
 	}
 
-	public function IsPersonalTokenManagementAllowed(User $oUser) : bool
+	public function IsPersonalTokenManagementAllowed(User $oUser): bool
 	{
-		if (is_null($oUser)){
+		if (is_null($oUser)) {
 			return false;
 		}
 
-		if (UserRights::IsAdministrator($oUser)){
+		if (UserRights::IsAdministrator($oUser)) {
 			return true;
 		}
 
@@ -60,7 +61,7 @@ class PersonalTokenService
 		return false;
 	}
 
-	public function GetAuthorizedProfiles() : array
+	public function GetAuthorizedProfiles(): array
 	{
 		$aProfiles = utils::GetConfig()->GetModuleSetting(TokenAuthHelper::MODULE_NAME, 'personal_tokens_allowed_profiles', []);
 		if (is_array($aProfiles)) {
@@ -170,7 +171,8 @@ class PersonalTokenService
 		// Double escape 'application' to prevent from XSS, there's also HTML markup in AuthentToken:Message:DeleteTokenConfirmation dict entry that needs to be escaped.
 		$sDeletionLabel = utils::HtmlEntities(Dict::Format('AuthentToken:Message:DeleteTokenConfirmation', utils::HtmlEntities($oToken->Get('application'))));
 		$sTokenId = $oToken->GetKey();
-		$sRowHtml = str_replace('data-role="ibo-button"',
+		$sRowHtml = str_replace(
+			'data-role="ibo-button"',
 			sprintf('data-role="ibo-button" data-token-id="%s" data-deletion-label="%s"', $sTokenId, $sDeletionLabel),
 			$oBlockRenderer->RenderHtml()
 		);
@@ -198,7 +200,7 @@ class PersonalTokenService
 				'icon_classes' => 'fas fa-trash',
 				'action-class' => 'token-delete-button',
 				'color' => Button::ENUM_COLOR_SCHEME_DESTRUCTIVE,
-			]
+			],
 		];
 
 		// row actions toolbar container

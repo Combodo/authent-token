@@ -1,11 +1,12 @@
 <?php
+
 /**
  * Spanish Localized data
  *
  * @copyright Copyright (C) 2010-2024 Combodo SAS
  * @license    https://opensource.org/licenses/AGPL-3.0
  * @author Miguel Turrubiates <miguel_tf@yahoo.com>
- * @notas       Utilizar codificación UTF-8 para mostrar acentos y otros caracteres especiales 
+ * @notas       Utilizar codificación UTF-8 para mostrar acentos y otros caracteres especiales
  */
 Dict::Add('ES CR', 'Spanish', 'Español, Castellano', [
 	'AuthentToken:CopyToken' => 'Las credenciales que debe proporcionar son:<p>auth_token=<a>%1$s</a></p>Cópielo ahora, ¡No podrá obtenerlas más tarde!',
@@ -23,8 +24,8 @@ Dict::Add('ES CR', 'Spanish', 'Español, Castellano', [
 	'Class:PersonalToken/Attribute:expiration_date+' => 'Fecha de expiración',
 	'Class:PersonalToken/Attribute:last_use_date' => 'Fecha último uso',
 	'Class:PersonalToken/Attribute:last_use_date+' => 'La última vez que se utilizó este token para conectarse',
-    'Class:PersonalToken/Attribute:org_id' => 'Organización',
-    'Class:PersonalToken/Attribute:org_id+' => 'Organización heredada del usuario asociado',
+	'Class:PersonalToken/Attribute:org_id' => 'Organización',
+	'Class:PersonalToken/Attribute:org_id+' => 'Organización heredada del usuario asociado',
 	'Class:PersonalToken/Attribute:scope' => 'Alcance',
 	'Class:PersonalToken/Attribute:scope+' => 'En qué contexto(s) se permite el uso de este token',
 	'Class:PersonalToken/Attribute:scope/Value:Export' => 'Exportar',
@@ -40,12 +41,12 @@ Dict::Add('ES CR', 'Spanish', 'Español, Castellano', [
 	'Class:PersonalToken/Attribute:user_id' => 'Usuario',
 	'Class:PersonalToken/Attribute:user_id+' => 'El usuario del que se heredarán los derechos de acceso',
 	'Class:User/Attribute:tokens_list' => 'Tokens Personales',
-    'Class:UserToken' => 'Token de Aplicacción',
-    'Class:UserToken+' => 'Usuario para aplicaciones remotas que acceden a '.ITOP_APPLICATION_SHORT.' servicios web',
+	'Class:UserToken' => 'Token de Aplicacción',
+	'Class:UserToken+' => 'Usuario para aplicaciones remotas que acceden a '.ITOP_APPLICATION_SHORT.' servicios web',
 	'Class:UserToken/Attribute:auth_token' => 'Token de autenticación',
 	'Class:UserToken/Attribute:auth_token+' => 'Legible solo en el momento de la generación',
-    'Class:UserToken/Attribute:login' => 'Aplicación Remota',
-    'Class:UserToken/Attribute:login+' => 'Cadena de identificación de aplicación remota',
+	'Class:UserToken/Attribute:login' => 'Aplicación Remota',
+	'Class:UserToken/Attribute:login+' => 'Cadena de identificación de aplicación remota',
 	'Class:UserToken/Attribute:scope' => 'Alcance',
 	'Class:UserToken/Attribute:scope+' => 'En qué contexto(s) se permite el uso de este token',
 	'Class:UserToken/Attribute:scope/Value:Export' => 'Exportar',

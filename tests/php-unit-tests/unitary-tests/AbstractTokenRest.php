@@ -7,7 +7,6 @@ require_once __DIR__.'/AbstractRest.php';
 use Exception;
 use MetaModel;
 
-
 /**
  * @group itopRequestMgmt
  * @group multiTokenRestApi
@@ -19,7 +18,7 @@ use MetaModel;
  */
 abstract class AbstractTokenRest extends AbstractRest
 {
-	const USE_TRANSACTION = false;
+	public const USE_TRANSACTION = false;
 
 	protected $bTokenInPost;
 

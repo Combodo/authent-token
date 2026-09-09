@@ -17,7 +17,8 @@ class LegacyTokenLoginExtension extends TokenLoginExtension
 	 *
 	 * @return array of supported login modes
 	 */
-	public function ListSupportedLoginModes(){
+	public function ListSupportedLoginModes()
+	{
 		return [self::LEGACY_LOGIN_TYPE];
 	}
 }

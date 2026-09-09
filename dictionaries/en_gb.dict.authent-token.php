@@ -1,11 +1,12 @@
 <?php
+
 /**
  * Localized data
  *
  * @copyright   Copyright (C) 2024 Combodo SAS
  */
 
-Dict::Add('EN GB', 'British English', 'British English', array(
+Dict::Add('EN GB', 'British English', 'British English', [
 	'AuthentToken:CopyToken' => 'The credentials you have to provide are:<p>auth_token=<a>%1$s</a></p>Copy them now, you won\'t be able to get them later!',
 	'AuthentToken:RebuildToken' => 'Rebuild token',
 	'AuthentToken:RebuildToken+' => 'The authentication token will be recreated, BEWARE the previous one will be lost',
@@ -26,14 +27,13 @@ Dict::Add('EN GB', 'British English', 'British English', array(
 	'Menu:SearchPersonalTokens' => 'Personal tokens',
 	'Menu:SearchPersonalTokens+' => 'Personal tokens, usable on web services import, export, rest and data synchronisation',
 
-));
-
+]);
 
 //
 // Class: PersonalToken
 //
 
-Dict::Add('EN GB', 'British English', 'British English', array(
+Dict::Add('EN GB', 'British English', 'British English', [
 	'Class:PersonalToken' => 'Personal Token',
 	'Class:PersonalToken+' => 'Personal token for accessing '.ITOP_APPLICATION_SHORT.' webservices, import, export, rest and data synchro',
 	'Class:PersonalToken/Attribute:user_id' => 'User',
@@ -60,15 +60,15 @@ Dict::Add('EN GB', 'British English', 'British English', array(
 	'Class:PersonalToken/Attribute:use_count+' => 'Number of times this token was used to connect',
 	'Class:PersonalToken/Attribute:last_use_date' => 'Last use date',
 	'Class:PersonalToken/Attribute:last_use_date+' => 'Last time this token was used to connect',
-));
+]);
 
 //
 // Class: UserToken
 //
 
-Dict::Add('EN GB', 'British English', 'British English', array(
+Dict::Add('EN GB', 'British English', 'British English', [
 	'Class:UserToken' => 'Application Token',
-    'Class:UserToken+' => 'User for remote applications accessing '.ITOP_APPLICATION_SHORT.' webservices',
+	'Class:UserToken+' => 'User for remote applications accessing '.ITOP_APPLICATION_SHORT.' webservices',
 	'Class:UserToken/Attribute:login' => 'Remote application',
 	'Class:UserToken/Attribute:login+' => 'Remote application identification string',
 	'Class:UserToken/Attribute:auth_token' => 'Auth token',
@@ -83,4 +83,4 @@ Dict::Add('EN GB', 'British English', 'British English', array(
 	'Class:UserToken/Attribute:scope/Value:Import+' => '/webservices/import.php',
 	'Class:UserToken/Attribute:scope/Value:Export' => 'Export',
 	'Class:UserToken/Attribute:scope/Value:Export+' => '/webservices/export-v2.php',
-));
+]);

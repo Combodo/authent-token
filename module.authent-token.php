@@ -1,4 +1,5 @@
 <?php
+
 //
 // iTop module definition file
 //
@@ -16,7 +17,7 @@ SetupWebPage::AddModule(
 		//
 		'dependencies' => [
 			'combodo-my-account/1.0.0',
-            'itop-profiles-itil/3.2.0',
+			'itop-profiles-itil/3.2.0',
 		],
 		'mandatory' => false,
 		'visible' => true,

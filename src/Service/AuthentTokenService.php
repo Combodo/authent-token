@@ -170,13 +170,10 @@ class AuthentTokenService
 		return null;
 	}
 
-	public function CreateNewToken(DBObject $oObject): string
+	public function CreateNewToken(DBObject $oObject, int $iSize=8): string
 	{
-		$sTokenBeforeEncryption = sprintf(
-			"%s:%s:%s",
-			$oObject->GetKey(),
-			get_class($oObject),
-			random_bytes(8)
+		$sTokenBeforeEncryption = sprintf("%s:%s:%s",
+			$oObject->GetKey(), get_class($oObject), random_bytes($iSize)
 		);
 
 		$sPPrivateKey = $this->GetPrivateKey();

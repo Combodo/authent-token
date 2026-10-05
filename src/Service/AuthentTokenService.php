@@ -53,6 +53,11 @@ class AuthentTokenService
 
 		try {
 			$oCrypt = new SimpleCrypt();
+			if (! strlen($sToken) % 2) {
+				//avoid WARNING
+				throw new \Exception("Invalid token length (cannot work with hex2bin)");
+			}
+
 			$sDecryptedToken = $oCrypt->Decrypt($sPrivateKey, hex2bin($sToken));
 			$oToken = $this->GetLegacyToken($sDecryptedToken);
 			if (! is_null($oToken)) {
@@ -170,10 +175,13 @@ class AuthentTokenService
 		return null;
 	}
 
-	public function CreateNewToken(DBObject $oObject, int $iSize=8): string
+	public function CreateNewToken(DBObject $oObject, int $iSize = 8): string
 	{
-		$sTokenBeforeEncryption = sprintf("%s:%s:%s",
-			$oObject->GetKey(), get_class($oObject), random_bytes($iSize)
+		$sTokenBeforeEncryption = sprintf(
+			"%s:%s:%s",
+			$oObject->GetKey(),
+			get_class($oObject),
+			random_bytes($iSize)
 		);
 
 		$sPPrivateKey = $this->GetPrivateKey();

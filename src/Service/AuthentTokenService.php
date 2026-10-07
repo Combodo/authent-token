@@ -53,7 +53,7 @@ class AuthentTokenService
 
 		try {
 			$oCrypt = new SimpleCrypt();
-			if (! strlen($sToken) % 2) {
+			if (! (strlen($sToken) % 2 === 0)) {
 				//avoid WARNING
 				throw new \Exception("Invalid token length (cannot work with hex2bin)");
 			}
